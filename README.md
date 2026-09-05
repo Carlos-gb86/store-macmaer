@@ -1,100 +1,112 @@
 # Macmaer
 
-Next.js App Router storefront for the Macmaer rebuild. Read [SPEC.md](SPEC.md) before changing architecture or domain behavior. This repository implements **Phases 0 and 1 only**.
+Next.js storefront and catalogue administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–2 are implemented and verified.** Cart, customer pricing, tax, shipping, checkout, and payments remain deferred.
 
-## Local setup
+## Setup and environment
 
-Use Node.js **22.12+** (Node 22 LTS is pinned in `.nvmrc`) and npm.
+Use Node **22.12+** (`.nvmrc` pins Node 22):
 
 ```sh
 nvm use
 npm ci
-cp .env.example .env.local
+cp .env.example .env.local # only if it does not already exist
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). The example environment explicitly selects a sample catalogue, with illustrative prices and local Macmaer reference images. No account or external service is needed. If `.env.local` already exists, edit it instead of overwriting it.
+Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative fixtures. `CATALOG_SOURCE=supabase` (default) requires the connected project's URL and publishable key; database errors never fall back to samples. Public routes remain `/`, `/shop`, `/collections`, `/collections/[slug]`, `/products/[slug]`.
 
-Public routes: `/`, `/shop`, `/collections`, `/collections/[slug]`, `/products/[slug]`. Search, collection/tag/availability filters, sorting and pagination use shareable query parameters. Product configuration is a preview; ordering is not enabled.
+| Variable                               | Purpose                                                                            |
+| -------------------------------------- | ---------------------------------------------------------------------------------- |
+| `CATALOG_SOURCE`                       | `demo` or `supabase`.                                                              |
+| `NEXT_PUBLIC_SITE_URL`                 | Application URL for the deployment.                                                |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase API URL.                                                                  |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key or local legacy anon key.                                          |
+| `SUPABASE_SERVICE_ROLE_KEY`            | Optional isolated server credential; unused by normal admin/storefront operations. |
+| `NEXT_BUILD_DIR`                       | Optional isolated build directory, used by browser tests.                          |
 
-## Environment conventions
+Actual `.env*` files are ignored. Never expose service credentials through `NEXT_PUBLIC_*`. Validation errors identify fields without printing values. Rebuild after changing public variables.
 
-| Variable                               | Purpose                                                                                                                      |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `CATALOG_SOURCE`                       | `demo` for explicit sample data, `supabase` for database reads. Defaults to `supabase`; missing credentials fail validation. |
-| `NEXT_PUBLIC_SITE_URL`                 | Application URL; defaults to localhost for development. Set for each deployment.                                             |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase project/API URL; required in Supabase mode.                                                                         |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key (or local legacy anon key). Required in Supabase mode.                                                       |
-| `SUPABASE_SERVICE_ROLE_KEY`            | Optional server-only credential; unused by public catalogue routes.                                                          |
+## Administrator access
 
-Copy conventions from `.env.example`. Actual `.env*` files are ignored. Only `NEXT_PUBLIC_*` variables can be exposed to browser code. Public environment values use explicit property access so Next.js can inline them. Validation errors list field names, never supplied values. Rebuild after changing public variables or switching a deployed catalogue source.
+1. In Supabase Dashboard → Authentication → Users → Add user, create an email/password account, confirm its email, and set its password privately. This workflow does not send invitations.
+2. Disable **Allow new users to sign up** in hosted Auth settings. Local `supabase/config.toml` also sets `auth.enable_signup=false`. Account/password management stays in Dashboard; no public signup or recovery UI is provided.
+3. Grant allow-list membership through trusted database/CLI access:
 
-## Supabase and migrations
-
-Start Docker Desktop, then:
-
-```sh
-npm run db:start
-npm run db:reset
-npx supabase status
+```sql
+insert into private.admin_users(user_id)
+select id from auth.users where lower(email) = lower('owner@example.com')
+on conflict do nothing;
 ```
 
-`db:reset` replaces the **local** database with migrations and representative seeds; use only for disposable local data. Copy the displayed local API URL and publishable/anon key into `.env.local`, set `CATALOG_SOURCE=supabase`, and restart Next.js. No service-role key is needed to browse.
+The staging command below performs this lookup and fails for a missing account. To revoke access, delete its UUID from `private.admin_users`; existing sessions lose access on the next protected request. Users cannot assign themselves membership.
 
-The migrations create the catalogue tables, constraints, indexes, RLS policies, an RLS-preserving JSON read view and a public `catalogue` Storage bucket. Anonymous and signed-in users can only read active catalogue data. Neither can write. Admin roles, sessions and write policies belong to Phase 2.
+Sign in at `/admin/login`. Every protected page, action, upload, and preview verifies both the Auth identity and current allow-list membership. `src/proxy.ts` refreshes cookies. Admin responses are dynamic and private; ordinary operations use the authenticated user's client and RLS, without service-role bypass.
+
+## Catalogue and homepage workflow
+
+Create a draft, enter descriptions, SEK prices, inventory/processing details, options, valid SKU combinations, memberships, and imagery. Save, preview, and publish. Saving an active product updates it immediately. Products are archived, then optionally restored to drafts. Duplicates receive new identities and require a unique SKU before publication.
+
+All specified option types are supported. Repeated selections configure a product without generating Cartesian-product variants. Forms send decimal strings; the server parses money with integer arithmetic. Tax classification remains unconfigured until Phase 4. Atomic RPCs preserve retained child IDs, reject stale `updated_at` values, and roll back invalid nested edits. Failed saves preserve local form values.
+
+Collections can be deactivated. Tags can be renamed, merged, or deleted when unused. `/admin/content` publishes fixed homepage fields and ordered featured products/collections; inactive references are skipped publicly. Successful actions immediately invalidate `catalogue`/`content` cache tags with `updateTag()`.
+
+## Media and descriptions
+
+Direct browser uploads use authorized signed URLs for private `catalogue-drafts` Storage. Before acceptance, the server fully decodes bytes and verifies format, dimensions, and size: still JPEG, PNG, WebP, AVIF; maximum 10 MiB and 40 megapixels. SVG, corrupt images, and MIME mismatches are rejected.
+
+Admin previews use five-minute signed URLs and bypass Next's public image optimizer. Refresh after expiration. A registry tracks shared gallery, variant, swatch, collection, and homepage references. Gallery controls include primary selection, alt text, variant association, drag ordering, and keyboard move buttons.
+
+Publication prepares copies in public `catalogue` Storage before committing references. Failed saves preserve the prior catalogue state and attempt compensation. Failed cleanup remains recorded for retry in `/admin/media`. Database leases serialize asset publication/cleanup. Files can only be deleted when no references or active leases remain; new upload URLs expire after two hours. Archiving does not make previously published images confidential.
+
+Descriptions use open-source Tiptap. Structured JSON permits paragraphs, headings, bold/italic, lists, links, and line breaks, validated server-side and rendered by an allow-listed React renderer. Plain-text projections remain for compatibility and search.
+
+## Database and staging
+
+Start Docker Desktop, then `npm run db:start`. `npm run db:reset` replaces **disposable local data only**. If Docker cannot mount optional Studio folders, use `npx supabase start --exclude studio,edge-runtime,logflare,vector`. Never reset hosted data.
+
+Migrations `001`–`002` retain the original Phase 1 history. New migrations add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, and media leases. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
+
+`npm run seed:generate` generates deterministic fixture IDs from `src/modules/catalog/fixtures/catalogue.json`. Seeds use `ON CONFLICT DO NOTHING`, preserve existing rows, and are not a catalogue updater. After local checks, stage explicitly:
 
 ```sh
-npm run db:lint
-npm run seed:generate
-npm run db:types
+npx supabase link --project-ref YOUR_STAGING_REF
+npx supabase db push --linked --dry-run
+npm run staging:setup -- --target staging --project-ref YOUR_STAGING_REF --migrate
+npm run staging:setup -- --target staging --project-ref YOUR_STAGING_REF --admin-email owner@example.com
+npm run staging:setup -- --target staging --project-ref YOUR_STAGING_REF --seed
 ```
 
-The seed is generated from `src/modules/catalog/fixtures/catalogue.json`; edit that source and regenerate. It is repeatable on reset and uses deterministic UUIDs. Its conflict behavior leaves existing rows alone; it is not a production catalogue updater.
+The command requires a staging target, matching linked-project metadata, and a matching `.env.local` URL. It never resets a database. Samples contain illustrative data, not approved business prices. The current staging project is `pvdxqtyklfdzukawbtps`. All six migrations are applied, with six active samples and one private draft. The confirmed owner account has administrator membership, and hosted public signup is disabled.
 
-Types are generated from the checked-in SQL using embedded PostgreSQL introspection, without Docker or credentials. The generated types support the current tables and read view; SDK relationship inference is intentionally omitted because repositories use the view. Review the generator when introducing new SQL types. For future hosted-schema workflows, Supabase's `gen types typescript` is also available.
+Audit history covers product status changes, collection edits, and homepage publication. Structured failure logs omit credentials and form contents.
 
-Images accept either `/images/...` paths bundled in this repository or relative object paths in the Supabase `catalogue` bucket. Only that configured project's public catalogue path is allowed by Next Image. The bucket is for published assets; use a separate private bucket for drafts. Browser uploads are not enabled.
-
-## Tests and checks
+## Verification
 
 ```sh
 npm run check
-npm run build
 npx playwright install chromium
 npm run test:e2e
+npm run integration:setup
+npm run test:integration
+npm run test:admin
+npm run build
 ```
 
-- ESLint, strict TypeScript and Prettier run through `check`.
-- Vitest covers catalogue queries, generic configurations, exact minor-unit display, environment validation, SQL constraints and RLS.
-- Database tests execute the migrations unchanged in PGlite (PostgreSQL). Only Supabase roles and Storage bucket metadata are stubbed. They do not replace a full Supabase Auth/Storage/API smoke test.
-- Playwright starts an isolated demo server on port 3100 and checks desktop and mobile catalogue journeys.
-- CI runs checks, generated-file drift verification, production build and browser tests.
+`check` runs lint, strict types, formatting, and unit/database tests. PGlite executes migrations with small Auth/Storage scaffolds. Real integration tests require local Supabase and cover Auth, RLS, refresh/revocation, private Storage, decoding, and publication compensation. Setup creates disposable accounts and writes credentials only to ignored `.env.integration.json` (0600). Integration/browser setup rejects hosted targets.
 
-Commerce calculations and payment tests will be added with their phases. The current preview has no tax, shipping, FX, cart or payment calculations.
+Storefront browser tests use demo data on port 3100; admin tests use local Supabase on 3200 and separate anonymous contexts. Both have isolated build directories. Run integration and admin suites sequentially because revocation tests alter the shared local test administrator. For staging acceptance, build with `.env.local` selecting the connected project.
 
-## Architecture
+Phase 2 acceptance on 2026-09-05: lint, formatting, strict types, 38 unit/database/action tests, 5 real Supabase integration tests, 8 storefront browser checks, 10 admin browser checks, and the staging-backed production build passed. Expired cookie session refresh and production private/no-store admin response headers were verified.
 
-- `src/app`: route composition, metadata, loading/error/not-found boundaries.
-- `src/components`: shared UI, layout and catalogue presentation.
-- `src/modules/catalog`: validated catalogue types, repositories, search and configuration rules; pure functions can be tested without React.
-- `src/modules/media`: image-path resolution.
-- `src/lib/env`: validated public/server configuration.
-- `src/lib/supabase`: typed anonymous, browser, cookie-aware server and isolated service-role clients.
-- `supabase/migrations`: schema history and access controls.
-- `scripts`, `tests`: reproducible fixtures/types and validation.
+## Architecture and deployment
 
-Public database reads use a stateless anonymous client and a 60-second cache. There is no fallback to fixtures after a database failure. Read pages are fetched in batches to avoid PostgREST row truncation; filtering and pagination run server-side over the cached small catalogue. Move filtering into SQL when catalogue size justifies it.
+- `src/app/(storefront)` and `src/app/admin`: separate public/admin layouts.
+- `src/modules/catalog`: read models, filtering, shared configuration validation.
+- `src/modules/admin`: authorization, inputs, actions, money parsing, media lifecycle.
+- `src/modules/content`: homepage persistence and structured rich text.
+- `src/lib/supabase`: typed stateless public, browser, cookie server, isolated service clients.
+- `supabase/migrations`, `scripts`, `tests`: reproducible schema, setup, validation.
 
-The homepage copy and section arrangement live in the homepage component for Phase 1. Phase 2 adds content management. Future pricing, currency, tax, shipping, discounts, cart, checkout, orders, payments/stripe, refunds, fulfilment and email modules must own their business rules outside UI components.
+Public reads use a stateless anonymous client and 60-second cache with immediate admin invalidation. Admin lists query PostgreSQL with search/status filters and pagination. The media picker currently shows the most recent 500 assets; revisit search/pagination as the catalogue grows.
 
-## Stripe test setup
-
-Deferred to Phase 5. There is no Stripe SDK, checkout route, webhook or payment credential requirement in this phase. When implemented, use test credentials, Stripe-hosted payment fields, verified idempotent webhooks and immutable server-calculated order snapshots as specified in `SPEC.md`.
-
-## Deployment
-
-Import the repository into Vercel, choose Node.js 22, use `npm ci` and `npm run build`, and set the environment variables for the appropriate preview environment. The build uses Next.js's supported webpack bundler; development uses Turbopack.
-
-For a Supabase-backed preview, create a development/staging Supabase project, link it with `npx supabase link --project-ref <project-ref>`, review `npx supabase db push --dry-run`, and apply the migrations with `npx supabase db push`. Do not apply sample seeds to production. A new remote database has an empty catalogue until approved data is added. The build must be able to reach Supabase.
-
-All pages intentionally carry `noindex` while this is a catalogue preview. See [DECISIONS.md](DECISIONS.md) for phase boundaries and unresolved production decisions. Launch, SEO/migration, real commerce configuration and production hardening remain later phases.
+Deploy to Vercel with Node 22, `npm ci`, `npm run build`, and preview environment variables. Production builds use webpack; development uses Turbopack. All pages intentionally remain `noindex`. Commerce, transactional email, policies, and launch hardening belong to later phases. See [DECISIONS.md](DECISIONS.md).

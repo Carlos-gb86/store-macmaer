@@ -2,6 +2,33 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 export type Database = { public: {
 Tables: {
+"admin_audit_log": {
+Row: {
+"id": string;
+"actor_id": string | null;
+"entity_type": string;
+"entity_id": string;
+"action": string;
+"created_at": string;
+};
+Insert: {
+"id"?: string;
+"actor_id"?: string | null;
+"entity_type": string;
+"entity_id": string;
+"action": string;
+"created_at"?: string;
+};
+Update: {
+"id"?: string;
+"actor_id"?: string | null;
+"entity_type"?: string;
+"entity_id"?: string;
+"action"?: string;
+"created_at"?: string;
+};
+Relationships: [];
+};
 "collections": {
 Row: {
 "id": string;
@@ -16,6 +43,8 @@ Row: {
 "seo_description": string | null;
 "created_at": string;
 "updated_at": string;
+"description_document": Json | null;
+"asset_id": string | null;
 };
 Insert: {
 "id"?: string;
@@ -30,6 +59,8 @@ Insert: {
 "seo_description"?: string | null;
 "created_at"?: string;
 "updated_at"?: string;
+"description_document"?: Json | null;
+"asset_id"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -44,6 +75,167 @@ Update: {
 "seo_description"?: string | null;
 "created_at"?: string;
 "updated_at"?: string;
+"description_document"?: Json | null;
+"asset_id"?: string | null;
+};
+Relationships: [];
+};
+"homepage_collections": {
+Row: {
+"collection_id": string;
+"sort_order": number;
+};
+Insert: {
+"collection_id": string;
+"sort_order": number;
+};
+Update: {
+"collection_id"?: string;
+"sort_order"?: number;
+};
+Relationships: [];
+};
+"homepage_content": {
+Row: {
+"id": boolean;
+"announcement": string;
+"hero_eyebrow": string;
+"hero_title": string;
+"hero_subtitle": string;
+"hero_image": string;
+"hero_alt": string;
+"hero_asset_id": string | null;
+"hero_cta_label": string;
+"hero_cta_path": string;
+"hero_visible": boolean;
+"story_eyebrow": string;
+"story_title": string;
+"story_text": string;
+"story_image": string;
+"story_alt": string;
+"story_asset_id": string | null;
+"story_visible": boolean;
+"featured_visible": boolean;
+"collections_visible": boolean;
+"updated_at": string;
+};
+Insert: {
+"id"?: boolean;
+"announcement"?: string;
+"hero_eyebrow"?: string;
+"hero_title"?: string;
+"hero_subtitle"?: string;
+"hero_image"?: string;
+"hero_alt"?: string;
+"hero_asset_id"?: string | null;
+"hero_cta_label"?: string;
+"hero_cta_path"?: string;
+"hero_visible"?: boolean;
+"story_eyebrow"?: string;
+"story_title"?: string;
+"story_text"?: string;
+"story_image"?: string;
+"story_alt"?: string;
+"story_asset_id"?: string | null;
+"story_visible"?: boolean;
+"featured_visible"?: boolean;
+"collections_visible"?: boolean;
+"updated_at"?: string;
+};
+Update: {
+"id"?: boolean;
+"announcement"?: string;
+"hero_eyebrow"?: string;
+"hero_title"?: string;
+"hero_subtitle"?: string;
+"hero_image"?: string;
+"hero_alt"?: string;
+"hero_asset_id"?: string | null;
+"hero_cta_label"?: string;
+"hero_cta_path"?: string;
+"hero_visible"?: boolean;
+"story_eyebrow"?: string;
+"story_title"?: string;
+"story_text"?: string;
+"story_image"?: string;
+"story_alt"?: string;
+"story_asset_id"?: string | null;
+"story_visible"?: boolean;
+"featured_visible"?: boolean;
+"collections_visible"?: boolean;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"homepage_products": {
+Row: {
+"product_id": string;
+"sort_order": number;
+};
+Insert: {
+"product_id": string;
+"sort_order": number;
+};
+Update: {
+"product_id"?: string;
+"sort_order"?: number;
+};
+Relationships: [];
+};
+"media_assets": {
+Row: {
+"id": string;
+"original_name": string;
+"private_path": string;
+"public_path": string | null;
+"public_ready": boolean;
+"status": string;
+"mime_type": string | null;
+"byte_size": number | null;
+"width": number | null;
+"height": number | null;
+"cleanup_pending": boolean;
+"lease_until": string | null;
+"created_by": string;
+"created_at": string;
+"lease_token": string | null;
+"upload_expires_at": string | null;
+};
+Insert: {
+"id"?: string;
+"original_name": string;
+"private_path": string;
+"public_path"?: string | null;
+"public_ready"?: boolean;
+"status"?: string;
+"mime_type"?: string | null;
+"byte_size"?: number | null;
+"width"?: number | null;
+"height"?: number | null;
+"cleanup_pending"?: boolean;
+"lease_until"?: string | null;
+"created_by"?: string;
+"created_at"?: string;
+"lease_token"?: string | null;
+"upload_expires_at"?: string | null;
+};
+Update: {
+"id"?: string;
+"original_name"?: string;
+"private_path"?: string;
+"public_path"?: string | null;
+"public_ready"?: boolean;
+"status"?: string;
+"mime_type"?: string | null;
+"byte_size"?: number | null;
+"width"?: number | null;
+"height"?: number | null;
+"cleanup_pending"?: boolean;
+"lease_until"?: string | null;
+"created_by"?: string;
+"created_at"?: string;
+"lease_token"?: string | null;
+"upload_expires_at"?: string | null;
 };
 Relationships: [];
 };
@@ -76,6 +268,7 @@ Row: {
 "height": number;
 "is_primary": boolean;
 "sort_order": number;
+"asset_id": string | null;
 };
 Insert: {
 "id"?: string;
@@ -87,6 +280,7 @@ Insert: {
 "height": number;
 "is_primary"?: boolean;
 "sort_order"?: number;
+"asset_id"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -98,6 +292,7 @@ Update: {
 "height"?: number;
 "is_primary"?: boolean;
 "sort_order"?: number;
+"asset_id"?: string | null;
 };
 Relationships: [];
 };
@@ -114,6 +309,7 @@ Row: {
 "weight_delta_grams": number;
 "active": boolean;
 "sort_order": number;
+"asset_id": string | null;
 };
 Insert: {
 "id"?: string;
@@ -127,6 +323,7 @@ Insert: {
 "weight_delta_grams"?: number;
 "active"?: boolean;
 "sort_order"?: number;
+"asset_id"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -140,6 +337,7 @@ Update: {
 "weight_delta_grams"?: number;
 "active"?: boolean;
 "sort_order"?: number;
+"asset_id"?: string | null;
 };
 Relationships: [];
 };
@@ -285,6 +483,7 @@ Row: {
 "seo_description": string | null;
 "created_at": string;
 "updated_at": string;
+"description_document": Json | null;
 };
 Insert: {
 "id"?: string;
@@ -313,6 +512,7 @@ Insert: {
 "seo_description"?: string | null;
 "created_at"?: string;
 "updated_at"?: string;
+"description_document"?: Json | null;
 };
 Update: {
 "id"?: string;
@@ -341,6 +541,7 @@ Update: {
 "seo_description"?: string | null;
 "created_at"?: string;
 "updated_at"?: string;
+"description_document"?: Json | null;
 };
 Relationships: [];
 };
@@ -349,16 +550,19 @@ Row: {
 "id": string;
 "slug": string;
 "name": string;
+"updated_at": string;
 };
 Insert: {
 "id"?: string;
 "slug": string;
 "name": string;
+"updated_at"?: string;
 };
 Update: {
 "id"?: string;
 "slug"?: string;
 "name"?: string;
+"updated_at"?: string;
 };
 Relationships: [];
 };
@@ -395,7 +599,17 @@ Row: {
 Relationships: [];
 };
 };
-Functions: Record<never, never>; Enums: {
+Functions: {
+"admin_acquire_media_lease": { Args: {"asset": string;"token": string;}; Returns: undefined};
+"admin_claim_media_cleanup": { Args: {"asset": string;}; Returns: boolean};
+"admin_claim_public_cleanup": { Args: {"asset": string;}; Returns: boolean};
+"admin_media_references": { Args: {"asset": string;}; Returns: boolean};
+"admin_mutate_tag": { Args: {"operation": string;"document": Json;"expected_updated_at"?: string;"target_id"?: string;}; Returns: undefined};
+"admin_save_collection": { Args: {"document": Json;"expected_updated_at"?: string;}; Returns: Json};
+"admin_save_homepage": { Args: {"document": Json;"product_ids": Json;"collection_ids": Json;"expected_updated_at": string;}; Returns: Json};
+"admin_save_product": { Args: {"document": Json;"expected_updated_at"?: string;}; Returns: Json};
+"is_admin": { Args: Record<never, never>; Returns: boolean};
+}; Enums: {
 "inventory_strategy": "TRACKED" | "MADE_TO_ORDER" | "UNLIMITED" | "UNAVAILABLE";
 "product_status": "draft" | "active" | "archived";
 "option_display_type": "select" | "radio" | "colour_swatch" | "image_swatch" | "checkbox" | "short_text" | "number" | "repeated_select";

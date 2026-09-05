@@ -36,7 +36,8 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
               onClick={() => setSelected(index)}
             >
               <Image
-                src={resolveImage(item.path)}
+                src={item.resolved_src ?? resolveImage(item.path)}
+                unoptimized={item.private}
                 alt={item.alt}
                 width={80}
                 height={80}
@@ -58,7 +59,8 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
         </Button>
         {image && (
           <Image
-            src={resolveImage(image.path)}
+            src={image.resolved_src ?? resolveImage(image.path)}
+            unoptimized={image.private}
             alt={image.alt}
             width={image.width}
             height={image.height}

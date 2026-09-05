@@ -17,6 +17,6 @@ export default defineConfig({
     command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
     url: "http://127.0.0.1:3100",
     reuseExistingServer: false,
-    env: { CATALOG_SOURCE: "demo" },
+    env: { CATALOG_SOURCE: "demo", NEXT_BUILD_DIR: ".next-e2e" },
   },
 });

@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getSupabasePublicEnv } from "@/lib/env/public";
 import type { Database } from "./database.types";
-// Phase 2 must add session-refresh proxy and server authorization before protected routes.
+// Cookie sessions are refreshed by src/proxy.ts; requireAdmin verifies identity and membership.
 export async function createServerSupabaseClient() {
   const { url, key } = getSupabasePublicEnv();
   const cookieStore = await cookies();

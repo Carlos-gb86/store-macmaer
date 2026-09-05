@@ -26,7 +26,8 @@ export function ProductImage({
     );
   return (
     <Image
-      src={resolveImage(image.path)}
+      src={image.resolved_src ?? resolveImage(image.path)}
+      unoptimized={image.private}
       alt={image.alt}
       fill
       sizes={sizes}

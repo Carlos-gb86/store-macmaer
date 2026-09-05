@@ -72,7 +72,38 @@ try {
     }
     output += "};\n";
   }
-  output += "Functions: Record<never, never>; Enums: {\n";
+  output += "Functions: {\n";
+  const { rows: functions } = await db.query(
+    "select p.proname, p.proargnames, p.pronargdefaults, array(select format_type(t,null) from unnest(p.proargtypes) t) as arg_types, format_type(p.prorettype,null) as result_type from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and (p.proname='is_admin' or p.proname like 'admin_%') order by p.proname",
+  );
+  const functionType = (type) =>
+    type === "jsonb"
+      ? "Json"
+      : type === "boolean"
+        ? "boolean"
+        : type === "void"
+          ? "undefined"
+          : "string";
+  for (const fn of functions) {
+    if (!fn.arg_types.length) {
+      output +=
+        JSON.stringify(fn.proname) +
+        ": { Args: Record<never, never>; Returns: " +
+        functionType(fn.result_type) +
+        "};\n";
+      continue;
+    }
+    output += JSON.stringify(fn.proname) + ": { Args: {";
+    for (const [i, type] of fn.arg_types.entries())
+      output +=
+        JSON.stringify(fn.proargnames[i]) +
+        (i >= fn.arg_types.length - fn.pronargdefaults ? "?" : "") +
+        ": " +
+        functionType(type) +
+        ";";
+    output += "}; Returns: " + functionType(fn.result_type) + "};\n";
+  }
+  output += "}; Enums: {\n";
   for (const [name, values] of enumMap)
     output +=
       JSON.stringify(name) +

@@ -131,7 +131,8 @@ function OptionControl({
             )}
             {option.display_type === "image_swatch" && value.image_path && (
               <Image
-                src={resolveImage(value.image_path)}
+                src={value.resolved_src ?? resolveImage(value.image_path)}
+                unoptimized={value.private}
                 alt=""
                 width={36}
                 height={36}

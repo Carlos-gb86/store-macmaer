@@ -1,4 +1,5 @@
 import type { Product, ProductVariant } from "./schema";
+import { matchesNumericStep } from "./numeric";
 export type Selections = Record<string, string[]>;
 export function isAvailable(
   item: Pick<Product, "inventory_strategy" | "stock_quantity">,
@@ -86,7 +87,12 @@ export function validateSelections(
             (option.validation_rules.min !== undefined &&
               Number(value) < option.validation_rules.min) ||
             (option.validation_rules.max !== undefined &&
-              Number(value) > option.validation_rules.max),
+              Number(value) > option.validation_rules.max) ||
+            !matchesNumericStep(
+              Number(value),
+              option.validation_rules.min ?? 0,
+              option.validation_rules.step ?? 1,
+            ),
         )
       )
         errors.push("Enter a valid " + option.label.toLowerCase() + ".");

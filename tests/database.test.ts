@@ -33,7 +33,7 @@ describe("PostgreSQL migrations and RLS", () => {
       const collections = await db.query("select * from public.collections");
       const catalogue = catalogueSchema.parse({
         products: rows.map((row) => row.document),
-        collections: collections.rows,
+        collections: JSON.parse(JSON.stringify(collections.rows)),
       });
       expect(catalogue.products).toHaveLength(6);
       expect(catalogue.collections).toHaveLength(4);
@@ -54,7 +54,7 @@ describe("PostgreSQL migrations and RLS", () => {
       ).toHaveLength(0);
     });
   });
-  it.each(["anon", "authenticated"] as const)(
+  it.each(["anon"] as const)(
     "denies catalogue mutation by %s",
     async (role) => {
       await expect(

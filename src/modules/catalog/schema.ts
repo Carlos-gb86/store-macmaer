@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { richTextSchema } from "@/modules/content/rich-text";
 const money = z.number().int().nonnegative().max(2147483647);
 const inventory = z.enum([
   "TRACKED",
@@ -7,6 +8,9 @@ const inventory = z.enum([
   "UNAVAILABLE",
 ]);
 export const imageSchema = z.object({
+  asset_id: z.uuid().nullable().default(null),
+  resolved_src: z.string().optional(),
+  private: z.boolean().optional(),
   id: z.uuid(),
   path: z.string(),
   alt: z.string(),
@@ -17,6 +21,9 @@ export const imageSchema = z.object({
   variant_id: z.uuid().nullable(),
 });
 export const optionValueSchema = z.object({
+  resolved_src: z.string().optional(),
+  private: z.boolean().optional(),
+  asset_id: z.uuid().nullable().default(null),
   id: z.uuid(),
   key: z.string(),
   label: z.string(),
@@ -73,6 +80,7 @@ export const variantSchema = z.object({
   value_ids: z.array(z.uuid()),
 });
 export const productSchema = z.object({
+  description_document: richTextSchema.nullable().default(null),
   id: z.uuid(),
   slug: z.string(),
   title: z.string(),
@@ -106,6 +114,9 @@ export const productSchema = z.object({
   tags: z.array(z.string()),
 });
 export const collectionSchema = z.object({
+  description_document: richTextSchema.nullable().default(null),
+  asset_id: z.uuid().nullable().default(null),
+  updated_at: z.string().optional(),
   id: z.uuid(),
   slug: z.string(),
   name: z.string(),

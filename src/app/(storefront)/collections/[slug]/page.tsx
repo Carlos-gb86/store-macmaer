@@ -7,6 +7,7 @@ import { Catalogue } from "@/components/catalog/catalogue";
 import { getCatalogue, getCollection } from "@/modules/catalog/repository";
 import { resolveImage } from "@/modules/media/resolve-image";
 import type { SearchParams } from "@/modules/catalog/query";
+import { RichText } from "@/components/content/rich-text";
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
@@ -34,7 +35,10 @@ export default async function CollectionPage({ params, searchParams }: Props) {
         <div>
           <p className="eyebrow">The {collection.name} collection</p>
           <h1>{collection.name}</h1>
-          <p>{collection.description}</p>
+          <RichText
+            document={collection.description_document}
+            fallback={collection.description}
+          />
         </div>
         {collection.image_path && (
           <div className="collection-cover">

@@ -9,6 +9,8 @@ export default defineConfig([
   { rules: { "@typescript-eslint/no-explicit-any": "error" } },
   globalIgnores([
     ".next/**",
+    ".next-admin/**",
+    ".next-e2e/**",
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",

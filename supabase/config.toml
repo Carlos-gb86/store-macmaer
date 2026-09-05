@@ -26,7 +26,18 @@ port = 54323
 [auth]
 enabled = true
 site_url = "http://localhost:3000"
+additional_redirect_urls = []
 enable_signup = false
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+max_frequency = "1m"
+otp_length = 8
 
 [storage]
 enabled = true

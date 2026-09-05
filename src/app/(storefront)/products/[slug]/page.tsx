@@ -7,6 +7,7 @@ import { ProductConfigurator } from "@/components/catalog/product-configurator";
 import { ProductCard } from "@/components/catalog/product-card";
 import { getCatalogue, getProduct } from "@/modules/catalog/repository";
 import { formatCataloguePrice } from "@/modules/catalog/format";
+import { RichText } from "@/components/content/rich-text";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct((await params).slug);
@@ -74,7 +75,10 @@ export default async function ProductPage({ params }: Props) {
           <div className="product-details-list">
             <details open>
               <summary>The details</summary>
-              <p>{product.description}</p>
+              <RichText
+                document={product.description_document}
+                fallback={product.description}
+              />
             </details>
             <details>
               <summary>Materials & care</summary>
