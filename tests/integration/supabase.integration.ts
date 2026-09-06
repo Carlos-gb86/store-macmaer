@@ -42,6 +42,14 @@ beforeAll(async () => {
   }
 });
 it("enforces Auth, refresh, signup restrictions and revocation with a live session", async () => {
+  const settings = await fetch(env.url + "/auth/v1/settings", {
+    headers: { apikey: env.key },
+  });
+  expect(settings.ok).toBe(true);
+  expect(await settings.json()).toMatchObject({
+    external: { email: true },
+    disable_signup: true,
+  });
   expect((await admin.rpc("is_admin")).data).toBe(true);
   expect((await ordinary.rpc("is_admin")).data).toBe(false);
   expect(

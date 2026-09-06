@@ -34,7 +34,9 @@ enroll_enabled = true
 verify_enabled = true
 
 [auth.email]
-enable_signup = false
+# This enables the email provider (including login). Global auth.enable_signup
+# remains false to reject public registration while allowing provisioned users.
+enable_signup = true
 enable_confirmations = true
 max_frequency = "1m"
 otp_length = 8

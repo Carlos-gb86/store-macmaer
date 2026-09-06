@@ -74,6 +74,8 @@ The explicit staging setup requires a staging target, matching CLI project refer
 
 ## Phase 2 completion — 2026-09-05
 
+Login configuration correction: hosted email/password login was disabled by `auth.email.enable_signup=false`. Keep that provider setting `true` while global `auth.enable_signup=false` blocks registration. Staging Auth settings and the password endpoint were rechecked after correction; integration tests now assert both settings together. Login failures log only error code/status/name on the server and distinguish credential rejection from service failures.
+
 Lint, formatting, strict types, 38 unit/database/direct-action tests, 5 real Supabase Auth/Storage integration tests, 8 desktop/mobile storefront browser checks, and 10 admin browser checks passed. Browser acceptance covers the full draft lifecycle, all five representative models, media/homepage/collection publication, ordinary-user denial, stale-edit value preservation, and expired cookie session refresh. The production build passed with the connected staging catalogue, and production admin response headers were verified as private/no-store.
 
 Real API testing identified two Supabase-specific requirements: intentional stale-edit conflicts use PT409 so PostgREST returns HTTP 409 without retrying serialization errors; homepage membership replacement uses explicit WHERE clauses to satisfy the hosted safe-delete setting. Both are covered by database/integration/browser tests.

@@ -29,7 +29,7 @@ Actual `.env*` files are ignored. Never expose service credentials through `NEXT
 ## Administrator access
 
 1. In Supabase Dashboard → Authentication → Users → Add user, create an email/password account, confirm its email, and set its password privately. This workflow does not send invitations.
-2. Disable **Allow new users to sign up** in hosted Auth settings. Local `supabase/config.toml` also sets `auth.enable_signup=false`. Account/password management stays in Dashboard; no public signup or recovery UI is provided.
+2. Disable **Allow new users to sign up** in hosted Auth settings, but keep the **Email provider enabled**. Local `supabase/config.toml` sets `auth.enable_signup=false` and `auth.email.enable_signup=true`: the latter controls the email provider, including existing-user login. Setting both to false disables password login. Account/password management stays in Dashboard; no public signup or recovery UI is provided.
 3. Grant allow-list membership through trusted database/CLI access:
 
 ```sql

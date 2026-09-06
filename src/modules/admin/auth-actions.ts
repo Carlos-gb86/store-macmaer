@@ -1,15 +1,48 @@
 "use server";
 import { z } from "zod";
 import { redirect } from "next/navigation";
+import type { AuthError } from "@supabase/supabase-js";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { requireAdmin } from "./auth";
 import type { MutationResult } from "./result";
+function signInError(error: AuthError): MutationResult {
+  // Never log credentials, tokens, or the provider's raw error message.
+  console.error(
+    JSON.stringify({
+      event: "admin_sign_in_failed",
+      code: error.code ?? "unknown",
+      status: error.status,
+      name: error.name,
+    }),
+  );
+  if (error.code === "invalid_credentials")
+    return {
+      ok: false,
+      code: "unauthorized",
+      message: "Sign-in failed. Check your email and password.",
+    };
+  if (error.status === 429)
+    return {
+      ok: false,
+      code: "unauthorized",
+      message: "Too many sign-in attempts. Wait a few minutes and try again.",
+    };
+  return {
+    ok: false,
+    code: "unexpected",
+    message:
+      "Sign-in is currently unavailable. Please try again shortly or contact the shop owner.",
+  };
+}
 export async function login(
   _previous: MutationResult | null,
   form: FormData,
 ): Promise<MutationResult> {
   const input = z
-    .object({ email: z.email(), password: z.string().min(1).max(200) })
+    .object({
+      email: z.string().trim().pipe(z.email()),
+      password: z.string().min(1).max(200),
+    })
     .safeParse(Object.fromEntries(form));
   if (!input.success)
     return {
@@ -19,13 +52,22 @@ export async function login(
     };
   const client = await createServerSupabaseClient();
   const { error } = await client.auth.signInWithPassword(input.data);
-  if (error)
+  if (error) return signInError(error);
+  const { data: allowed, error: roleError } = await client.rpc("is_admin");
+  if (roleError) {
+    console.error(
+      JSON.stringify({
+        event: "admin_access_check_failed",
+        code: roleError.code,
+      }),
+    );
+    await client.auth.signOut();
     return {
       ok: false,
-      code: "unauthorized",
-      message: "Sign-in failed. Check your credentials or try again shortly.",
+      code: "unexpected",
+      message: "Administrator access could not be verified. Please try again.",
     };
-  const { data: allowed } = await client.rpc("is_admin");
+  }
   if (!allowed) {
     await client.auth.signOut();
     return {
