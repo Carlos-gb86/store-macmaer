@@ -2,6 +2,7 @@ node_modules/
 .next/
 .next-admin/
 .next-e2e/
+.next-commerce/
 out/
 coverage/
 playwright-report/

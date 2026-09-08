@@ -3,6 +3,7 @@ import { Container } from "@/components/ui/container";
 import { Catalogue } from "@/components/catalog/catalogue";
 import { getCatalogue } from "@/modules/catalog/repository";
 import type { SearchParams } from "@/modules/catalog/query";
+import { getStorefrontContext } from "@/modules/currency/repository";
 export const metadata: Metadata = {
   title: "All pieces",
   description:
@@ -13,7 +14,11 @@ export default async function Shop({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const [data, params] = await Promise.all([getCatalogue(), searchParams]);
+  const [data, params, context] = await Promise.all([
+    getCatalogue(),
+    searchParams,
+    getStorefrontContext(),
+  ]);
   return (
     <Container className="page-section">
       <div className="page-intro">
@@ -24,7 +29,7 @@ export default async function Shop({
           together.
         </p>
       </div>
-      <Catalogue data={data} params={params} />
+      <Catalogue data={data} params={params} pricing={context.pricing} />
     </Container>
   );
 }

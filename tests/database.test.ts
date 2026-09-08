@@ -25,6 +25,22 @@ async function asRole<T>(
   }
 }
 describe("PostgreSQL migrations and RLS", () => {
+  it("keeps anonymous cart and FX records behind the server boundary", async () => {
+    await expect(
+      asRole("anon", () => db.query("select * from public.carts")),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      asRole("anon", () => db.query("select * from public.currency_rates")),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      db.exec("insert into public.carts(token_hash) values ('short')"),
+    ).rejects.toThrow(/check constraint/);
+    await expect(
+      db.exec(
+        "insert into public.currency_rates(quote_currency,rate_numerator,rate_denominator,source,source_effective_at) values ('EUR',0,1,'test',now())",
+      ),
+    ).rejects.toThrow(/check constraint/);
+  });
   it("reads seeded products and generic configurations through the RLS view", async () => {
     await asRole("anon", async () => {
       const { rows } = await db.query<{ document: unknown }>(

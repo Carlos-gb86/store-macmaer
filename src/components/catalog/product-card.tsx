@@ -1,14 +1,22 @@
 import Link from "next/link";
 import type { Product } from "@/modules/catalog/schema";
-import { formatCataloguePrice } from "@/modules/catalog/format";
+import type { PricingContext } from "@/modules/currency/schema";
+import { formatMoney } from "@/modules/currency/money";
+import {
+  calculateProductStartingPrice,
+  displayAmount,
+} from "@/modules/pricing/calculate";
 import { ProductImage } from "./product-image";
 export function ProductCard({
   product,
+  pricing,
   priority = false,
 }: {
   product: Product;
+  pricing: PricingContext;
   priority?: boolean;
 }) {
+  const price = displayAmount(calculateProductStartingPrice(product), pricing);
   return (
     <article className="product-card">
       <Link href={"/products/" + product.slug}>
@@ -27,7 +35,7 @@ export function ProductCard({
           product.options.some((o) => o.affects_price)
             ? "From "
             : ""}
-          {formatCataloguePrice(product.base_price, product.currency)}
+          {formatMoney(price, pricing.currency)}
         </p>
       </Link>
     </article>

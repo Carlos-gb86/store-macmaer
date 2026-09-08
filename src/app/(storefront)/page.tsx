@@ -5,10 +5,12 @@ import { ProductCard } from "@/components/catalog/product-card";
 import { getCatalogue } from "@/modules/catalog/repository";
 import { getHomepage } from "@/modules/content/repository";
 import { resolveImage } from "@/modules/media/resolve-image";
+import { getStorefrontContext } from "@/modules/currency/repository";
 export default async function Home() {
-  const [catalogue, content] = await Promise.all([
+  const [catalogue, content, context] = await Promise.all([
     getCatalogue(),
     getHomepage(),
+    getStorefrontContext(),
   ]);
   return (
     <>
@@ -54,7 +56,11 @@ export default async function Home() {
                 .map((id) => catalogue.products.find((p) => p.id === id))
                 .filter((p) => p !== undefined)
                 .map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    pricing={context.pricing}
+                  />
                 ))}
             </div>
           </section>

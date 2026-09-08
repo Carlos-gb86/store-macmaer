@@ -29,6 +29,105 @@ Update: {
 };
 Relationships: [];
 };
+"cart_items": {
+Row: {
+"id": string;
+"cart_id": string;
+"product_id": string;
+"variant_id": string | null;
+"line_key": string;
+"selected_options": Json;
+"product_title": string;
+"product_slug": string;
+"sku": string | null;
+"image_path": string | null;
+"quantity": number;
+"base_unit_amount": number;
+"display_unit_amount": number;
+"display_currency": string;
+"fx_rate_id": string | null;
+"priced_at": string;
+"is_valid": boolean;
+"validation_message": string | null;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"cart_id": string;
+"product_id": string;
+"variant_id"?: string | null;
+"line_key": string;
+"selected_options"?: Json;
+"product_title": string;
+"product_slug": string;
+"sku"?: string | null;
+"image_path"?: string | null;
+"quantity": number;
+"base_unit_amount": number;
+"display_unit_amount": number;
+"display_currency": string;
+"fx_rate_id"?: string | null;
+"priced_at"?: string;
+"is_valid"?: boolean;
+"validation_message"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"cart_id"?: string;
+"product_id"?: string;
+"variant_id"?: string | null;
+"line_key"?: string;
+"selected_options"?: Json;
+"product_title"?: string;
+"product_slug"?: string;
+"sku"?: string | null;
+"image_path"?: string | null;
+"quantity"?: number;
+"base_unit_amount"?: number;
+"display_unit_amount"?: number;
+"display_currency"?: string;
+"fx_rate_id"?: string | null;
+"priced_at"?: string;
+"is_valid"?: boolean;
+"validation_message"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"carts": {
+Row: {
+"id": string;
+"token_hash": string;
+"currency": string;
+"destination_country": string;
+"expires_at": string;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"token_hash": string;
+"currency"?: string;
+"destination_country"?: string;
+"expires_at"?: string;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"token_hash"?: string;
+"currency"?: string;
+"destination_country"?: string;
+"expires_at"?: string;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
 "collections": {
 Row: {
 "id": string;
@@ -77,6 +176,39 @@ Update: {
 "updated_at"?: string;
 "description_document"?: Json | null;
 "asset_id"?: string | null;
+};
+Relationships: [];
+};
+"currency_rates": {
+Row: {
+"id": string;
+"base_currency": string;
+"quote_currency": string;
+"rate_numerator": number;
+"rate_denominator": number;
+"source": string;
+"source_effective_at": string;
+"fetched_at": string;
+};
+Insert: {
+"id"?: string;
+"base_currency"?: string;
+"quote_currency": string;
+"rate_numerator": number;
+"rate_denominator": number;
+"source": string;
+"source_effective_at": string;
+"fetched_at"?: string;
+};
+Update: {
+"id"?: string;
+"base_currency"?: string;
+"quote_currency"?: string;
+"rate_numerator"?: number;
+"rate_denominator"?: number;
+"source"?: string;
+"source_effective_at"?: string;
+"fetched_at"?: string;
 };
 Relationships: [];
 };
@@ -545,6 +677,33 @@ Update: {
 };
 Relationships: [];
 };
+"store_currencies": {
+Row: {
+"code": string;
+"enabled": boolean;
+"sort_order": number;
+"markup_basis_points": number;
+"rounding_increment_minor": number;
+"updated_at": string;
+};
+Insert: {
+"code": string;
+"enabled"?: boolean;
+"sort_order"?: number;
+"markup_basis_points"?: number;
+"rounding_increment_minor"?: number;
+"updated_at"?: string;
+};
+Update: {
+"code"?: string;
+"enabled"?: boolean;
+"sort_order"?: number;
+"markup_basis_points"?: number;
+"rounding_increment_minor"?: number;
+"updated_at"?: string;
+};
+Relationships: [];
+};
 "tags": {
 Row: {
 "id": string;
@@ -606,6 +765,7 @@ Functions: {
 "admin_media_references": { Args: {"asset": string;}; Returns: boolean};
 "admin_mutate_tag": { Args: {"operation": string;"document": Json;"expected_updated_at"?: string;"target_id"?: string;}; Returns: undefined};
 "admin_save_collection": { Args: {"document": Json;"expected_updated_at"?: string;}; Returns: Json};
+"admin_save_currency_settings": { Args: {"document": Json;}; Returns: undefined};
 "admin_save_homepage": { Args: {"document": Json;"product_ids": Json;"collection_ids": Json;"expected_updated_at": string;}; Returns: Json};
 "admin_save_product": { Args: {"document": Json;"expected_updated_at"?: string;}; Returns: Json};
 "is_admin": { Args: Record<never, never>; Returns: boolean};

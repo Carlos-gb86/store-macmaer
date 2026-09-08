@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { Catalogue, Product } from "./schema";
 import { availableConfigurations } from "./selection";
+import { calculateProductStartingPrice } from "@/modules/pricing/calculate";
 export const catalogueQuerySchema = z.object({
   q: z.string().trim().max(120).catch(""),
   collection: z.string().max(80).catch(""),
@@ -52,7 +53,8 @@ export function searchCatalogue(catalogue: Catalogue, query: CatalogueQuery) {
         ))
     );
   });
-  // Phase 1 sorts canonical catalogue base prices; destination/currency pricing comes in Phase 3.
+  // All catalogue products are canonical SEK; conversion is monotonic, so sort exact
+  // purchasable starting prices before applying the selected display currency.
   const sorters: Record<
     CatalogueQuery["sort"],
     (a: Product, b: Product) => number
@@ -60,8 +62,10 @@ export function searchCatalogue(catalogue: Catalogue, query: CatalogueQuery) {
     featured: (a, b) =>
       Number(b.featured) - Number(a.featured) || a.sort_order - b.sort_order,
     newest: (a, b) => b.created_at.localeCompare(a.created_at),
-    "price-asc": (a, b) => a.base_price - b.base_price,
-    "price-desc": (a, b) => b.base_price - a.base_price,
+    "price-asc": (a, b) =>
+      calculateProductStartingPrice(a) - calculateProductStartingPrice(b),
+    "price-desc": (a, b) =>
+      calculateProductStartingPrice(b) - calculateProductStartingPrice(a),
   };
   products.sort(
     (a, b) => sorters[query.sort](a, b) || a.slug.localeCompare(b.slug),

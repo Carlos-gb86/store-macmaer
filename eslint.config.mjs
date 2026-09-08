@@ -11,6 +11,7 @@ export default defineConfig([
     ".next/**",
     ".next-admin/**",
     ".next-e2e/**",
+    ".next-commerce/**",
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",

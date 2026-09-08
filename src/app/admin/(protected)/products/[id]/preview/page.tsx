@@ -60,7 +60,16 @@ export default async function Preview({
             document={p.description_document}
             fallback={p.description}
           />
-          <ProductConfigurator product={p} />
+          <ProductConfigurator
+            product={p}
+            pricing={{
+              currency: "SEK",
+              rate: null,
+              markupBasisPoints: 0,
+              roundingIncrementMinor: 1,
+            }}
+            commerceEnabled={false}
+          />
         </div>
       </div>
     </>

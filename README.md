@@ -1,6 +1,6 @@
 # Macmaer
 
-Next.js storefront and catalogue administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–2 are implemented and verified.** Cart, customer pricing, tax, shipping, checkout, and payments remain deferred.
+Next.js storefront and catalogue administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–3 are implemented and verified.** Tax, shipping, discounts, checkout, and payments remain deferred.
 
 ## Setup and environment
 
@@ -13,18 +13,26 @@ cp .env.example .env.local # only if it does not already exist
 npm run dev
 ```
 
-Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative fixtures. `CATALOG_SOURCE=supabase` (default) requires the connected project's URL and publishable key; database errors never fall back to samples. Public routes remain `/`, `/shop`, `/collections`, `/collections/[slug]`, `/products/[slug]`.
+Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative fixtures. `CATALOG_SOURCE=supabase` (default) requires the connected project's URL, publishable key, and server-only service-role key; database errors never fall back to samples. Public routes are `/`, `/shop`, `/collections`, `/collections/[slug]`, `/products/[slug]`, and `/cart`.
 
-| Variable                               | Purpose                                                                            |
-| -------------------------------------- | ---------------------------------------------------------------------------------- |
-| `CATALOG_SOURCE`                       | `demo` or `supabase`.                                                              |
-| `NEXT_PUBLIC_SITE_URL`                 | Application URL for the deployment.                                                |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase API URL.                                                                  |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key or local legacy anon key.                                          |
-| `SUPABASE_SERVICE_ROLE_KEY`            | Optional isolated server credential; unused by normal admin/storefront operations. |
-| `NEXT_BUILD_DIR`                       | Optional isolated build directory, used by browser tests.                          |
+| Variable                               | Purpose                                                                                                                            |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `CATALOG_SOURCE`                       | `demo` or `supabase`.                                                                                                              |
+| `NEXT_PUBLIC_SITE_URL`                 | Application URL for the deployment.                                                                                                |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Supabase API URL.                                                                                                                  |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key or local legacy anon key.                                                                                          |
+| `SUPABASE_SERVICE_ROLE_KEY`            | Server-only Supabase secret key required for anonymous cart persistence. The existing name also supports legacy service-role keys. |
+| `NEXT_BUILD_DIR`                       | Optional isolated build directory, used by browser tests.                                                                          |
 
-Actual `.env*` files are ignored. Never expose service credentials through `NEXT_PUBLIC_*`. Validation errors identify fields without printing values. Rebuild after changing public variables.
+Actual `.env*` files are ignored. `SUPABASE_SERVICE_ROLE_KEY` may contain Supabase's newer secret API key; despite the backwards-compatible variable name, a legacy JWT is not required. Never expose this credential through `NEXT_PUBLIC_*`. Validation errors identify fields without printing values. Rebuild after changing public variables.
+
+## Cart, destination, and currency
+
+Supabase mode enables anonymous server-persisted carts. The browser receives a random HTTP-only cart token; only its SHA-256 hash is stored in Postgres. Cart inputs contain product/configuration references and quantity, never trusted prices. Every cart read and mutation reloads the live product, resolves the variant and options, checks availability and tracked inventory, and recalculates prices server-side. Different custom or repeated selections remain separate lines; identical configurations merge. Cart totals are estimates and do not yet include Phase 4 tax, shipping, or discounts.
+
+SEK remains the canonical catalogue currency. The storefront currency and shopping destination are independent HTTP-only preferences, defaulting to SEK and Sweden. `/admin/settings/currency` controls currency availability, conversion markup and rounding, and can fetch ECB reference rates. Rates are append-only with source/effective timestamps; EUR or USD stays unavailable until a real rate has been stored. No exchange rates are seeded or invented. The country selector establishes context only—Phase 4 will configure the supported shipping-country allow-list and destination calculations.
+
+Demo catalogue mode remains intentionally non-purchasable and does not fabricate converted prices.
 
 ## Administrator access
 
@@ -93,10 +101,11 @@ npm run test:e2e
 npm run integration:setup
 npm run test:integration
 npm run test:admin
+npm run test:commerce
 npm run build
 ```
 
-`check` runs lint, strict types, formatting, and unit/database tests. PGlite executes migrations with small Auth/Storage scaffolds. Real integration tests require local Supabase and cover Auth, RLS, refresh/revocation, private Storage, decoding, and publication compensation. Setup creates disposable accounts and writes credentials only to ignored `.env.integration.json` (0600). Integration/browser setup rejects hosted targets.
+`check` runs lint, strict types, formatting, and unit/database tests. PGlite executes migrations with small Auth/Storage scaffolds. Real integration tests require local Supabase and cover Auth, RLS, refresh/revocation, private Storage, decoding, and publication compensation. The commerce browser suite uses local Supabase and deterministic test-only FX rows to cover cart persistence, configurations, currency/destination context, quantities, removal, and unavailable inventory. Setup creates disposable accounts and writes credentials only to ignored `.env.integration.json` (0600). Integration/browser setup rejects hosted targets.
 
 Storefront browser tests use demo data on port 3100; admin tests use local Supabase on 3200 and separate anonymous contexts. Both have isolated build directories. Run integration and admin suites sequentially because revocation tests alter the shared local test administrator. For staging acceptance, build with `.env.local` selecting the connected project.
 
@@ -108,11 +117,13 @@ Admin refinement on 2026-09-07: 51 unit/database/action tests, 6 real Supabase i
 
 - `src/app/(storefront)` and `src/app/admin`: separate public/admin layouts.
 - `src/modules/catalog`: read models, filtering, shared configuration validation.
+- `src/modules/pricing`, `currency`, `country`: configured-price/FX logic and persisted storefront context.
+- `src/modules/cart`: canonical option snapshots, secure anonymous ownership, validation, and persistence.
 - `src/modules/admin`: authorization, inputs, actions, money parsing, media lifecycle.
 - `src/modules/content`: homepage persistence and structured rich text.
 - `src/lib/supabase`: typed stateless public, browser, cookie server, isolated service clients.
 - `supabase/migrations`, `scripts`, `tests`: reproducible schema, setup, validation.
 
-Public reads use a stateless anonymous client and 60-second cache with immediate admin invalidation. Admin lists query PostgreSQL with search/status filters and pagination. The media picker currently shows the most recent 500 assets; revisit search/pagination as the catalogue grows.
+Public catalogue reads use a stateless anonymous client and 60-second cache with immediate admin invalidation. Request-specific context and carts are never put in that shared cache. Admin lists query PostgreSQL with search/status filters and pagination. The media picker currently shows the most recent 500 assets; revisit search/pagination as the catalogue grows.
 
-Deploy to Vercel with Node 22, `npm ci`, `npm run build`, and preview environment variables. Production builds use webpack; development uses Turbopack. All pages intentionally remain `noindex`. Commerce, transactional email, policies, and launch hardening belong to later phases. See [DECISIONS.md](DECISIONS.md).
+Deploy to Vercel with Node 22, `npm ci`, `npm run build`, and preview environment variables. Production builds use webpack; development uses Turbopack. All pages intentionally remain `noindex`. Shipping/tax/discount calculations, checkout, transactional email, policies, and launch hardening belong to later phases. See [DECISIONS.md](DECISIONS.md).

@@ -32,7 +32,9 @@
     ".next-admin/types/**/*.ts",
     ".next-admin/dev/types/**/*.ts",
     ".next-e2e/types/**/*.ts",
-    ".next-e2e/dev/types/**/*.ts"
+    ".next-e2e/dev/types/**/*.ts",
+    ".next-commerce/types/**/*.ts",
+    ".next-commerce/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules", ".next-admin", ".next-e2e"]
 }

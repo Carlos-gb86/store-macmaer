@@ -49,6 +49,51 @@ it("publishes homepage fields and ordered memberships atomically", async () => {
     ).toEqual({ hero_title: "Updated homepage" });
   });
 });
+it("updates all currency settings atomically for administrators only", async () => {
+  const document = JSON.stringify([
+    {
+      code: "SEK",
+      enabled: true,
+      markup_basis_points: 0,
+      rounding_increment_minor: 1,
+    },
+    {
+      code: "EUR",
+      enabled: false,
+      markup_basis_points: 125,
+      rounding_increment_minor: 100,
+    },
+    {
+      code: "USD",
+      enabled: true,
+      markup_basis_points: 0,
+      rounding_increment_minor: 1,
+    },
+  ]);
+  await expect(
+    asUser(ordinary, () =>
+      db.query("select public.admin_save_currency_settings($1::jsonb)", [
+        document,
+      ]),
+    ),
+  ).rejects.toThrow(/Administrator/);
+  await asUser(admin, async () => {
+    await db.query("select public.admin_save_currency_settings($1::jsonb)", [
+      document,
+    ]);
+    expect(
+      (
+        await db.query(
+          "select enabled,markup_basis_points,rounding_increment_minor from public.store_currencies where code='EUR'",
+        )
+      ).rows[0],
+    ).toEqual({
+      enabled: false,
+      markup_basis_points: 125,
+      rounding_increment_minor: 100,
+    });
+  });
+});
 async function asUser<T>(id: string, fn: () => Promise<T>) {
   await db.exec("begin;set local role authenticated");
   await db.query("select set_config('request.jwt.claim.sub',$1,true)", [id]);

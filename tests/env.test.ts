@@ -12,8 +12,9 @@ describe("environment boundaries", () => {
       parseEnv(serverEnvSchema, {
         CATALOG_SOURCE: "supabase",
         NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "public-key",
       }),
-    ).toThrow("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+    ).toThrow("SUPABASE_SERVICE_ROLE_KEY");
   });
   it("validates supplied URLs even in demo mode", () => {
     expect(() =>

@@ -1,6 +1,15 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
-export function Header() {
+import { StoreContextSelectors } from "./store-context-selectors";
+import { getStorefrontContext } from "@/modules/currency/repository";
+import { getCartCount } from "@/modules/cart/repository";
+import { countries } from "@/modules/country/countries";
+
+export async function Header() {
+  const [context, cartCount] = await Promise.all([
+    getStorefrontContext(),
+    getCartCount(),
+  ]);
   return (
     <header className="site-header">
       <Container className="header-inner">
@@ -12,22 +21,42 @@ export function Header() {
           <Link href="/collections">Collections</Link>
           <Link href="/#story">Our story</Link>
         </nav>
-        <Link
-          className="header-search"
-          href="/shop#catalogue-search"
-          aria-label="Search the catalogue"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.4"
-            aria-hidden="true"
+        <div className="header-tools">
+          <StoreContextSelectors
+            currency={context.pricing.currency}
+            currencies={context.settings.map((setting) => ({
+              code: setting.code,
+              available: context.pricing.availableCurrencies.includes(
+                setting.code,
+              ),
+            }))}
+            destination={context.destinationCountry}
+            countries={countries}
+          />
+          <Link
+            className="header-search"
+            href="/shop#catalogue-search"
+            aria-label="Search the catalogue"
           >
-            <circle cx="10.5" cy="10.5" r="6.5" />
-            <path d="m16 16 5 5" />
-          </svg>
-        </Link>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.4"
+              aria-hidden="true"
+            >
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="m16 16 5 5" />
+            </svg>
+          </Link>
+          <Link
+            className="header-cart"
+            href="/cart"
+            aria-label={`Cart, ${cartCount} items`}
+          >
+            Cart <span>{cartCount}</span>
+          </Link>
+        </div>
       </Container>
     </header>
   );

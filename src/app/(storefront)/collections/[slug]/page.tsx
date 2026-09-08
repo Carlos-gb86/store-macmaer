@@ -8,6 +8,7 @@ import { getCatalogue, getCollection } from "@/modules/catalog/repository";
 import { resolveImage } from "@/modules/media/resolve-image";
 import type { SearchParams } from "@/modules/catalog/query";
 import { RichText } from "@/components/content/rich-text";
+import { getStorefrontContext } from "@/modules/currency/repository";
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
@@ -21,7 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function CollectionPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const [data, query] = await Promise.all([getCatalogue(), searchParams]);
+  const [data, query, context] = await Promise.all([
+    getCatalogue(),
+    searchParams,
+    getStorefrontContext(),
+  ]);
   const collection = data.collections.find(
     (collection) => collection.slug === slug,
   );
@@ -53,7 +58,12 @@ export default async function CollectionPage({ params, searchParams }: Props) {
           </div>
         )}
       </div>
-      <Catalogue data={data} params={query} collection={slug} />
+      <Catalogue
+        data={data}
+        params={query}
+        collection={slug}
+        pricing={context.pricing}
+      />
     </Container>
   );
 }

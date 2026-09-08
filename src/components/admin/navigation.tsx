@@ -5,13 +5,24 @@ export function AdminNavigation() {
   const path = usePathname();
   return (
     <nav aria-label="Administration">
-      {["products", "collections", "tags", "media", "content"].map((item) => (
+      {[
+        "products",
+        "collections",
+        "tags",
+        "media",
+        "content",
+        "settings/currency",
+      ].map((item) => (
         <Link
           key={item}
           href={"/admin/" + item}
           aria-current={path.startsWith("/admin/" + item) ? "page" : undefined}
         >
-          {item === "content" ? "Homepage" : item}
+          {item === "content"
+            ? "Homepage"
+            : item === "settings/currency"
+              ? "Currency"
+              : item}
         </Link>
       ))}
     </nav>

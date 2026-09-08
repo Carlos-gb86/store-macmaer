@@ -8,13 +8,16 @@ import {
 } from "@/modules/catalog/query";
 import { ProductCard } from "./product-card";
 import { Button } from "@/components/ui/button";
+import type { PricingContext } from "@/modules/currency/schema";
 export function Catalogue({
   data,
   params,
+  pricing,
   collection,
 }: {
   data: CatalogueData;
   params: SearchParams;
+  pricing: PricingContext;
   collection?: string;
 }) {
   const query = parseCatalogueQuery({
@@ -108,6 +111,7 @@ export function Catalogue({
             <ProductCard
               key={product.id}
               product={product}
+              pricing={pricing}
               priority={index < 2}
             />
           ))}
