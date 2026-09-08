@@ -9,10 +9,15 @@ export function ListTools({
   statuses?: string[];
 }) {
   return (
-    <form className="admin-actions">
+    <form className="admin-filters">
       <label>
         Search
-        <input name="q" defaultValue={q} />
+        <input
+          name="q"
+          defaultValue={q}
+          placeholder="Search by name…"
+          type="search"
+        />
       </label>
       {statuses.length > 0 && (
         <label>

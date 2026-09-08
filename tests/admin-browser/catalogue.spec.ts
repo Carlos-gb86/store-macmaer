@@ -209,7 +209,7 @@ test("uploads private images and publishes homepage and collection controls", as
     buffer: readFileSync("public/images/catalogue/boucle-infinity.png"),
   });
   await expect(
-    page.getByRole("status").filter({ hasText: "Image verified" }),
+    page.getByRole("status").filter({ hasText: "Image optimised" }),
   ).toBeVisible();
   const client = createClient(env.url, env.key);
   await client.auth.signInWithPassword(env.admin);
@@ -234,9 +234,14 @@ test("uploads private images and publishes homepage and collection controls", as
   const copy = "Homepage acceptance " + Date.now();
   await page.getByLabel("hero title", { exact: true }).fill(copy);
   await page
-    .getByRole("combobox", { name: "Image", exact: true })
+    .getByRole("button", { name: "Change image", exact: true })
     .first()
-    .selectOption(asset.id);
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByLabel("Search images", { exact: true })
+    .fill(name);
+  await page.getByRole("button", { name: "Use " + name, exact: true }).click();
   await page.getByRole("button", { name: "Publish homepage" }).click();
   await expect(page.getByRole("status")).toContainText("Homepage published");
   const viewer = await anonymous.newPage();
@@ -254,9 +259,12 @@ test("uploads private images and publishes homepage and collection controls", as
   await page.getByLabel("name", { exact: true }).fill("Browser collection");
   await page.getByLabel("slug", { exact: true }).fill(slug);
   await page.getByLabel("active", { exact: true }).check();
+  await page.getByRole("button", { name: "Choose image", exact: true }).click();
   await page
-    .getByRole("combobox", { name: "Image", exact: true })
-    .selectOption(asset.id);
+    .getByRole("dialog")
+    .getByLabel("Search images", { exact: true })
+    .fill(name);
+  await page.getByRole("button", { name: "Use " + name, exact: true }).click();
   await page.getByRole("button", { name: "Save collection" }).click();
   await expect(page).toHaveURL(/\/admin\/collections\/[0-9a-f-]{36}$/);
   await viewer.goto("http://127.0.0.1:3200/collections/" + slug);

@@ -2,7 +2,7 @@
 import { z } from "zod";
 import { requireAdmin } from "./auth";
 import { mutationError } from "./errors";
-import { imageFormats, inspectImage, cleanupPublicCopies } from "./media";
+import { optimiseImage, cleanupPublicCopies, type MediaItem } from "./media";
 import type { MutationResult } from "./result";
 export async function beginUpload(
   input: unknown,
@@ -17,10 +17,7 @@ export async function beginUpload(
       })
       .parse(input);
     const id = crypto.randomUUID(),
-      path =
-        id +
-        "/original." +
-        Object.entries(imageFormats).find(([, mime]) => mime === file.type)![0];
+      path = id + "/image.webp";
     const { error } = await client.from("media_assets").insert({
       id,
       original_name: file.name,
@@ -45,7 +42,9 @@ export async function beginUpload(
     return mutationError(error, "begin_upload");
   }
 }
-export async function finishUpload(id: string): Promise<MutationResult> {
+export async function finishUpload(
+  id: string,
+): Promise<MutationResult<MediaItem>> {
   try {
     const { client } = await requireAdmin();
     z.uuid().parse(id);
@@ -60,18 +59,12 @@ export async function finishUpload(id: string): Promise<MutationResult> {
       .from("catalogue-drafts")
       .download(asset.private_path);
     if (downloadError) throw downloadError;
+    let optimised;
     try {
-      const metadata = await inspectImage(
+      optimised = await optimiseImage(
         Buffer.from(await file.arrayBuffer()),
+        asset.mime_type!,
       );
-      if (metadata.mime_type !== asset.mime_type)
-        throw new Error("Format mismatch");
-      const { error: updateError } = await client
-        .from("media_assets")
-        .update({ ...metadata, status: "ready" })
-        .eq("id", id)
-        .eq("status", "uploading");
-      if (updateError) throw updateError;
     } catch {
       await client
         .from("media_assets")
@@ -84,7 +77,30 @@ export async function finishUpload(id: string): Promise<MutationResult> {
           "Upload rejected. Use a valid, still JPEG, PNG, WebP, or AVIF image up to 10 MiB and 40 megapixels.",
       };
     }
-    return { ok: true, data: { id }, message: "Image verified and ready." };
+    const { error: storageError } = await client.storage
+      .from("catalogue-drafts")
+      .upload(asset.private_path, optimised.bytes, {
+        contentType: "image/webp",
+        upsert: true,
+        cacheControl: "0",
+      });
+    if (storageError) throw storageError;
+    const { data: ready, error: updateError } = await client
+      .from("media_assets")
+      .update({ ...optimised.metadata, status: "ready" })
+      .eq("id", id)
+      .eq("status", "uploading")
+      .select()
+      .single();
+    if (updateError) throw updateError;
+    const { data: signed } = await client.storage
+      .from("catalogue-drafts")
+      .createSignedUrl(asset.private_path, 300);
+    return {
+      ok: true,
+      data: { ...ready, preview_url: signed?.signedUrl ?? null },
+      message: "Image optimised and ready to use.",
+    };
   } catch (error) {
     return mutationError(error, "finish_upload");
   }

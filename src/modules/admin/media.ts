@@ -2,6 +2,7 @@ import "server-only";
 import sharp from "sharp";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
+import { resolveImage } from "@/modules/media/resolve-image";
 type Client = SupabaseClient<Database>;
 export const imageFormats = {
   jpeg: "image/jpeg",
@@ -37,6 +38,35 @@ export async function inspectImage(bytes: Buffer) {
     width: metadata.width,
     height: metadata.height,
     byte_size: bytes.length,
+  };
+}
+export async function optimiseImage(bytes: Buffer, expectedMime: string) {
+  const input = await inspectImage(bytes);
+  if (input.mime_type !== expectedMime) throw new Error("Format mismatch");
+  // Bound both landscape and portrait originals; never enlarge small images.
+  // Sharp strips EXIF/GPS metadata by default and retains transparency in WebP.
+  const { data, info } = await sharp(bytes, {
+    limitInputPixels: 40000000,
+    failOn: "warning",
+  })
+    .rotate()
+    .resize({
+      width: 2400,
+      height: 2400,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .webp({ quality: 82, effort: 4 })
+    .toBuffer({ resolveWithObject: true });
+  if (data.length > 10485760) throw new Error("Optimised image exceeds 10 MiB");
+  return {
+    bytes: data,
+    metadata: {
+      mime_type: "image/webp",
+      width: info.width,
+      height: info.height,
+      byte_size: data.length,
+    },
   };
 }
 export async function prepareAssets(
@@ -180,3 +210,39 @@ export async function mediaLibrary(client: Client) {
   );
 }
 export type MediaItem = Awaited<ReturnType<typeof mediaLibrary>>[number];
+export async function imagePreviews(
+  client: Client,
+  images: { id: string; path: string | null; asset_id: string | null }[],
+) {
+  const ids = [
+    ...new Set(images.flatMap((i) => (i.asset_id ? [i.asset_id] : []))),
+  ];
+  const { data, error } = ids.length
+    ? await client
+        .from("media_assets")
+        .select("id,private_path")
+        .in("id", ids)
+        .eq("status", "ready")
+    : { data: [], error: null };
+  if (error) throw error;
+  const signed = new Map(
+    await Promise.all(
+      data.map(async (asset) => {
+        const { data } = await client.storage
+          .from("catalogue-drafts")
+          .createSignedUrl(asset.private_path, 300);
+        return [asset.id, data?.signedUrl ?? null] as const;
+      }),
+    ),
+  );
+  return new Map(
+    images.map((i) => [
+      i.id,
+      i.asset_id
+        ? (signed.get(i.asset_id) ?? null)
+        : i.path
+          ? resolveImage(i.path)
+          : null,
+    ]),
+  );
+}

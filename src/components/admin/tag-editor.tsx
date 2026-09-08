@@ -4,13 +4,62 @@ import { useRouter } from "next/navigation";
 import { mutateTag } from "@/modules/admin/actions";
 import type { MutationResult } from "@/modules/admin/result";
 import { Field, Result, useEditorReady } from "./fields";
-type Tag = { id: string; name: string; slug: string; updated_at?: string };
+import { Dialog } from "./dialog";
+import { Plus, Trash2 } from "lucide-react";
+export type Tag = {
+  id: string;
+  name: string;
+  slug: string;
+  updated_at?: string;
+};
+export function TagDialogButton({
+  initial,
+  targets = [],
+  onCreated,
+}: {
+  initial?: Tag;
+  targets?: Tag[];
+  onCreated?: (tag: Tag) => void;
+}) {
+  const [editing, setEditing] = useState<Tag | null>(null);
+  return (
+    <>
+      <button
+        type="button"
+        className={initial ? "text-button" : "secondary"}
+        onClick={() =>
+          setEditing(initial ?? { id: crypto.randomUUID(), name: "", slug: "" })
+        }
+      >
+        {!initial && <Plus size={16} />}
+        {initial?.name ?? "Create tag"}
+      </button>
+      {editing && (
+        <Dialog
+          title={initial ? "Edit tag" : "Create tag"}
+          onClose={() => setEditing(null)}
+        >
+          <TagEditor
+            initial={editing}
+            targets={targets}
+            onSaved={(tag) => {
+              onCreated?.(tag);
+              setEditing(null);
+            }}
+          />
+        </Dialog>
+      )}
+    </>
+  );
+}
 export function TagEditor({
   initial,
   targets,
+  onSaved,
 }: {
   initial: Tag;
   targets: Tag[];
+  onSaved?: (tag: Tag) => void;
 }) {
   const [tag, setTag] = useState(initial),
     [target, setTarget] = useState(""),
@@ -22,7 +71,8 @@ export function TagEditor({
       const r = await mutateTag(op, tag, target || undefined);
       setResult(r);
       if (r.ok) {
-        router.push("/admin/tags");
+        if (onSaved) onSaved(tag);
+        else router.push("/admin/tags");
         router.refresh();
       }
     });
@@ -35,14 +85,27 @@ export function TagEditor({
         save("save");
       }}
     >
-      <h1>{tag.name || "New tag"}</h1>
+      {!onSaved && <h1>{tag.name || "New tag"}</h1>}
+      <p className="muted">
+        Tags help you organise and find products. For example: handmade,
+        neutral, or limited edition.
+      </p>
       <Field
         label="Name"
         value={tag.name}
-        onChange={(v) => setTag({ ...tag, name: String(v) })}
+        onChange={(v) =>
+          setTag({
+            ...tag,
+            name: String(v),
+            ...(!tag.updated_at && (!tag.slug || tag.slug === slugify(tag.name))
+              ? { slug: slugify(String(v)) }
+              : {}),
+          })
+        }
       />
       <Field
         label="Slug"
+        help="A unique URL-friendly name. Created automatically from the name; you can change it."
         value={tag.slug}
         onChange={(v) => setTag({ ...tag, slug: String(v) })}
       />
@@ -52,10 +115,18 @@ export function TagEditor({
         {tag.updated_at && (
           <button
             type="button"
+            className="danger secondary"
             disabled={pending}
-            onClick={() => save("delete")}
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Delete this tag? It can only be deleted when no products use it.",
+                )
+              )
+                save("delete");
+            }}
           >
-            Delete unused tag
+            <Trash2 size={16} /> Delete unused tag
           </button>
         )}
       </div>
@@ -79,7 +150,14 @@ export function TagEditor({
           <button
             type="button"
             disabled={pending || !target}
-            onClick={() => save("merge")}
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Move every product to the selected tag and delete this tag?",
+                )
+              )
+                save("merge");
+            }}
           >
             Merge into selected tag
           </button>
@@ -87,4 +165,12 @@ export function TagEditor({
       )}
     </form>
   );
+}
+function slugify(name: string) {
+  return name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }

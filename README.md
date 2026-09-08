@@ -48,11 +48,15 @@ Create a draft, enter descriptions, SEK prices, inventory/processing details, op
 
 All specified option types are supported. Repeated selections configure a product without generating Cartesian-product variants. Forms send decimal strings; the server parses money with integer arithmetic. Tax classification remains unconfigured until Phase 4. Atomic RPCs preserve retained child IDs, reject stale `updated_at` values, and roll back invalid nested edits. Failed saves preserve local form values.
 
+The admin editor groups pricing, availability, and fulfilment separately. Customer options and stock variants have collapsible summaries, contextual help, and settings appropriate to the selected option type. Tags can be created in a dialog directly from an unsaved product, or managed from the tags list. Image selection uses a searchable thumbnail dialog; gallery uploads are added directly and can be ordered with a drag grip or keyboard buttons.
+
 Collections can be deactivated. Tags can be renamed, merged, or deleted when unused. `/admin/content` publishes fixed homepage fields and ordered featured products/collections; inactive references are skipped publicly. Successful actions immediately invalidate `catalogue`/`content` cache tags with `updateTag()`.
 
 ## Media and descriptions
 
 Direct browser uploads use authorized signed URLs for private `catalogue-drafts` Storage. Before acceptance, the server fully decodes bytes and verifies format, dimensions, and size: still JPEG, PNG, WebP, AVIF; maximum 10 MiB and 40 megapixels. SVG, corrupt images, and MIME mismatches are rejected.
+
+New uploads are automatically oriented, resized to fit within 2400 × 2400 pixels without enlargement, and encoded as WebP at quality 82. Embedded metadata is stripped and transparency retained. The registry records the processed dimensions, byte size, and MIME type; publication copies the processed image. Existing published files keep their current references and are not rewritten by this update.
 
 Admin previews use five-minute signed URLs and bypass Next's public image optimizer. Refresh after expiration. A registry tracks shared gallery, variant, swatch, collection, and homepage references. Gallery controls include primary selection, alt text, variant association, drag ordering, and keyboard move buttons.
 
@@ -97,6 +101,8 @@ npm run build
 Storefront browser tests use demo data on port 3100; admin tests use local Supabase on 3200 and separate anonymous contexts. Both have isolated build directories. Run integration and admin suites sequentially because revocation tests alter the shared local test administrator. For staging acceptance, build with `.env.local` selecting the connected project.
 
 Phase 2 acceptance on 2026-09-05: lint, formatting, strict types, 38 unit/database/action tests, 5 real Supabase integration tests, 8 storefront browser checks, 10 admin browser checks, and the staging-backed production build passed. Expired cookie session refresh and production private/no-store admin response headers were verified.
+
+Admin refinement on 2026-09-07: 51 unit/database/action tests, 6 real Supabase integration tests, 13 admin browser checks, and 8 storefront browser checks passed. Desktop/phone layouts, tag dialogs, visual gallery uploads, and WebP processing were verified. Lint, formatting, strict types, and the staging-backed production build passed.
 
 ## Architecture and deployment
 

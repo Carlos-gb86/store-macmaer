@@ -25,13 +25,28 @@ export default async function Dashboard() {
             key={c.status}
             href={"/admin/products?status=" + c.status}
           >
-            <strong>{c.count}</strong> {c.status} products
+            <strong className="dashboard-count">{c.count}</strong> {c.status}{" "}
+            products
           </Link>
         ))}
       </div>
       <Link className="button" href="/admin/products/new">
         Create product
       </Link>
+      <div className="admin-card dashboard-help">
+        <h2>Your catalogue workflow</h2>
+        <p>
+          Start with a draft, add details and photos, then preview and publish
+          when you’re ready.
+        </p>
+        <div className="admin-actions">
+          <Link href="/admin/media">Upload photos →</Link>
+          <Link href="/admin/content">Edit homepage →</Link>
+          <Link href="/" target="_blank">
+            View shop ↗
+          </Link>
+        </div>
+      </div>
     </>
   );
 }

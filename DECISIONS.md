@@ -81,3 +81,11 @@ Lint, formatting, strict types, 38 unit/database/direct-action tests, 5 real Sup
 Real API testing identified two Supabase-specific requirements: intentional stale-edit conflicts use PT409 so PostgREST returns HTTP 409 without retrying serialization errors; homepage membership replacement uses explicit WHERE clauses to satisfy the hosted safe-delete setting. Both are covered by database/integration/browser tests.
 
 Phase 3 (cart, destination, currency, and server-authoritative customer pricing) is the next separate milestone. No later-phase commerce services were introduced.
+
+## Admin usability refinement — 2026-09-07
+
+Before Phase 3, refine the admin interface around catalogue tasks: aligned list filters, signed product/collection thumbnails, responsive navigation, separate price/availability/fulfilment groups, contextual help, collapsible options and variants, a visual gallery and media picker, shared tag dialogs, and section-based homepage controls. Native modal dialogs provide focus containment, Escape dismissal, and focus restoration. Creating a tag from a product selects it without saving or navigating away from the product.
+
+New uploads are decoded and checked before Sharp corrects orientation, strips metadata, fits within 2400 pixels on either axis without enlargement, and writes quality-82 WebP. Processed metadata is registered before the asset becomes ready. This bounds the source used for publication and subsequent responsive image delivery. Existing published assets are preserved; no schema migration or hosted reset is needed for this refinement.
+
+Verification: 51 unit/database/action checks, 6 real Supabase integration checks, 13 admin browser checks, and 8 storefront browser checks passed, along with lint, formatting, strict types, and the staging-backed production build. Screens were reviewed at desktop and phone widths. Browser coverage includes inline tag creation without saving the product, options/variant creation, multiple gallery uploads, keyboard image selection with focus restoration, aligned filters, and viewport overflow checks.
