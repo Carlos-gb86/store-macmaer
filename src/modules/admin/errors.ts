@@ -42,8 +42,8 @@ export function mutationError(
       code: "validation",
       message:
         code === "23505"
-          ? "That slug, SKU, or option key is already in use."
-          : "Check catalogue references, required fields, and variant combinations.",
+          ? "A key, code, slug, SKU, or option value is already in use."
+          : "Check the references, required fields, ranges, and combinations.",
     };
   console.error(
     JSON.stringify({ event: "admin_mutation_failed", operation, code }),

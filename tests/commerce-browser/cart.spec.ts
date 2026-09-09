@@ -79,6 +79,37 @@ test("keeps repeated custom configurations as separate persistent lines", async 
   await expect(page.locator(".cart-line")).toHaveCount(2);
 });
 
+test("quotes destination VAT, configurable shipping and MACMAER10 on the server", async ({
+  page,
+}) => {
+  await page.goto("/products/infinity-knot");
+  await page.getByRole("button", { name: "Add to cart" }).click();
+  await expect(page.getByText("Added to your cart.")).toBeVisible();
+  await page.goto("/cart");
+
+  const summary = page.locator(".cart-summary");
+  await expect(summary.getByText("80 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("136 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("680 SEK", { exact: true })).toBeVisible();
+
+  await page.getByLabel("Discount code").fill("MACMAER10");
+  await page.getByRole("button", { name: "Apply" }).click();
+  await expect(page.getByText("MACMAER10 applied.")).toBeVisible();
+  await expect(summary.getByText("−60 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("620 SEK", { exact: true })).toBeVisible();
+
+  await page
+    .getByRole("button", { name: "Remove", exact: true })
+    .last()
+    .click();
+  await expect(page.getByText("Discount code removed.")).toBeVisible();
+  await page.getByLabel("Shopping destination").selectOption("US");
+  await expect(page.getByText("Destination updated.")).toBeAttached();
+  await expect(summary.getByText("250 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("0 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("850 SEK", { exact: true })).toHaveCount(2);
+});
+
 test("changes currency independently from destination and rejects unavailable stock", async ({
   page,
 }) => {

@@ -94,6 +94,123 @@ it("updates all currency settings atomically for administrators only", async () 
     });
   });
 });
+it("updates shipping, tax and discount configuration through admin-only transactions", async () => {
+  const shipping = {
+    packaging_weight_grams: 50,
+    package_classes: [{ key: "standard", name: "Standard", active: true }],
+    countries: [
+      {
+        country_code: "SE",
+        zone_id: "30000000-0000-4000-8000-000000000001",
+      },
+    ],
+    zones: [
+      {
+        id: "30000000-0000-4000-8000-000000000001",
+        key: "test_zone",
+        name: "Test zone",
+        active: true,
+        sort_order: 0,
+        methods: [
+          {
+            id: "31000000-0000-4000-8000-000000000001",
+            name: "Test delivery",
+            carrier: null,
+            tracked: true,
+            estimated_delivery: "Tomorrow",
+            active: true,
+            sort_order: 0,
+            rules: [
+              {
+                id: "32000000-0000-4000-8000-000000000001",
+                calculation_type: "BASE_PLUS_ADDITIONAL",
+                base_amount: 8000,
+                additional_item_amount: 2000,
+                min_weight_grams: 0,
+                max_weight_grams: null,
+                min_subtotal: 0,
+                max_subtotal: null,
+                package_class_key: null,
+                free_shipping_threshold: 100000,
+                threshold_basis: "AFTER_DISCOUNT",
+                price_includes_vat: true,
+                shipping_tax_category_key: "standard_goods",
+                active: true,
+                priority: 0,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  await expect(
+    asUser(ordinary, () =>
+      db.query("select public.admin_save_shipping_settings($1::jsonb)", [
+        JSON.stringify(shipping),
+      ]),
+    ),
+  ).rejects.toThrow(/Administrator/);
+  await asUser(admin, async () => {
+    await db.query("select public.admin_save_shipping_settings($1::jsonb)", [
+      JSON.stringify(shipping),
+    ]);
+    expect(
+      (
+        await db.query(
+          "select base_amount,additional_item_amount from shipping_rate_rules where id='32000000-0000-4000-8000-000000000001'",
+        )
+      ).rows[0],
+    ).toEqual({ base_amount: 8000, additional_item_amount: 2000 });
+    await db.query("select public.admin_save_tax_settings($1::jsonb)", [
+      JSON.stringify({
+        eu_mode: "DESTINATION",
+        catalogue_prices_include_vat: true,
+        export_rate_basis_points: 0,
+        export_message: "Import charges may apply.",
+        reviewed_at: "2026-09-09T00:00:00.000Z",
+        categories: [
+          { key: "standard_goods", name: "Standard goods", active: true },
+        ],
+        rules: [],
+      }),
+    ]);
+    expect(
+      (
+        await db.query(
+          "select reviewed_at is not null reviewed from tax_settings",
+        )
+      ).rows[0],
+    ).toEqual({ reviewed: true });
+    await db.query("select public.admin_save_discounts($1::jsonb)", [
+      JSON.stringify([
+        {
+          id: "23000000-0000-4000-8000-000000000001",
+          code: "MACMAER10",
+          name: "Macmaer 10%",
+          kind: "PERCENTAGE",
+          percentage_basis_points: 1200,
+          fixed_amount: null,
+          minimum_subtotal: 0,
+          starts_at: null,
+          ends_at: null,
+          active: true,
+          total_usage_limit: null,
+          per_customer_limit: 1,
+          product_ids: [],
+          collection_ids: [],
+        },
+      ]),
+    ]);
+    expect(
+      (
+        await db.query(
+          "select percentage_basis_points from discounts where code='MACMAER10'",
+        )
+      ).rows[0],
+    ).toEqual({ percentage_basis_points: 1200 });
+  });
+});
 async function asUser<T>(id: string, fn: () => Promise<T>) {
   await db.exec("begin;set local role authenticated");
   await db.query("select set_config('request.jwt.claim.sub',$1,true)", [id]);

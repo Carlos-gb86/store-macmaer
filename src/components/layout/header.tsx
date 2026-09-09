@@ -31,7 +31,9 @@ export async function Header() {
               ),
             }))}
             destination={context.destinationCountry}
-            countries={countries}
+            countries={countries.filter((country) =>
+              context.supportedCountries.includes(country.code),
+            )}
           />
           <Link
             className="header-search"

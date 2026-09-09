@@ -3,7 +3,10 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import { getServerEnv } from "@/lib/env/server";
-import { countryCodeSchema } from "@/modules/country/countries";
+import {
+  countryCodeSchema,
+  initialSupportedCountryCodes,
+} from "@/modules/country/countries";
 import {
   currencySchema,
   type Currency,
@@ -74,6 +77,7 @@ export type StorefrontContext = {
   destinationCountry: string;
   pricing: PricingContext;
   settings: CurrencySetting[];
+  supportedCountries: string[];
 };
 
 export async function readStorefrontContext(): Promise<StorefrontContext> {
@@ -84,12 +88,17 @@ export async function readStorefrontContext(): Promise<StorefrontContext> {
   const parsedCountry = countryCodeSchema.safeParse(
     cookieStore.get(DESTINATION_COOKIE)?.value,
   );
-  const destinationCountry = parsedCountry.success ? parsedCountry.data : "SE";
+  const requestedCountry = parsedCountry.success ? parsedCountry.data : "SE";
 
   if (getServerEnv().CATALOG_SOURCE === "demo")
     return {
-      destinationCountry,
+      destinationCountry: initialSupportedCountryCodes.includes(
+        requestedCountry as (typeof initialSupportedCountryCodes)[number],
+      )
+        ? requestedCountry
+        : "SE",
       settings: demoSettings,
+      supportedCountries: [...initialSupportedCountryCodes],
       pricing: {
         currency: "SEK",
         requestedCurrency,
@@ -106,16 +115,25 @@ export async function readStorefrontContext(): Promise<StorefrontContext> {
     };
 
   const client = createServiceSupabaseClient();
-  const [settingsResult, ratesResult] = await Promise.all([
+  const [settingsResult, ratesResult, countriesResult] = await Promise.all([
     client.from("store_currencies").select().order("sort_order"),
     client
       .from("currency_rates")
       .select()
       .order("source_effective_at", { ascending: false })
       .order("fetched_at", { ascending: false }),
+    client.from("shipping_zone_countries").select("country_code"),
   ]);
-  if (settingsResult.error || ratesResult.error)
+  if (settingsResult.error || ratesResult.error || countriesResult.error)
     throw new Error("Currency configuration could not be loaded.");
+  const supportedCountries = countriesResult.data.map(
+    (country) => country.country_code,
+  );
+  const destinationCountry = supportedCountries.includes(requestedCountry)
+    ? requestedCountry
+    : supportedCountries.includes("SE")
+      ? "SE"
+      : (supportedCountries[0] ?? "SE");
   const settings = settingsResult.data.map(mapSetting);
   const latestRates = new Map<Currency, FxRate>();
   for (const row of ratesResult.data) {
@@ -140,6 +158,7 @@ export async function readStorefrontContext(): Promise<StorefrontContext> {
   return {
     destinationCountry,
     settings,
+    supportedCountries,
     pricing: {
       currency,
       requestedCurrency,

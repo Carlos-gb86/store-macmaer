@@ -48,6 +48,10 @@ export type CartLine = {
   baseUnitAmount: number;
   displayUnitAmount: number;
   displayCurrency: z.infer<typeof currencySchema>;
+  taxCategoryKey: string;
+  shippingClassKey: string;
+  collectionIds: string[];
+  unitWeightGrams: number | null;
   valid: boolean;
   message: string | null;
 };
@@ -58,6 +62,7 @@ export type CartView = {
   subtotal: number;
   currency: z.infer<typeof currencySchema>;
   destinationCountry: string;
+  discountCode: string | null;
 };
 export type CartActionResult =
   | { ok: true; message: string; itemCount: number }

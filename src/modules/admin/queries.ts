@@ -5,14 +5,28 @@ import { productSchema } from "@/modules/catalog/schema";
 import { notFound } from "next/navigation";
 export async function editorData() {
   const { client } = await requireAdminPage();
-  const [collections, tags, media] = await Promise.all([
-    client.from("collections").select("id,slug,name").order("name"),
-    client.from("tags").select("id,slug,name,updated_at").order("name"),
-    mediaLibrary(client),
-  ]);
+  const [collections, tags, taxCategories, shippingClasses, media] =
+    await Promise.all([
+      client.from("collections").select("id,slug,name").order("name"),
+      client.from("tags").select("id,slug,name,updated_at").order("name"),
+      client.from("tax_categories").select("key,name").eq("active", true),
+      client
+        .from("shipping_package_classes")
+        .select("key,name")
+        .eq("active", true),
+      mediaLibrary(client),
+    ]);
   if (collections.error) throw collections.error;
   if (tags.error) throw tags.error;
-  return { collections: collections.data, tags: tags.data, media };
+  if (taxCategories.error) throw taxCategories.error;
+  if (shippingClasses.error) throw shippingClasses.error;
+  return {
+    collections: collections.data,
+    tags: tags.data,
+    taxCategories: taxCategories.data,
+    shippingClasses: shippingClasses.data,
+    media,
+  };
 }
 export async function adminProduct(id: string) {
   const { client } = await requireAdminPage();

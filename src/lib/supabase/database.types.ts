@@ -107,6 +107,7 @@ Row: {
 "expires_at": string;
 "created_at": string;
 "updated_at": string;
+"discount_code": string | null;
 };
 Insert: {
 "id"?: string;
@@ -116,6 +117,7 @@ Insert: {
 "expires_at"?: string;
 "created_at"?: string;
 "updated_at"?: string;
+"discount_code"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -125,6 +127,7 @@ Update: {
 "expires_at"?: string;
 "created_at"?: string;
 "updated_at"?: string;
+"discount_code"?: string | null;
 };
 Relationships: [];
 };
@@ -209,6 +212,129 @@ Update: {
 "source"?: string;
 "source_effective_at"?: string;
 "fetched_at"?: string;
+};
+Relationships: [];
+};
+"discount_collections": {
+Row: {
+"discount_id": string;
+"collection_id": string;
+};
+Insert: {
+"discount_id": string;
+"collection_id": string;
+};
+Update: {
+"discount_id"?: string;
+"collection_id"?: string;
+};
+Relationships: [];
+};
+"discount_products": {
+Row: {
+"discount_id": string;
+"product_id": string;
+};
+Insert: {
+"discount_id": string;
+"product_id": string;
+};
+Update: {
+"discount_id"?: string;
+"product_id"?: string;
+};
+Relationships: [];
+};
+"discount_redemptions": {
+Row: {
+"id": string;
+"discount_id": string;
+"redemption_key": string;
+"email_identity_hash": string;
+"phone_identity_hash": string;
+"status": "RESERVED" | "REDEEMED" | "RELEASED";
+"amount": number;
+"currency": string;
+"expires_at": string | null;
+"redeemed_at": string | null;
+"created_at": string;
+};
+Insert: {
+"id"?: string;
+"discount_id": string;
+"redemption_key": string;
+"email_identity_hash": string;
+"phone_identity_hash": string;
+"status"?: "RESERVED" | "REDEEMED" | "RELEASED";
+"amount": number;
+"currency": string;
+"expires_at"?: string | null;
+"redeemed_at"?: string | null;
+"created_at"?: string;
+};
+Update: {
+"id"?: string;
+"discount_id"?: string;
+"redemption_key"?: string;
+"email_identity_hash"?: string;
+"phone_identity_hash"?: string;
+"status"?: "RESERVED" | "REDEEMED" | "RELEASED";
+"amount"?: number;
+"currency"?: string;
+"expires_at"?: string | null;
+"redeemed_at"?: string | null;
+"created_at"?: string;
+};
+Relationships: [];
+};
+"discounts": {
+Row: {
+"id": string;
+"code": string;
+"name": string;
+"kind": "PERCENTAGE" | "FIXED_AMOUNT";
+"percentage_basis_points": number | null;
+"fixed_amount": number | null;
+"minimum_subtotal": number;
+"starts_at": string | null;
+"ends_at": string | null;
+"active": boolean;
+"total_usage_limit": number | null;
+"per_customer_limit": number | null;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"code": string;
+"name": string;
+"kind": "PERCENTAGE" | "FIXED_AMOUNT";
+"percentage_basis_points"?: number | null;
+"fixed_amount"?: number | null;
+"minimum_subtotal"?: number;
+"starts_at"?: string | null;
+"ends_at"?: string | null;
+"active"?: boolean;
+"total_usage_limit"?: number | null;
+"per_customer_limit"?: number | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"code"?: string;
+"name"?: string;
+"kind"?: "PERCENTAGE" | "FIXED_AMOUNT";
+"percentage_basis_points"?: number | null;
+"fixed_amount"?: number | null;
+"minimum_subtotal"?: number;
+"starts_at"?: string | null;
+"ends_at"?: string | null;
+"active"?: boolean;
+"total_usage_limit"?: number | null;
+"per_customer_limit"?: number | null;
+"created_at"?: string;
+"updated_at"?: string;
 };
 Relationships: [];
 };
@@ -616,6 +742,7 @@ Row: {
 "created_at": string;
 "updated_at": string;
 "description_document": Json | null;
+"shipping_class_key": string;
 };
 Insert: {
 "id"?: string;
@@ -645,6 +772,7 @@ Insert: {
 "created_at"?: string;
 "updated_at"?: string;
 "description_document"?: Json | null;
+"shipping_class_key"?: string;
 };
 Update: {
 "id"?: string;
@@ -674,6 +802,193 @@ Update: {
 "created_at"?: string;
 "updated_at"?: string;
 "description_document"?: Json | null;
+"shipping_class_key"?: string;
+};
+Relationships: [];
+};
+"shipping_methods": {
+Row: {
+"id": string;
+"zone_id": string;
+"name": string;
+"carrier": string | null;
+"tracked": boolean;
+"estimated_delivery": string;
+"active": boolean;
+"sort_order": number;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"zone_id": string;
+"name": string;
+"carrier"?: string | null;
+"tracked"?: boolean;
+"estimated_delivery"?: string;
+"active"?: boolean;
+"sort_order"?: number;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"zone_id"?: string;
+"name"?: string;
+"carrier"?: string | null;
+"tracked"?: boolean;
+"estimated_delivery"?: string;
+"active"?: boolean;
+"sort_order"?: number;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"shipping_package_classes": {
+Row: {
+"key": string;
+"name": string;
+"active": boolean;
+"updated_at": string;
+};
+Insert: {
+"key": string;
+"name": string;
+"active"?: boolean;
+"updated_at"?: string;
+};
+Update: {
+"key"?: string;
+"name"?: string;
+"active"?: boolean;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"shipping_rate_rules": {
+Row: {
+"id": string;
+"method_id": string;
+"calculation_type": "FLAT" | "BASE_PLUS_ADDITIONAL" | "PER_ITEM";
+"base_amount": number;
+"additional_item_amount": number;
+"min_weight_grams": number;
+"max_weight_grams": number | null;
+"min_subtotal": number;
+"max_subtotal": number | null;
+"package_class_key": string | null;
+"free_shipping_threshold": number | null;
+"threshold_basis": "BEFORE_DISCOUNT" | "AFTER_DISCOUNT";
+"price_includes_vat": boolean;
+"shipping_tax_category_key": string;
+"active": boolean;
+"priority": number;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"method_id": string;
+"calculation_type"?: "FLAT" | "BASE_PLUS_ADDITIONAL" | "PER_ITEM";
+"base_amount"?: number;
+"additional_item_amount"?: number;
+"min_weight_grams"?: number;
+"max_weight_grams"?: number | null;
+"min_subtotal"?: number;
+"max_subtotal"?: number | null;
+"package_class_key"?: string | null;
+"free_shipping_threshold"?: number | null;
+"threshold_basis"?: "BEFORE_DISCOUNT" | "AFTER_DISCOUNT";
+"price_includes_vat"?: boolean;
+"shipping_tax_category_key"?: string;
+"active"?: boolean;
+"priority"?: number;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"method_id"?: string;
+"calculation_type"?: "FLAT" | "BASE_PLUS_ADDITIONAL" | "PER_ITEM";
+"base_amount"?: number;
+"additional_item_amount"?: number;
+"min_weight_grams"?: number;
+"max_weight_grams"?: number | null;
+"min_subtotal"?: number;
+"max_subtotal"?: number | null;
+"package_class_key"?: string | null;
+"free_shipping_threshold"?: number | null;
+"threshold_basis"?: "BEFORE_DISCOUNT" | "AFTER_DISCOUNT";
+"price_includes_vat"?: boolean;
+"shipping_tax_category_key"?: string;
+"active"?: boolean;
+"priority"?: number;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"shipping_settings": {
+Row: {
+"id": boolean;
+"packaging_weight_grams": number;
+"updated_at": string;
+};
+Insert: {
+"id"?: boolean;
+"packaging_weight_grams"?: number;
+"updated_at"?: string;
+};
+Update: {
+"id"?: boolean;
+"packaging_weight_grams"?: number;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"shipping_zone_countries": {
+Row: {
+"country_code": string;
+"zone_id": string;
+};
+Insert: {
+"country_code": string;
+"zone_id": string;
+};
+Update: {
+"country_code"?: string;
+"zone_id"?: string;
+};
+Relationships: [];
+};
+"shipping_zones": {
+Row: {
+"id": string;
+"key": string;
+"name": string;
+"active": boolean;
+"sort_order": number;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"key": string;
+"name": string;
+"active"?: boolean;
+"sort_order"?: number;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"key"?: string;
+"name"?: string;
+"active"?: boolean;
+"sort_order"?: number;
+"created_at"?: string;
+"updated_at"?: string;
 };
 Relationships: [];
 };
@@ -725,6 +1040,99 @@ Update: {
 };
 Relationships: [];
 };
+"tax_categories": {
+Row: {
+"key": string;
+"name": string;
+"active": boolean;
+"updated_at": string;
+};
+Insert: {
+"key": string;
+"name": string;
+"active"?: boolean;
+"updated_at"?: string;
+};
+Update: {
+"key"?: string;
+"name"?: string;
+"active"?: boolean;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"tax_rules": {
+Row: {
+"id": string;
+"country_code": string;
+"tax_category_key": string;
+"rate_basis_points": number;
+"valid_from": string;
+"valid_to": string | null;
+"enabled": boolean;
+"source": string;
+"reviewed_at": string | null;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"country_code": string;
+"tax_category_key": string;
+"rate_basis_points": number;
+"valid_from": string;
+"valid_to"?: string | null;
+"enabled"?: boolean;
+"source"?: string;
+"reviewed_at"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"country_code"?: string;
+"tax_category_key"?: string;
+"rate_basis_points"?: number;
+"valid_from"?: string;
+"valid_to"?: string | null;
+"enabled"?: boolean;
+"source"?: string;
+"reviewed_at"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"tax_settings": {
+Row: {
+"id": boolean;
+"eu_mode": "SWEDISH_ORIGIN" | "DESTINATION";
+"catalogue_prices_include_vat": boolean;
+"export_rate_basis_points": number;
+"export_message": string;
+"reviewed_at": string | null;
+"updated_at": string;
+};
+Insert: {
+"id"?: boolean;
+"eu_mode"?: "SWEDISH_ORIGIN" | "DESTINATION";
+"catalogue_prices_include_vat"?: boolean;
+"export_rate_basis_points"?: number;
+"export_message"?: string;
+"reviewed_at"?: string | null;
+"updated_at"?: string;
+};
+Update: {
+"id"?: boolean;
+"eu_mode"?: "SWEDISH_ORIGIN" | "DESTINATION";
+"catalogue_prices_include_vat"?: boolean;
+"export_rate_basis_points"?: number;
+"export_message"?: string;
+"reviewed_at"?: string | null;
+"updated_at"?: string;
+};
+Relationships: [];
+};
 "variant_option_values": {
 Row: {
 "variant_id": string;
@@ -766,11 +1174,19 @@ Functions: {
 "admin_mutate_tag": { Args: {"operation": string;"document": Json;"expected_updated_at"?: string;"target_id"?: string;}; Returns: undefined};
 "admin_save_collection": { Args: {"document": Json;"expected_updated_at"?: string;}; Returns: Json};
 "admin_save_currency_settings": { Args: {"document": Json;}; Returns: undefined};
+"admin_save_discounts": { Args: {"document": Json;}; Returns: undefined};
 "admin_save_homepage": { Args: {"document": Json;"product_ids": Json;"collection_ids": Json;"expected_updated_at": string;}; Returns: Json};
 "admin_save_product": { Args: {"document": Json;"expected_updated_at"?: string;}; Returns: Json};
+"admin_save_shipping_settings": { Args: {"document": Json;}; Returns: undefined};
+"admin_save_tax_settings": { Args: {"document": Json;}; Returns: undefined};
 "is_admin": { Args: Record<never, never>; Returns: boolean};
 }; Enums: {
-"inventory_strategy": "TRACKED" | "MADE_TO_ORDER" | "UNLIMITED" | "UNAVAILABLE";
-"product_status": "draft" | "active" | "archived";
+"shipping_threshold_basis": "BEFORE_DISCOUNT" | "AFTER_DISCOUNT";
+"shipping_calculation_type": "FLAT" | "BASE_PLUS_ADDITIONAL" | "PER_ITEM";
 "option_display_type": "select" | "radio" | "colour_swatch" | "image_swatch" | "checkbox" | "short_text" | "number" | "repeated_select";
+"discount_redemption_status": "RESERVED" | "REDEEMED" | "RELEASED";
+"discount_kind": "PERCENTAGE" | "FIXED_AMOUNT";
+"product_status": "draft" | "active" | "archived";
+"inventory_strategy": "TRACKED" | "MADE_TO_ORDER" | "UNLIMITED" | "UNAVAILABLE";
+"eu_vat_mode": "SWEDISH_ORIGIN" | "DESTINATION";
 }; CompositeTypes: Record<never, never>; }; };

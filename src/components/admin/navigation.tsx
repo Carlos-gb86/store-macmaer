@@ -6,23 +6,22 @@ export function AdminNavigation() {
   return (
     <nav aria-label="Administration">
       {[
-        "products",
-        "collections",
-        "tags",
-        "media",
-        "content",
-        "settings/currency",
-      ].map((item) => (
+        ["products", "Products"],
+        ["collections", "Collections"],
+        ["tags", "Tags"],
+        ["media", "Media"],
+        ["content", "Homepage"],
+        ["discounts", "Discounts"],
+        ["settings/shipping", "Shipping"],
+        ["settings/tax", "Tax"],
+        ["settings/currency", "Currency"],
+      ].map(([item, label]) => (
         <Link
           key={item}
           href={"/admin/" + item}
           aria-current={path.startsWith("/admin/" + item) ? "page" : undefined}
         >
-          {item === "content"
-            ? "Homepage"
-            : item === "settings/currency"
-              ? "Currency"
-              : item}
+          {label}
         </Link>
       ))}
     </nav>

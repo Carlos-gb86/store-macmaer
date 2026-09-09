@@ -41,6 +41,49 @@ describe("PostgreSQL migrations and RLS", () => {
       ),
     ).rejects.toThrow(/check constraint/);
   });
+  it("seeds supported destinations and keeps commerce configuration private", async () => {
+    expect(
+      (await db.query("select * from public.shipping_zone_countries")).rows,
+    ).toHaveLength(33);
+    expect(
+      (await db.query("select * from public.tax_rules")).rows,
+    ).toHaveLength(21);
+    expect(
+      (
+        await db.query(
+          "select percentage_basis_points,per_customer_limit from public.discounts where code='MACMAER10'",
+        )
+      ).rows[0],
+    ).toEqual({ percentage_basis_points: 1000, per_customer_limit: 1 });
+    await expect(
+      asRole("anon", () => db.query("select * from public.tax_rules")),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      asRole("anon", () => db.query("select * from public.discounts")),
+    ).rejects.toThrow(/permission denied/);
+  });
+  it("enforces shipping, VAT and discount constraints in PostgreSQL", async () => {
+    await expect(
+      db.exec(
+        "insert into public.shipping_rate_rules(method_id,base_amount,additional_item_amount,shipping_tax_category_key) values ('21000000-0000-4000-8000-000000000001',-1,0,'standard_goods')",
+      ),
+    ).rejects.toThrow(/check constraint/);
+    await expect(
+      db.exec(
+        "insert into public.tax_rules(country_code,tax_category_key,rate_basis_points,valid_from) values ('SE','standard_goods',10001,'2030-01-01')",
+      ),
+    ).rejects.toThrow(/check constraint/);
+    await expect(
+      db.exec(
+        "insert into public.discounts(code,name,kind,percentage_basis_points,active) values ('bad code','Bad','PERCENTAGE',1000,true)",
+      ),
+    ).rejects.toThrow(/check constraint/);
+    await expect(
+      db.exec(
+        "insert into public.discount_redemptions(discount_id,redemption_key,email_identity_hash,amount,currency) values ('23000000-0000-4000-8000-000000000001','24000000-0000-4000-8000-000000000001',repeat('a',64),1000,'SEK')",
+      ),
+    ).rejects.toThrow(/not-null constraint/);
+  });
   it("reads seeded products and generic configurations through the RLS view", async () => {
     await asRole("anon", async () => {
       const { rows } = await db.query<{ document: unknown }>(

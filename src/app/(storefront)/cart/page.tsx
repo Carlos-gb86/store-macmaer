@@ -3,7 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { CartLineControls } from "@/components/cart/cart-line-controls";
+import { DiscountCodeForm } from "@/components/cart/discount-code-form";
 import { getCart } from "@/modules/cart/repository";
+import { quoteCart } from "@/modules/quote/repository";
 import { formatMoney } from "@/modules/currency/money";
 import { countryName } from "@/modules/country/countries";
 import { resolveImage } from "@/modules/media/resolve-image";
@@ -12,6 +14,7 @@ export const metadata: Metadata = { title: "Your cart" };
 
 export default async function CartPage() {
   const cart = await getCart();
+  const quote = cart.lines.length ? await quoteCart(cart) : null;
   return (
     <Container className="page-section cart-page">
       <div className="page-intro">
@@ -91,15 +94,87 @@ export default async function CartPage() {
           <aside className="cart-summary">
             <h2>Summary</h2>
             <div>
-              <span>Subtotal</span>
-              <strong>{formatMoney(cart.subtotal, cart.currency)}</strong>
+              <span>Products</span>
+              <strong>
+                {formatMoney(
+                  quote?.merchandiseAmount ?? cart.subtotal,
+                  cart.currency,
+                )}
+              </strong>
             </div>
+            {quote && quote.discountAmount > 0 && (
+              <div className="cart-summary-discount">
+                <span>{quote.discountCode}</span>
+                <strong>
+                  −{formatMoney(quote.discountAmount, cart.currency)}
+                </strong>
+              </div>
+            )}
+            {quote?.discountMessage && (
+              <p className="cart-error">{quote.discountMessage}</p>
+            )}
+            <div>
+              <span>Shipping</span>
+              <strong>
+                {quote?.shipping
+                  ? quote.shipping.free
+                    ? "Free"
+                    : formatMoney(quote.shippingGrossAmount, cart.currency)
+                  : "Unavailable"}
+              </strong>
+            </div>
+            {quote?.shipping && (
+              <p className="cart-summary-note">
+                {quote.shipping.methodName} · {quote.shipping.zoneName}
+                {quote.shipping.estimatedDelivery
+                  ? ` · ${quote.shipping.estimatedDelivery}`
+                  : ""}
+              </p>
+            )}
+            <div>
+              <span>Net amount</span>
+              <strong>
+                {formatMoney(quote?.netAmount ?? cart.subtotal, cart.currency)}
+              </strong>
+            </div>
+            <div>
+              <span>
+                VAT
+                {quote?.taxRates.length
+                  ? ` (${quote.taxRates.map((rate) => rate / 100 + "%").join(", ")})`
+                  : ""}
+              </span>
+              <strong>
+                {formatMoney(quote?.taxAmount ?? 0, cart.currency)}
+              </strong>
+            </div>
+            <div className="cart-summary-total">
+              <span>Estimated total</span>
+              <strong>
+                {formatMoney(
+                  quote?.totalAmount ?? cart.subtotal,
+                  cart.currency,
+                )}
+              </strong>
+            </div>
+            <DiscountCodeForm code={cart.discountCode} />
+            <p>{quote?.taxMessage}</p>
+            {quote && !quote.destinationSupported && (
+              <p className="cart-error">
+                We do not currently ship to this destination.
+              </p>
+            )}
+            {quote?.destinationSupported && !quote.shipping && (
+              <p className="cart-error">
+                No shipping rate matches this cart. Please contact Macmaer.
+              </p>
+            )}
             <p>
-              This is a server-validated product-price estimate. Tax, discounts,
-              and delivery are not yet included.
+              This remains an estimate until the shipping address is confirmed
+              during checkout.
             </p>
             <button className="button" disabled>
-              Checkout opens in the next phase
+              Checkout opens in Phase 5
             </button>
             <Link href="/shop" className="text-link">
               Continue shopping

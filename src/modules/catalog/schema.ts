@@ -95,6 +95,7 @@ export const productSchema = z.object({
   currency: z.enum(["SEK", "EUR", "USD"]),
   sku: z.string().nullable(),
   tax_category_key: z.string().nullable(),
+  shipping_class_key: z.string().default("standard"),
   inventory_strategy: inventory,
   stock_quantity: z.number().int().nonnegative().nullable(),
   processing_time: z.string().nullable(),

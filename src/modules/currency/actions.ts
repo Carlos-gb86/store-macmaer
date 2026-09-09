@@ -47,6 +47,8 @@ export async function setDestinationAction(
   if (!country.success)
     return { ok: false, message: "Choose a valid country." };
   const context = await readStorefrontContext();
+  if (!context.supportedCountries.includes(country.data))
+    return { ok: false, message: "We do not currently ship there." };
   (await cookies()).set(DESTINATION_COOKIE, country.data, cookieOptions);
   await updateCartContext(context.pricing.currency, country.data);
   refresh();

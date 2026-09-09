@@ -8,6 +8,7 @@ import { productSchema, type Product } from "@/modules/catalog/schema";
 import { isAvailable } from "@/modules/catalog/selection";
 import { currencySchema, type PricingContext } from "@/modules/currency/schema";
 import { getStorefrontContext } from "@/modules/currency/repository";
+import { calculateUnitWeight } from "@/modules/shipping/weight";
 import {
   calculateBaseLinePrice,
   displayAmount,
@@ -325,6 +326,8 @@ export async function updateCartContext(
 
 function rowToLine(
   row: Awaited<ReturnType<typeof rowsForCart>>[number],
+  product: Product | null,
+  selections: Record<string, string[]> | null,
 ): CartLine {
   return {
     id: row.id,
@@ -339,6 +342,11 @@ function rowToLine(
     baseUnitAmount: row.base_unit_amount,
     displayUnitAmount: row.display_unit_amount,
     displayCurrency: currencySchema.parse(row.display_currency),
+    taxCategoryKey: product?.tax_category_key ?? "standard_goods",
+    shippingClassKey: product?.shipping_class_key ?? "standard",
+    collectionIds: product?.collections ?? [],
+    unitWeightGrams:
+      product && selections ? calculateUnitWeight(product, selections) : null,
     valid: row.is_valid,
     message: row.validation_message,
   };
@@ -353,6 +361,7 @@ export async function getCart(): Promise<CartView> {
     subtotal: 0,
     currency: pricing.currency,
     destinationCountry,
+    discountCode: null,
   };
   if (getServerEnv().CATALOG_SOURCE === "demo") return empty;
   const token = await cartToken();
@@ -361,7 +370,11 @@ export async function getCart(): Promise<CartView> {
   if (!cart) return empty;
   const rows = await rowsForCart(cart.id);
   const client = createServiceSupabaseClient();
-  const refreshed = [];
+  const refreshed: {
+    row: (typeof rows)[number];
+    product: Product | null;
+    selections: Record<string, string[]> | null;
+  }[] = [];
   for (const row of rows) {
     try {
       const product = await requireProduct(row.product_id);
@@ -397,7 +410,11 @@ export async function getCart(): Promise<CartView> {
         .select()
         .single();
       if (error) throw error;
-      refreshed.push(data);
+      refreshed.push({
+        row: data,
+        product,
+        selections: canonical.selections,
+      });
     } catch (error) {
       const message =
         error instanceof CartValidationError
@@ -409,12 +426,20 @@ export async function getCart(): Promise<CartView> {
         .eq("id", row.id)
         .select()
         .single();
-      refreshed.push(
-        data ?? { ...row, is_valid: false, validation_message: message },
-      );
+      refreshed.push({
+        row: data ?? {
+          ...row,
+          is_valid: false,
+          validation_message: message,
+        },
+        product: null,
+        selections: null,
+      });
     }
   }
-  const lines = refreshed.map(rowToLine);
+  const lines = refreshed.map((item) =>
+    rowToLine(item.row, item.product, item.selections),
+  );
   return {
     id: cart.id,
     lines,
@@ -424,7 +449,21 @@ export async function getCart(): Promise<CartView> {
       .reduce((sum, line) => sum + line.displayUnitAmount * line.quantity, 0),
     currency: pricing.currency,
     destinationCountry,
+    discountCode: cart.discount_code,
   };
+}
+
+export async function setCartDiscountCode(code: string | null) {
+  const token = await cartToken();
+  if (!token) throw new CartValidationError("Your cart could not be found.");
+  const cart = await existingCart(token);
+  if (!cart) throw new CartValidationError("Your cart has expired.");
+  const client = createServiceSupabaseClient();
+  const { error } = await client
+    .from("carts")
+    .update({ discount_code: code })
+    .eq("id", cart.id);
+  if (error) throw error;
 }
 
 export async function getCartCount() {

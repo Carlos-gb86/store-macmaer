@@ -859,6 +859,101 @@ select {
   padding: 18px 0;
   border-block: 1px solid #ccc5ba;
 }
+.cart-summary .cart-summary-discount {
+  color: var(--success, #34634a);
+}
+.cart-summary .cart-summary-total {
+  border-top: 1px solid var(--line);
+  font-size: 1.08rem;
+  margin-top: 0.75rem;
+  padding-top: 1rem;
+}
+.cart-summary-note {
+  margin-top: -0.5rem;
+}
+.discount-code-form {
+  border-top: 1px solid var(--line);
+  margin-top: 0.75rem;
+  padding-top: 1rem;
+}
+.discount-code-form > label {
+  display: block;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.45rem;
+  text-transform: uppercase;
+}
+.discount-code-form > div {
+  display: flex;
+  gap: 0.5rem;
+}
+.discount-code-form input {
+  min-width: 0;
+  width: 100%;
+}
+.discount-code-form p {
+  min-height: 1.25rem;
+}
+.admin-config-list,
+.admin-repeat-list {
+  display: grid;
+  gap: 1rem;
+}
+.admin-config-card {
+  margin-block: 1rem;
+}
+.admin-config-card > summary {
+  cursor: pointer;
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-block: 0.35rem 1rem;
+}
+.admin-nested-card,
+.admin-rate-rule {
+  border-top: 1px solid var(--line);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+.admin-rate-rule {
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
+  padding: 1rem;
+}
+.admin-check-inline {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+}
+.admin-check-inline input {
+  width: auto;
+}
+.admin-add-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.admin-country-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.admin-country-grid > div {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(100px, 1fr) minmax(120px, 1fr) auto;
+  padding-block: 0.45rem;
+}
+.admin-warning {
+  background: #fff5d9;
+  border-left: 4px solid #b98716;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+}
+.admin-table-scroll {
+  overflow-x: auto;
+}
 .cart-summary p {
   margin: 18px 0;
   color: var(--color-muted);

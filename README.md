@@ -1,6 +1,6 @@
 # Macmaer
 
-Next.js storefront and catalogue administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–3 are implemented and verified.** Tax, shipping, discounts, checkout, and payments remain deferred.
+Next.js storefront and catalogue administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–4 are implemented and verified.** Checkout, payments, orders, and fulfilment remain deferred.
 
 ## Setup and environment
 
@@ -26,11 +26,19 @@ Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative f
 
 Actual `.env*` files are ignored. `SUPABASE_SERVICE_ROLE_KEY` may contain Supabase's newer secret API key; despite the backwards-compatible variable name, a legacy JWT is not required. Never expose this credential through `NEXT_PUBLIC_*`. Validation errors identify fields without printing values. Rebuild after changing public variables.
 
-## Cart, destination, and currency
+## Cart, destination, currency, and quotes
 
-Supabase mode enables anonymous server-persisted carts. The browser receives a random HTTP-only cart token; only its SHA-256 hash is stored in Postgres. Cart inputs contain product/configuration references and quantity, never trusted prices. Every cart read and mutation reloads the live product, resolves the variant and options, checks availability and tracked inventory, and recalculates prices server-side. Different custom or repeated selections remain separate lines; identical configurations merge. Cart totals are estimates and do not yet include Phase 4 tax, shipping, or discounts.
+Supabase mode enables anonymous server-persisted carts. The browser receives a random HTTP-only cart token; only its SHA-256 hash is stored in Postgres. Cart inputs contain product/configuration references and quantity, never trusted prices. Every cart read and mutation reloads the live product, resolves the variant and options, checks availability and tracked inventory, and recalculates prices server-side. Different custom or repeated selections remain separate lines; identical configurations merge. The server then applies any valid discount, selects a configured shipping rule, calculates destination VAT, and converts the reconciled quote for display. The cart clearly remains an estimate until Phase 5 confirms the shipping address and creates an immutable order snapshot.
 
-SEK remains the canonical catalogue currency. The storefront currency and shopping destination are independent HTTP-only preferences, defaulting to SEK and Sweden. `/admin/settings/currency` controls currency availability, conversion markup and rounding, and can fetch ECB reference rates. Rates are append-only with source/effective timestamps; EUR or USD stays unavailable until a real rate has been stored. No exchange rates are seeded or invented. The country selector establishes context only—Phase 4 will configure the supported shipping-country allow-list and destination calculations.
+SEK remains the canonical catalogue currency. The storefront currency and shopping destination are independent HTTP-only preferences, defaulting to SEK and Sweden. `/admin/settings/currency` controls currency availability, conversion markup and rounding, and can fetch ECB reference rates. Rates are append-only with source/effective timestamps; EUR or USD stays unavailable until a real rate has been stored. No exchange rates are seeded or invented. The destination selector is limited to the shipping-country allow-list managed in admin.
+
+Catalogue amounts are fixed customer-facing selling prices. For VAT destinations, VAT is extracted from—not added to—that amount. For a 500 SEK product sent to Sweden, the quote therefore shows 400 SEK net plus 100 SEK VAT; a non-EU customer sees the same 500 SEK selling price with zero Swedish/EU VAT. Shipping can independently be configured as VAT-inclusive or VAT-exclusive.
+
+`/admin/settings/shipping` manages countries, arbitrary zones, services, package classes, weight/subtotal bands, rule priority, free-shipping thresholds, and flat, per-item, or base-plus-additional-item formulas. The initial data assigns the 33 approved destinations to Sweden, United States, EU VAT, and Other non-EU zones. Sweden starts at 80 SEK including VAT; the other zones start at 250 SEK, including VAT in the EU zone and excluding VAT elsewhere. These are database configuration, not application constants.
+
+`/admin/settings/tax` manages the EU strategy, catalogue price mode, export treatment, tax categories, destination rates, effective dates, source notes, and review status. The initial destination/OSS rates came from the European Commission's current standard-rate table and deliberately remain marked for owner/accountant review. Monaco follows France for VAT; Åland and Greenland are treated as non-EU VAT territories. Regional exceptions within Spain and Portugal require additional address-level handling before selling to excluded territories.
+
+`/admin/discounts` manages percentage/fixed codes, dates, minimums, usage limits, and product/collection restrictions. `MACMAER10` is initially active for 10% with one use per customer. Cart eligibility is authoritative on the server. Phase 5 will collect both email and phone and atomically reserve/redeem against the stored identity hashes; Phase 4 does not claim to enforce identity reuse before checkout has those fields.
 
 Demo catalogue mode remains intentionally non-purchasable and does not fabricate converted prices.
 
@@ -54,7 +62,7 @@ Sign in at `/admin/login`. Every protected page, action, upload, and preview ver
 
 Create a draft, enter descriptions, SEK prices, inventory/processing details, options, valid SKU combinations, memberships, and imagery. Save, preview, and publish. Saving an active product updates it immediately. Products are archived, then optionally restored to drafts. Duplicates receive new identities and require a unique SKU before publication.
 
-All specified option types are supported. Repeated selections configure a product without generating Cartesian-product variants. Forms send decimal strings; the server parses money with integer arithmetic. Tax classification remains unconfigured until Phase 4. Atomic RPCs preserve retained child IDs, reject stale `updated_at` values, and roll back invalid nested edits. Failed saves preserve local form values.
+All specified option types are supported. Repeated selections configure a product without generating Cartesian-product variants. Forms send decimal strings; the server parses money with integer arithmetic. Products reference configurable tax and shipping classes. Atomic RPCs preserve retained child IDs, reject stale `updated_at` values, and roll back invalid nested edits. Failed saves preserve local form values.
 
 The admin editor groups pricing, availability, and fulfilment separately. Customer options and stock variants have collapsible summaries, contextual help, and settings appropriate to the selected option type. Tags can be created in a dialog directly from an unsaved product, or managed from the tags list. Image selection uses a searchable thumbnail dialog; gallery uploads are added directly and can be ordered with a drag grip or keyboard buttons.
 
@@ -76,7 +84,7 @@ Descriptions use open-source Tiptap. Structured JSON permits paragraphs, heading
 
 Start Docker Desktop, then `npm run db:start`. `npm run db:reset` replaces **disposable local data only**. If Docker cannot mount optional Studio folders, use `npx supabase start --exclude studio,edge-runtime,logflare,vector`. Never reset hosted data.
 
-Migrations `001`–`002` retain the original Phase 1 history. New migrations add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, and media leases. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
+Migrations `001`–`002` retain the original Phase 1 history. Migrations through `008` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, and Phase 4 shipping/tax/discount configuration. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
 
 `npm run seed:generate` generates deterministic fixture IDs from `src/modules/catalog/fixtures/catalogue.json`. Seeds use `ON CONFLICT DO NOTHING`, preserve existing rows, and are not a catalogue updater. After local checks, stage explicitly:
 
@@ -88,7 +96,7 @@ npm run staging:setup -- --target staging --project-ref YOUR_STAGING_REF --admin
 npm run staging:setup -- --target staging --project-ref YOUR_STAGING_REF --seed
 ```
 
-The command requires a staging target, matching linked-project metadata, and a matching `.env.local` URL. It never resets a database. Samples contain illustrative data, not approved business prices. The current staging project is `pvdxqtyklfdzukawbtps`. All six migrations are applied, with six active samples and one private draft. The confirmed owner account has administrator membership, and hosted public signup is disabled.
+The command requires a staging target, matching linked-project metadata, and a matching `.env.local` URL. It never resets a database. Samples contain illustrative data, not approved business prices. The recorded staging project is `pvdxqtyklfdzukawbtps`; verify its migration list before use rather than assuming it matches local development. The confirmed owner account has administrator membership, and hosted public signup is disabled.
 
 Audit history covers product status changes, collection edits, and homepage publication. Structured failure logs omit credentials and form contents.
 
@@ -105,7 +113,7 @@ npm run test:commerce
 npm run build
 ```
 
-`check` runs lint, strict types, formatting, and unit/database tests. PGlite executes migrations with small Auth/Storage scaffolds. Real integration tests require local Supabase and cover Auth, RLS, refresh/revocation, private Storage, decoding, and publication compensation. The commerce browser suite uses local Supabase and deterministic test-only FX rows to cover cart persistence, configurations, currency/destination context, quantities, removal, and unavailable inventory. Setup creates disposable accounts and writes credentials only to ignored `.env.integration.json` (0600). Integration/browser setup rejects hosted targets.
+`check` runs lint, strict types, formatting, and unit/database tests. PGlite executes migrations with small Auth/Storage scaffolds. Real integration tests require local Supabase and cover Auth, RLS, refresh/revocation, private Storage, decoding, and publication compensation. The commerce browser suite uses local Supabase and deterministic test-only FX rows to cover cart persistence, configurations, currency/destination context, quantities, removal, destination VAT, shipping, and discounts. Admin browser coverage includes the three Phase 4 configuration areas. Setup creates disposable accounts and writes credentials only to ignored `.env.integration.json` (0600). Integration/browser setup rejects hosted targets.
 
 Storefront browser tests use demo data on port 3100; admin tests use local Supabase on 3200 and separate anonymous contexts. Both have isolated build directories. Run integration and admin suites sequentially because revocation tests alter the shared local test administrator. For staging acceptance, build with `.env.local` selecting the connected project.
 
@@ -113,12 +121,15 @@ Phase 2 acceptance on 2026-09-05: lint, formatting, strict types, 38 unit/databa
 
 Admin refinement on 2026-09-07: 51 unit/database/action tests, 6 real Supabase integration tests, 13 admin browser checks, and 8 storefront browser checks passed. Desktop/phone layouts, tag dialogs, visual gallery uploads, and WebP processing were verified. Lint, formatting, strict types, and the staging-backed production build passed.
 
+Phase 4 acceptance on 2026-09-09: 72 unit/database/action checks, 6 real Supabase integration checks, 15 admin browser checks, 8 commerce browser checks, and 8 storefront browser checks passed. The clean local migration/reset, database lint, strict types, formatting, lint, and demo-mode production build passed. Database lint retains one pre-existing unused-variable warning in the Phase 2 product validator.
+
 ## Architecture and deployment
 
 - `src/app/(storefront)` and `src/app/admin`: separate public/admin layouts.
 - `src/modules/catalog`: read models, filtering, shared configuration validation.
 - `src/modules/pricing`, `currency`, `country`: configured-price/FX logic and persisted storefront context.
 - `src/modules/cart`: canonical option snapshots, secure anonymous ownership, validation, and persistence.
+- `src/modules/quote`, `shipping`, `tax`, `discount`: server-authoritative quote orchestration and isolated commerce rules.
 - `src/modules/admin`: authorization, inputs, actions, money parsing, media lifecycle.
 - `src/modules/content`: homepage persistence and structured rich text.
 - `src/lib/supabase`: typed stateless public, browser, cookie server, isolated service clients.
@@ -126,4 +137,4 @@ Admin refinement on 2026-09-07: 51 unit/database/action tests, 6 real Supabase i
 
 Public catalogue reads use a stateless anonymous client and 60-second cache with immediate admin invalidation. Request-specific context and carts are never put in that shared cache. Admin lists query PostgreSQL with search/status filters and pagination. The media picker currently shows the most recent 500 assets; revisit search/pagination as the catalogue grows.
 
-Deploy to Vercel with Node 22, `npm ci`, `npm run build`, and preview environment variables. Production builds use webpack; development uses Turbopack. All pages intentionally remain `noindex`. Shipping/tax/discount calculations, checkout, transactional email, policies, and launch hardening belong to later phases. See [DECISIONS.md](DECISIONS.md).
+Deploy to Vercel with Node 22, `npm ci`, `npm run build`, and preview environment variables. Production builds use webpack; development uses Turbopack. All pages intentionally remain `noindex`. Checkout, order/payment snapshots, Stripe, transactional email, policies, and launch hardening belong to later phases. See [DECISIONS.md](DECISIONS.md).

@@ -17,11 +17,15 @@ export function ProductEditor({
   initial,
   collections,
   tags,
+  taxCategories,
+  shippingClasses,
   media,
 }: {
   initial: ProductInput;
   collections: { slug: string; name: string }[];
   tags: { slug: string; name: string }[];
+  taxCategories: { key: string; name: string }[];
+  shippingClasses: { key: string; name: string }[];
   media: MediaItem[];
 }) {
   const [p, setP] = useState(initial),
@@ -185,6 +189,18 @@ export function ProductEditor({
               value={p.return_policy_class}
               options={["standard", "customized", "final_sale"]}
               onChange={(v) => set("return_policy_class", v)}
+            />
+            <Field
+              label="Tax category"
+              value={p.tax_category_key}
+              options={taxCategories.map((item) => item.key)}
+              onChange={(v) => set("tax_category_key", v)}
+            />
+            <Field
+              label="Shipping package class"
+              value={p.shipping_class_key}
+              options={shippingClasses.map((item) => item.key)}
+              onChange={(v) => set("shipping_class_key", v)}
             />
             {(["length_cm", "width_cm", "height_cm"] as const).map((k) => (
               <Field

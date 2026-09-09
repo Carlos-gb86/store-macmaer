@@ -5,7 +5,7 @@ function assertMinorAmount(amount: number) {
     throw new Error("Expected non-negative integer minor units.");
 }
 
-function divideRoundHalfUp(numerator: bigint, denominator: bigint) {
+export function divideRoundHalfUp(numerator: bigint, denominator: bigint) {
   if (denominator <= 0n || numerator < 0n)
     throw new Error("Invalid money ratio.");
   return (numerator * 2n + denominator) / (denominator * 2n);
@@ -16,6 +16,40 @@ function safeMinorNumber(value: bigint) {
   if (!Number.isSafeInteger(result) || result < 0)
     throw new Error("Money amount is outside the supported range.");
   return result;
+}
+
+export function multiplyMinorAmount(amount: number, quantity: number) {
+  assertMinorAmount(amount);
+  if (!Number.isSafeInteger(quantity) || quantity < 0)
+    throw new Error("Expected a non-negative integer quantity.");
+  return safeMinorNumber(BigInt(amount) * BigInt(quantity));
+}
+
+export function sumMinorAmounts(amounts: number[]) {
+  return safeMinorNumber(
+    amounts.reduce((total, amount) => {
+      assertMinorAmount(amount);
+      return total + BigInt(amount);
+    }, 0n),
+  );
+}
+
+export function ratioMinorAmount(
+  amount: number,
+  numerator: number,
+  denominator: number,
+) {
+  assertMinorAmount(amount);
+  if (
+    !Number.isSafeInteger(numerator) ||
+    numerator < 0 ||
+    !Number.isSafeInteger(denominator) ||
+    denominator <= 0
+  )
+    throw new Error("Invalid money ratio.");
+  return safeMinorNumber(
+    divideRoundHalfUp(BigInt(amount) * BigInt(numerator), BigInt(denominator)),
+  );
 }
 
 export function convertMinorAmount(
