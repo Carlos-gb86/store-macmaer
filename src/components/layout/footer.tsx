@@ -21,15 +21,14 @@ export function Footer() {
             <Link href="/collections">Our collections</Link>
             <Link href="/#story">Our story</Link>
           </nav>
-          <div>
-            <span className="eyebrow">A little everyday softness</span>
-            <p>
-              Scandinavian decor.
-              <br />
-              Handmade in Sweden.
-            </p>
-            <p className="small">Catalogue preview. Ordering opens soon.</p>
-          </div>
+          <nav aria-label="Policies">
+            <span className="eyebrow">Policies</span>
+            <Link href="/terms">Terms of Sale</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/shipping">Shipping</Link>
+            <Link href="/returns">Returns & withdrawal</Link>
+            <Link href="/customs">VAT & customs</Link>
+          </nav>
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Macmaer</span>

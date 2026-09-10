@@ -24,6 +24,19 @@ describe("environment boundaries", () => {
       }),
     ).toThrow("NEXT_PUBLIC_SITE_URL");
   });
+  it("keeps checkout off by default and requires every payment secret when enabled", () => {
+    expect(
+      parseEnv(serverEnvSchema, { CATALOG_SOURCE: "demo" }).CHECKOUT_ENABLED,
+    ).toBe(false);
+    expect(() =>
+      parseEnv(serverEnvSchema, {
+        CATALOG_SOURCE: "demo",
+        CHECKOUT_ENABLED: "true",
+        NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_example",
+        STRIPE_SECRET_KEY: "sk_test_example",
+      }),
+    ).toThrow("STRIPE_WEBHOOK_SECRET");
+  });
   it("strips server secrets from public configuration and errors", () => {
     const input = {
       CATALOG_SOURCE: "demo",

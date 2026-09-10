@@ -13,6 +13,9 @@ if (new URL(status.API_URL).hostname !== "127.0.0.1")
   throw new Error("Integration setup requires local Supabase.");
 const client = createClient(status.API_URL, status.SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
+  // No integration setup path uses Realtime. This bypasses the SDK's eager
+  // WebSocket check when the local runner is older than the required Node 22.
+  realtime: { transport: class UnusedWebSocketTransport {} },
 });
 const password = randomBytes(24).toString("base64url");
 const users = {};

@@ -1,6 +1,6 @@
 # Macmaer
 
-Next.js storefront and catalogue administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–4 are implemented and verified.** Checkout, payments, orders, and fulfilment remain deferred.
+Next.js storefront and catalogue administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–5 are implemented.** Checkout remains safely disabled until Stripe webhooks and the launch policies are approved; fulfilment and transactional email remain deferred.
 
 ## Setup and environment
 
@@ -22,6 +22,11 @@ Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative f
 | `NEXT_PUBLIC_SUPABASE_URL`             | Supabase API URL.                                                                                                                  |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key or local legacy anon key.                                                                                          |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Server-only Supabase secret key required for anonymous cart persistence. The existing name also supports legacy service-role keys. |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`   | Stripe publishable key. Use a sandbox key locally and the matching live key only in production.                                    |
+| `STRIPE_SECRET_KEY`                    | Server-only Stripe secret key. Never expose it through a `NEXT_PUBLIC_*` variable.                                                 |
+| `STRIPE_WEBHOOK_SECRET`                | Signing secret for this deployment's `/api/stripe/webhook` endpoint.                                                               |
+| `CUSTOMER_IDENTITY_HASH_SECRET`        | At least 32 random characters used to HMAC normalized email and phone identities for discount enforcement.                         |
+| `CHECKOUT_ENABLED`                     | Explicit `true` opens checkout; absent or `false` keeps all PaymentIntent creation disabled.                                       |
 | `NEXT_BUILD_DIR`                       | Optional isolated build directory, used by browser tests.                                                                          |
 
 Actual `.env*` files are ignored. `SUPABASE_SERVICE_ROLE_KEY` may contain Supabase's newer secret API key; despite the backwards-compatible variable name, a legacy JWT is not required. Never expose this credential through `NEXT_PUBLIC_*`. Validation errors identify fields without printing values. Rebuild after changing public variables.
@@ -41,6 +46,20 @@ Catalogue amounts are fixed customer-facing selling prices. For VAT destinations
 `/admin/discounts` manages percentage/fixed codes, dates, minimums, usage limits, and product/collection restrictions. `MACMAER10` is initially active for 10% with one use per customer. Cart eligibility is authoritative on the server. Phase 5 will collect both email and phone and atomically reserve/redeem against the stored identity hashes; Phase 4 does not claim to enforce identity reuse before checkout has those fields.
 
 Demo catalogue mode remains intentionally non-purchasable and does not fabricate converted prices.
+
+## Checkout, orders, and Stripe
+
+Phase 5 creates immutable server-priced order snapshots, atomic `MAC-YYYY-NNNNNN` order numbers, inventory reservations, and one-customer discount reservations before creating a Stripe PaymentIntent. Only opaque order references are sent to Stripe. The signed webhook is authoritative for payment success, commits inventory exactly once, redeems the discount, and closes the cart. Cards are enabled first; Stripe's card payment method also presents Apple Pay or Google Pay when the browser, device, domain, and Stripe account are eligible. Klarna remains deferred.
+
+Checkout is fail-closed. Keep `CHECKOUT_ENABLED=false` (or omit it) in production until all five policies are approved and published, the live webhook exists, and a live-mode acceptance payment is authorized. Local sandbox testing requires the matching `pk_test_`, `sk_test_`, and webhook signing secret. With the Stripe CLI installed and authenticated, forward the four subscribed events with:
+
+```sh
+stripe listen \
+  --events payment_intent.processing,payment_intent.succeeded,payment_intent.payment_failed,payment_intent.canceled \
+  --forward-to localhost:3000/api/stripe/webhook
+```
+
+Copy the command's `whsec_...` value into local `STRIPE_WEBHOOK_SECRET`, generate a separate `CUSTOMER_IDENTITY_HASH_SECRET`, set `CHECKOUT_ENABLED=true`, and restart development. Never put live Stripe keys in the local file. For production, create a Stripe endpoint at `https://YOUR_PRODUCTION_DOMAIN/api/stripe/webhook` with the same four events and store that endpoint's separate signing secret in Vercel.
 
 ## Administrator access
 
@@ -84,7 +103,7 @@ Descriptions use open-source Tiptap. Structured JSON permits paragraphs, heading
 
 Start Docker Desktop, then `npm run db:start`. `npm run db:reset` replaces **disposable local data only**. If Docker cannot mount optional Studio folders, use `npx supabase start --exclude studio,edge-runtime,logflare,vector`. Never reset hosted data.
 
-Migrations `001`–`002` retain the original Phase 1 history. Migrations through `008` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, and Phase 4 shipping/tax/discount configuration. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
+Migrations `001`–`002` retain the original Phase 1 history. Migrations through `010` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, Phase 4 shipping/tax/discount configuration, and Phase 5 order/payment/reservation/webhook state. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
 
 `npm run seed:generate` generates deterministic fixture IDs from `src/modules/catalog/fixtures/catalogue.json`. Seeds use `ON CONFLICT DO NOTHING`, preserve existing rows, and are not a catalogue updater. After local checks, stage explicitly:
 
@@ -123,6 +142,8 @@ Admin refinement on 2026-09-07: 51 unit/database/action tests, 6 real Supabase i
 
 Phase 4 acceptance on 2026-09-09: 72 unit/database/action checks, 6 real Supabase integration checks, 15 admin browser checks, 8 commerce browser checks, and 8 storefront browser checks passed. The clean local migration/reset, database lint, strict types, formatting, lint, and demo-mode production build passed. Database lint retains one pre-existing unused-variable warning in the Phase 2 product validator.
 
+Phase 5 acceptance on 2026-09-10: 79 unit/database/action checks and 10 desktop/mobile commerce browser checks passed. A clean local reset applied migrations through `010`, the production build completed, and the linked production database reported no pending migrations. Checkout remains deliberately disabled pending policy approval and Stripe webhook acceptance.
+
 ## Architecture and deployment
 
 - `src/app/(storefront)` and `src/app/admin`: separate public/admin layouts.
@@ -130,6 +151,7 @@ Phase 4 acceptance on 2026-09-09: 72 unit/database/action checks, 6 real Supabas
 - `src/modules/pricing`, `currency`, `country`: configured-price/FX logic and persisted storefront context.
 - `src/modules/cart`: canonical option snapshots, secure anonymous ownership, validation, and persistence.
 - `src/modules/quote`, `shipping`, `tax`, `discount`: server-authoritative quote orchestration and isolated commerce rules.
+- `src/modules/checkout`, `payments`: immutable order snapshots, inventory/discount reservations, Stripe PaymentIntents, and idempotent webhook reconciliation.
 - `src/modules/admin`: authorization, inputs, actions, money parsing, media lifecycle.
 - `src/modules/content`: homepage persistence and structured rich text.
 - `src/lib/supabase`: typed stateless public, browser, cookie server, isolated service clients.

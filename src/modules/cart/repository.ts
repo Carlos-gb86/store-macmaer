@@ -67,6 +67,7 @@ async function existingCart(token: string) {
     .from("carts")
     .select()
     .eq("token_hash", hash(token))
+    .is("converted_at", null)
     .gt("expires_at", new Date().toISOString())
     .maybeSingle();
   if (error) throw error;

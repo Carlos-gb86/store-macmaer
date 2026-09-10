@@ -74,7 +74,7 @@ try {
   }
   output += "Functions: {\n";
   const { rows: functions } = await db.query(
-    "select p.proname, p.proargnames, p.pronargdefaults, array(select format_type(t,null) from unnest(p.proargtypes) t) as arg_types, format_type(p.prorettype,null) as result_type from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and (p.proname='is_admin' or p.proname like 'admin_%') order by p.proname",
+    "select p.proname, p.proargnames, p.pronargdefaults, array(select format_type(t,null) from unnest(p.proargtypes) t) as arg_types, format_type(p.prorettype,null) as result_type from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and (p.proname='is_admin' or p.proname like 'admin_%' or p.proname like 'checkout_%') order by p.proname",
   );
   const functionType = (type) =>
     type === "jsonb"

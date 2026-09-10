@@ -5,7 +5,10 @@ import type {
   DiscountableLine,
 } from "./schema";
 
-function isEligible(line: DiscountableLine, discount: DiscountDefinition) {
+export function isDiscountEligible(
+  line: DiscountableLine,
+  discount: DiscountDefinition,
+) {
   if (!discount.productIds.length && !discount.collectionIds.length)
     return true;
   return (
@@ -78,7 +81,7 @@ export function evaluateDiscount(
   const subtotal = sumMinorAmounts(lines.map((line) => line.amount));
   if (subtotal < discount.minimumSubtotal)
     return unavailable("The cart does not meet this discount's minimum spend.");
-  const eligible = lines.filter((line) => isEligible(line, discount));
+  const eligible = lines.filter((line) => isDiscountEligible(line, discount));
   const eligibleTotal = sumMinorAmounts(eligible.map((line) => line.amount));
   if (!eligible.length || eligibleTotal === 0)
     return unavailable("That discount does not apply to these products.");

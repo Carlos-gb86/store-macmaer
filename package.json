@@ -29,6 +29,8 @@
     "staging:setup": "node scripts/staging-setup.mjs"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.10.0",
+    "@stripe/stripe-js": "^9.16.0",
     "@supabase/ssr": "0.12.6",
     "@supabase/supabase-js": "2.115.0",
     "@tiptap/pm": "3.31.3",
@@ -40,6 +42,7 @@
     "react-dom": "19.2.8",
     "server-only": "0.0.1",
     "sharp": "0.35.4",
+    "stripe": "^22.6.2",
     "zod": "4.5.4"
   },
   "devDependencies": {

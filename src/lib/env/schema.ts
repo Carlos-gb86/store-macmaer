@@ -11,11 +11,22 @@ export const publicEnvSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
   NEXT_PUBLIC_SUPABASE_URL: optionalUrl,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalText,
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: optionalText,
 });
 export const serverEnvSchema = publicEnvSchema
   .extend({
     CATALOG_SOURCE: z.enum(["demo", "supabase"]).default("supabase"),
     SUPABASE_SERVICE_ROLE_KEY: optionalText,
+    STRIPE_SECRET_KEY: optionalText,
+    STRIPE_WEBHOOK_SECRET: optionalText,
+    CUSTOMER_IDENTITY_HASH_SECRET: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.string().min(32).optional(),
+    ),
+    CHECKOUT_ENABLED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
   })
   .superRefine((env, ctx) => {
     if (env.CATALOG_SOURCE === "supabase") {
@@ -29,6 +40,21 @@ export const serverEnvSchema = publicEnvSchema
             code: "custom",
             path: [key],
             message: "Required in Supabase mode",
+          });
+      }
+    }
+    if (env.CHECKOUT_ENABLED) {
+      for (const key of [
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "CUSTOMER_IDENTITY_HASH_SECRET",
+      ] as const) {
+        if (!env[key])
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: "Required when checkout is enabled",
           });
       }
     }

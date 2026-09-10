@@ -173,9 +173,15 @@ export default async function CartPage() {
               This remains an estimate until the shipping address is confirmed
               during checkout.
             </p>
-            <button className="button" disabled>
-              Checkout opens in Phase 5
-            </button>
+            {quote?.destinationSupported && quote.shipping ? (
+              <Link className="button" href="/checkout">
+                Continue to checkout
+              </Link>
+            ) : (
+              <button className="button" disabled>
+                Checkout unavailable
+              </button>
+            )}
             <Link href="/shop" className="text-link">
               Continue shopping
             </Link>

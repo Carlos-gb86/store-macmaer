@@ -10,6 +10,9 @@ const env = JSON.parse(readFileSync(".env.integration.json", "utf8")) as {
 test.beforeAll(async () => {
   const client = createClient(env.url, env.serviceKey, {
     auth: { persistSession: false },
+    realtime: {
+      transport: class UnusedWebSocketTransport {} as never,
+    },
   });
   const { error } = await client.from("currency_rates").upsert(
     [
@@ -88,15 +91,16 @@ test("quotes destination VAT, configurable shipping and MACMAER10 on the server"
   await page.goto("/cart");
 
   const summary = page.locator(".cart-summary");
-  await expect(summary.getByText("80 SEK", { exact: true })).toBeVisible();
-  await expect(summary.getByText("136 SEK", { exact: true })).toBeVisible();
-  await expect(summary.getByText("680 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("Free", { exact: true })).toBeVisible();
+  await expect(summary.getByText("120 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("600 SEK", { exact: true })).toHaveCount(2);
 
   await page.getByLabel("Discount code").fill("MACMAER10");
   await page.getByRole("button", { name: "Apply" }).click();
   await expect(page.getByText("MACMAER10 applied.")).toBeVisible();
   await expect(summary.getByText("−60 SEK", { exact: true })).toBeVisible();
-  await expect(summary.getByText("620 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("108 SEK", { exact: true })).toBeVisible();
+  await expect(summary.getByText("540 SEK", { exact: true })).toBeVisible();
 
   await page
     .getByRole("button", { name: "Remove", exact: true })
@@ -131,4 +135,22 @@ test("changes currency independently from destination and rejects unavailable st
   await expect(page.getByRole("button", { name: "Add to cart" })).toHaveCount(
     0,
   );
+});
+
+test("keeps production-safe checkout disabled and exposes draft policy routes", async ({
+  page,
+}) => {
+  await page.goto("/products/infinity-knot");
+  await page.getByRole("button", { name: "Add to cart" }).click();
+  await expect(page.getByText("Added to your cart.")).toBeVisible();
+  await page.goto("/cart");
+  await page.getByRole("link", { name: "Continue to checkout" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Ordering is not open yet." }),
+  ).toBeVisible();
+  await page.goto("/terms");
+  await expect(
+    page.getByRole("heading", { name: "Terms of Sale and Website Use" }),
+  ).toBeVisible();
+  await expect(page.getByText(/Pre-launch draft dated/)).toBeVisible();
 });

@@ -7,5 +7,6 @@ test-results
 package-lock.json
 SPEC.md
 AGENTS.md
+macmaer_legal_checkout_policies.md
 supabase/seed.sql
 src/lib/supabase/database.types.ts
