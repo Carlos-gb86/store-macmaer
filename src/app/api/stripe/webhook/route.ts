@@ -15,8 +15,10 @@ const paymentEvents = new Set<Stripe.Event.Type>([
 export async function POST(request: Request) {
   const signature = request.headers.get("stripe-signature");
   const secret = getServerEnv().STRIPE_WEBHOOK_SECRET;
-  if (!signature || !secret)
+  if (!secret)
     return new Response("Webhook is not configured.", { status: 503 });
+  if (!signature)
+    return new Response("Stripe signature is required.", { status: 400 });
   let event: Stripe.Event;
   try {
     event = getStripe().webhooks.constructEvent(

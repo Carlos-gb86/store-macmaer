@@ -54,12 +54,10 @@ Phase 5 creates immutable server-priced order snapshots, atomic `MAC-YYYY-NNNNNN
 Checkout is fail-closed. Keep `CHECKOUT_ENABLED=false` (or omit it) in production until all five policies are approved and published, the live webhook exists, and a live-mode acceptance payment is authorized. Local sandbox testing requires the matching `pk_test_`, `sk_test_`, and webhook signing secret. With the Stripe CLI installed and authenticated, forward the four subscribed events with:
 
 ```sh
-stripe listen \
-  --events payment_intent.processing,payment_intent.succeeded,payment_intent.payment_failed,payment_intent.canceled \
-  --forward-to localhost:3000/api/stripe/webhook
+npm run stripe:listen
 ```
 
-Copy the command's `whsec_...` value into local `STRIPE_WEBHOOK_SECRET`, generate a separate `CUSTOMER_IDENTITY_HASH_SECRET`, set `CHECKOUT_ENABLED=true`, and restart development. Never put live Stripe keys in the local file. For production, create a Stripe endpoint at `https://YOUR_PRODUCTION_DOMAIN/api/stripe/webhook` with the same four events and store that endpoint's separate signing secret in Vercel.
+Keep that process running while testing. A forwarded event prints a `<-- [200] POST` response; seeing only incoming `-->` event lines means the CLI is listening without forwarding. Copy the command's `whsec_...` value into local `STRIPE_WEBHOOK_SECRET`, generate a separate `CUSTOMER_IDENTITY_HASH_SECRET`, set `CHECKOUT_ENABLED=true`, and restart development. If a restarted listener prints a different signing secret, update the local value and restart Next.js. Never put live Stripe keys in the local file. For production, create a Stripe endpoint at `https://YOUR_PRODUCTION_DOMAIN/api/stripe/webhook` with the same four events and store that endpoint's separate signing secret in Vercel.
 
 ## Administrator access
 

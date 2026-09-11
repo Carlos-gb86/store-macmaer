@@ -26,6 +26,7 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "integration:setup": "node scripts/setup-integration.mjs",
     "test:admin": "playwright test --config playwright.admin.config.ts",
+    "stripe:listen": "stripe listen --events payment_intent.processing,payment_intent.succeeded,payment_intent.payment_failed,payment_intent.canceled --forward-to http://127.0.0.1:3000/api/stripe/webhook",
     "staging:setup": "node scripts/staging-setup.mjs"
   },
   "dependencies": {
