@@ -152,5 +152,5 @@ test("keeps production-safe checkout disabled and exposes draft policy routes", 
   await expect(
     page.getByRole("heading", { name: "Terms of Sale and Website Use" }),
   ).toBeVisible();
-  await expect(page.getByText(/Pre-launch draft dated/)).toBeVisible();
+  await expect(page.getByText(/Pre-launch draft updated/)).toBeVisible();
 });

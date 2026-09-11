@@ -12,9 +12,9 @@ export default function TermsPage() {
     <PolicyPage eyebrow="Legal" title="Terms of Sale and Website Use">
       <p>
         These draft terms apply when you browse macmaer.com or place an order
-        with Macmaer, a Swedish trader. Nothing in them limits mandatory
-        consumer rights. Final legal trader details will be added before
-        ordering opens.
+        with Maria Botyan, a Swedish sole trader trading as Macmaer,
+        identification number 19820627-4345 and VAT number SE820627434501.
+        Nothing in them limits mandatory consumer rights.
       </p>
       <h2>Products and handmade variations</h2>
       <p>
@@ -60,6 +60,16 @@ export default function TermsPage() {
         <Link href="/returns">Returns Policy</Link>, and{" "}
         <Link href="/privacy">Privacy Policy</Link>.
       </p>
+      <h2>Trader information</h2>
+      <address>
+        Maria Botyan, sole trader trading as Macmaer
+        <br />
+        Trombongatan 22B, 421 51 Västra Frölunda, Sweden
+        <br />
+        <a href="mailto:info@macmaer.com">info@macmaer.com</a>
+        <br />
+        <a href="tel:+46728748756">+46 72 874 87 56</a>
+      </address>
     </PolicyPage>
   );
 }

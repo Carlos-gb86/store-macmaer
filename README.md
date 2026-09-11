@@ -103,7 +103,7 @@ Descriptions use open-source Tiptap. Structured JSON permits paragraphs, heading
 
 Start Docker Desktop, then `npm run db:start`. `npm run db:reset` replaces **disposable local data only**. If Docker cannot mount optional Studio folders, use `npx supabase start --exclude studio,edge-runtime,logflare,vector`. Never reset hosted data.
 
-Migrations `001`–`002` retain the original Phase 1 history. Migrations through `010` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, Phase 4 shipping/tax/discount configuration, and Phase 5 order/payment/reservation/webhook state. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
+Migrations `001`–`002` retain the original Phase 1 history. Migrations through `011` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, Phase 4 shipping/tax/discount configuration, Phase 5 order/payment/reservation/webhook state, and versioned policy snapshots. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
 
 `npm run seed:generate` generates deterministic fixture IDs from `src/modules/catalog/fixtures/catalogue.json`. Seeds use `ON CONFLICT DO NOTHING`, preserve existing rows, and are not a catalogue updater. After local checks, stage explicitly:
 

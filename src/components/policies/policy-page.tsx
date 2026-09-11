@@ -16,9 +16,9 @@ export function PolicyPage({
         <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>
         <p className="policy-draft">
-          Pre-launch draft dated 10 September 2026. Ordering remains disabled
-          until Macmaer’s complete legal business details and final review are
-          added.
+          Pre-launch draft updated 11 September 2026. Ordering remains disabled
+          pending final legal review and activation of the online withdrawal
+          function.
         </p>
       </header>
       <article className="policy-content">{children}</article>

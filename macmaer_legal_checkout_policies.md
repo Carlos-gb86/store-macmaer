@@ -10,16 +10,16 @@ This document is designed to make Macmaer's customer terms clear, internally con
 
 **Do not publish with placeholders unresolved.** Before production, replace all bracketed fields below and verify the actual suppliers/services used by the application.
 
-Required business details before launch:
+Confirmed trader details:
 
-- `[LEGAL BUSINESS / TRADER NAME]`
+- Legal trader: `Maria Botyan`, sole trader (`enskild näringsidkare`)
 - Trading name: `Macmaer`
-- `[SWEDISH ORGANISATION NUMBER / IDENTIFICATION NUMBER, AS APPLICABLE]`
-- `[VAT REGISTRATION NUMBER]`
-- `[PHYSICAL BUSINESS ADDRESS IN SWEDEN]`
-- `[RETURN ADDRESS, IF DIFFERENT]`
+- Identification number: `19820627-4345`
+- VAT registration number: `SE820627434501`
+- Business address: `Trombongatan 22B, 421 51 Västra Frölunda, Sweden`
+- Return address: same as the business address unless otherwise instructed when arranging a return
 - Email: `info@macmaer.com`
-- `[CUSTOMER SERVICE TELEPHONE NUMBER]`
+- Customer service telephone: `072-874 87 56` (`+46 72 874 87 56` from outside Sweden)
 
 These details should be easily and permanently accessible on the website (for example in the footer/contact/legal pages), not only hidden inside these Terms.
 
@@ -31,7 +31,7 @@ These details should be easily and permanently accessible on the website (for ex
 
 These Terms of Sale and Website Use (the **“Terms”**) apply when you browse `macmaer.com`, place an order, or otherwise use services provided through the website.
 
-Macmaer is operated by **[LEGAL BUSINESS / TRADER NAME]**, trading as **Macmaer**, established in Sweden, with organisation/identification number **[NUMBER]** and VAT registration number **[VAT NUMBER]**. Our business address is **[ADDRESS]**. You can contact us at **info@macmaer.com** or **[PHONE]**.
+Macmaer is operated by **Maria Botyan**, a sole trader (`enskild näringsidkare`) trading as **Macmaer**, established in Sweden, with identification number **19820627-4345** and VAT registration number **SE820627434501**. Our business address is **Trombongatan 22B, 421 51 Västra Frölunda, Sweden**. You can contact us at **info@macmaer.com** or **+46 72 874 87 56**.
 
 Nothing in these Terms limits any mandatory rights that you have under applicable consumer law.
 
@@ -303,10 +303,10 @@ If a provision of these Terms is found invalid or unenforceable, the remaining p
 
 Questions about orders or these Terms can be sent to:
 
-**Macmaer / [LEGAL BUSINESS NAME]**  
-[PHYSICAL ADDRESS]  
+**Macmaer / Maria Botyan**  
+Trombongatan 22B, 421 51 Västra Frölunda, Sweden  
 Email: `info@macmaer.com`  
-Telephone: `[PHONE]`
+Telephone: `+46 72 874 87 56`
 
 ---
 
@@ -314,12 +314,12 @@ Telephone: `[PHONE]`
 
 **Last updated:** `[DATE OF LIVE ACTIVATION]`
 
-This Privacy Policy explains how **[LEGAL BUSINESS / TRADER NAME]**, trading as **Macmaer** (**“Macmaer”, “we”, “us”**), collects and uses personal data when you visit `macmaer.com`, place an order, contact us, request a return/withdrawal, submit a review, or otherwise interact with our store.
+This Privacy Policy explains how **Maria Botyan**, a sole trader trading as **Macmaer** (**“Macmaer”, “we”, “us”**), collects and uses personal data when you visit `macmaer.com`, place an order, contact us, request a return/withdrawal, submit a review, or otherwise interact with our store.
 
-For purposes of EU data-protection law, **[LEGAL BUSINESS / TRADER NAME]** is the data controller for the processing described in this policy, except where another company acts as an independent controller for its own service (for example, certain payment-provider processing).
+For purposes of EU data-protection law, **Maria Botyan** is the data controller for the processing described in this policy, except where another company acts as an independent controller for its own service (for example, certain payment-provider processing).
 
 Contact: `info@macmaer.com`  
-Address: `[PHYSICAL BUSINESS ADDRESS]`
+Address: `Trombongatan 22B, 421 51 Västra Frölunda, Sweden`
 
 ## 2.1 Personal data we collect
 
@@ -493,10 +493,10 @@ We may update this Privacy Policy when the store, suppliers, processing purposes
 
 For privacy questions or rights requests:
 
-**Macmaer / [LEGAL BUSINESS NAME]**  
-[PHYSICAL ADDRESS]  
+**Macmaer / Maria Botyan**  
+Trombongatan 22B, 421 51 Västra Frölunda, Sweden  
 Email: `info@macmaer.com`  
-Telephone: `[PHONE]`
+Telephone: `+46 72 874 87 56`
 
 ---
 
@@ -917,4 +917,3 @@ The September 2026 review used the following primary/official guidance as the ba
   `https://www.imy.se/verksamhet/dataskydd/det-har-galler-enligt-gdpr/overforing-till-tredje-land/`
 - Skatteverket — accounting information retention:  
   `https://www4.skatteverket.se/rattsligvagledning/edition/2026.10/324687.html`
-

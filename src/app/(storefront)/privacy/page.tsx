@@ -10,10 +10,10 @@ export default function PrivacyPage() {
   return (
     <PolicyPage eyebrow="Legal" title="Privacy Policy">
       <p>
-        Macmaer processes personal data needed to operate the store, fulfil
-        orders, provide support, manage returns and complaints, meet legal
-        duties, and protect the service. Final controller identity and address
-        details will be added before ordering opens.
+        Maria Botyan, a Swedish sole trader trading as Macmaer, is the data
+        controller. Macmaer processes personal data needed to operate the store,
+        fulfil orders, provide support, manage returns and complaints, meet
+        legal duties, and protect the service.
       </p>
       <h2>Data we use</h2>
       <p>
@@ -50,9 +50,10 @@ export default function PrivacyPage() {
       <h2>Contact and security</h2>
       <p>
         Contact <a href="mailto:info@macmaer.com">info@macmaer.com</a> for
-        privacy questions or rights requests. Macmaer uses proportionate
-        security controls, keeps server credentials out of browser code, and
-        uses Stripe-hosted payment fields.
+        privacy questions or rights requests, or write to Trombongatan 22B, 421
+        51 Västra Frölunda, Sweden. Macmaer uses proportionate security
+        controls, keeps server credentials out of browser code, and uses
+        Stripe-hosted payment fields.
       </p>
     </PolicyPage>
   );
