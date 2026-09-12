@@ -79,3 +79,27 @@ test("draft and unknown products are not public and pages fit the viewport", asy
     page.getByRole("navigation", { name: "Main navigation" }),
   ).toBeVisible();
 });
+
+test("footer social links and policy accordions are accessible", async ({
+  page,
+}) => {
+  await page.goto("/");
+  for (const social of ["Instagram", "YouTube", "Etsy", "Pinterest"])
+    await expect(
+      page.getByRole("link", { name: `Follow Macmaer on ${social}` }),
+    ).toBeVisible();
+
+  await page.goto("/terms");
+  const sections = page.locator(".policy-accordion details");
+  await expect(sections).toHaveCount(7);
+  await expect(sections.first()).toHaveAttribute("open", "");
+  await sections.nth(1).locator("summary").click();
+  await expect(sections.nth(1)).toHaveAttribute("open", "");
+  await sections.first().locator("summary").click();
+  await expect(sections.first()).not.toHaveAttribute("open", "");
+  await expect(sections.nth(1)).toHaveAttribute("open", "");
+  await sections.last().locator("summary").click();
+  await expect(
+    page.getByText("VAT registration number: SE820627434501"),
+  ).toBeVisible();
+});

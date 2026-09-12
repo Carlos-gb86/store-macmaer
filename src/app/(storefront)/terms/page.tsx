@@ -62,13 +62,27 @@ export default function TermsPage() {
       </p>
       <h2>Trader information</h2>
       <address>
-        Maria Botyan, sole trader trading as Macmaer
+        <strong>Maria Botyan</strong>
+        <br />
+        Sole trader (enskild näringsidkare) trading as <strong>Macmaer</strong>
+        <br />
+        Identification number: 19820627-4345
+        <br />
+        VAT registration number: SE820627434501
+        <br />
+        <br />
+        Business address:
         <br />
         Trombongatan 22B, 421 51 Västra Frölunda, Sweden
         <br />
-        <a href="mailto:info@macmaer.com">info@macmaer.com</a>
+        Return address: the business address above unless otherwise instructed
+        when arranging a return.
         <br />
-        <a href="tel:+46728748756">+46 72 874 87 56</a>
+        <br />
+        Email: <a href="mailto:info@macmaer.com">info@macmaer.com</a>
+        <br />
+        Telephone: <a href="tel:+46728748756">072-874 87 56</a> (+46 72 874 87
+        56 from outside Sweden)
       </address>
     </PolicyPage>
   );
