@@ -69,6 +69,7 @@ export type CreateCheckoutResult = {
   orderNumber: string;
   clientSecret: string;
   summary: CheckoutSummary;
+  notice?: string;
 };
 
 export class CheckoutError extends Error {

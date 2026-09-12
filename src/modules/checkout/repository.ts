@@ -4,8 +4,11 @@ import type Stripe from "stripe";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/database.types";
 import { getServerEnv } from "@/lib/env/server";
-import { getCart } from "@/modules/cart/repository";
-import { getStorefrontContext } from "@/modules/currency/repository";
+import { getCart, setCartDiscountCode } from "@/modules/cart/repository";
+import {
+  getStrictStorefrontContext,
+  type StorefrontContext,
+} from "@/modules/currency/repository";
 import { currencySchema } from "@/modules/currency/schema";
 import { getQuoteConfiguration, quoteCart } from "@/modules/quote/repository";
 import { getStripe, usesLiveStripe } from "@/modules/payments/stripe";
@@ -43,6 +46,15 @@ export function normalizePhone(value: string) {
   return (
     (normalized.startsWith("+") ? "+" : "") + normalized.replace(/\D/g, "")
   );
+}
+
+export function discountRemovalNotice(
+  message: string,
+  customerSpecific = false,
+) {
+  if (customerSpecific || /already used/i.test(message))
+    return "It looks like you’ve already enjoyed this discount. We removed the code so you can continue.";
+  return "That discount is no longer available, so we removed it and kept your checkout moving.";
 }
 
 function stripeAddress(address: CheckoutAddress): Stripe.AddressParam {
@@ -159,31 +171,60 @@ async function releaseExpiredOrders() {
 export async function createCheckout(
   input: unknown,
 ): Promise<CreateCheckoutResult & { accessToken: string }> {
+  return createCheckoutAttempt(input, null);
+}
+
+async function createCheckoutAttempt(
+  input: unknown,
+  discountNotice: string | null,
+): Promise<CreateCheckoutResult & { accessToken: string }> {
   const env = getServerEnv();
   if (!env.CHECKOUT_ENABLED)
     throw new CheckoutError("Checkout is not open yet.", 503);
   const value = createCheckoutSchema.parse(input);
   await releaseExpiredOrders();
-  const cart = await getCart();
+  let storefrontContext: StorefrontContext;
+  try {
+    storefrontContext = await getStrictStorefrontContext();
+  } catch {
+    throw new CheckoutError(
+      "Prices could not be verified right now. Please try checkout again in a moment.",
+      503,
+    );
+  }
+  const cart = await getCart(storefrontContext);
   if (!cart.id || !cart.lines.length)
     throw new CheckoutError("Your cart is empty.");
   if (cart.lines.some((line) => !line.valid))
     throw new CheckoutError(
       "Review unavailable items in your cart before checkout.",
     );
-  const [{ pricing }, configuration, versions] = await Promise.all([
-    getStorefrontContext(),
+  const [configuration, versions] = await Promise.all([
     getQuoteConfiguration(),
     policyVersions(),
   ]);
+  const { pricing } = storefrontContext;
   const checkoutCart = {
     ...cart,
     destinationCountry: value.shippingAddress.country,
   };
-  const quote = await quoteCart(checkoutCart);
+  const quote = await quoteCart(
+    checkoutCart,
+    checkoutCart.discountCode,
+    pricing,
+  );
   if (!quote.destinationSupported || !quote.shipping)
     throw new CheckoutError("We cannot ship this cart to that destination.");
-  if (quote.discountMessage) throw new CheckoutError(quote.discountMessage);
+  if (quote.discountMessage) {
+    if (cart.discountCode && !discountNotice) {
+      await setCartDiscountCode(null);
+      return createCheckoutAttempt(
+        value,
+        discountRemovalNotice(quote.discountMessage),
+      );
+    }
+    throw new CheckoutError(quote.discountMessage);
+  }
   if (usesLiveStripe() && quote.taxReviewRequired)
     throw new CheckoutError(
       "Checkout is waiting for the production VAT review.",
@@ -250,10 +291,26 @@ export async function createCheckout(
     { document: document as unknown as Json },
   );
   if (createError) {
-    if (/already used|usage limit/i.test(createError.message))
-      throw new CheckoutError(
-        "This discount has already been used for that email address or telephone number.",
-      );
+    if (/already used/i.test(createError.message)) {
+      if (cart.discountCode && !discountNotice) {
+        await setCartDiscountCode(null);
+        return createCheckoutAttempt(
+          value,
+          discountRemovalNotice(createError.message, true),
+        );
+      }
+      throw new CheckoutError("This discount has already been used.");
+    }
+    if (/usage limit/i.test(createError.message)) {
+      if (cart.discountCode && !discountNotice) {
+        await setCartDiscountCode(null);
+        return createCheckoutAttempt(
+          value,
+          discountRemovalNotice(createError.message),
+        );
+      }
+      throw new CheckoutError("This discount is no longer available.");
+    }
     if (/inventory/i.test(createError.message))
       throw new CheckoutError(
         "One of these pieces is no longer available in the requested quantity.",
@@ -311,6 +368,7 @@ export async function createCheckout(
     clientSecret: intent.client_secret,
     accessToken: value.accessToken,
     summary: summary(quote),
+    ...(discountNotice ? { notice: discountNotice } : {}),
   };
 }
 

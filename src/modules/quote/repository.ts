@@ -3,6 +3,7 @@ import { cache } from "react";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import type { CartView } from "@/modules/cart/schema";
 import { getStorefrontContext } from "@/modules/currency/repository";
+import type { PricingContext } from "@/modules/currency/schema";
 import type { DiscountDefinition } from "@/modules/discount/schema";
 import type { ShippingZone } from "@/modules/shipping/schema";
 import type { TaxRule, TaxSettings } from "@/modules/tax/schema";
@@ -163,9 +164,12 @@ export const getQuoteConfiguration = cache(
 export async function quoteCart(
   cart: CartView,
   discountCode = cart.discountCode,
+  pricingOverride?: PricingContext,
 ) {
-  const [{ pricing }, configuration] = await Promise.all([
-    getStorefrontContext(),
+  const [pricing, configuration] = await Promise.all([
+    pricingOverride
+      ? Promise.resolve(pricingOverride)
+      : getStorefrontContext().then((context) => context.pricing),
     getQuoteConfiguration(),
   ]);
   const quote = calculateQuote({

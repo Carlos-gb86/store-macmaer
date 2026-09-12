@@ -11,20 +11,23 @@ export function StoreContextSelectors({
   currencies,
   destination,
   countries,
+  currencyNotice,
 }: {
   currency: Currency;
   currencies: { code: Currency; available: boolean }[];
   destination: string;
   countries: { code: string; name: string }[];
+  currencyNotice?: string;
 }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
   return (
     <div className="store-context" aria-label="Shopping preferences">
-      <label>
+      <label title={currencyNotice}>
         <span className="sr-only">Display currency</span>
         <select
           aria-label="Display currency"
+          aria-describedby={currencyNotice ? "currency-notice" : undefined}
           value={currency}
           disabled={pending}
           onChange={(event) => {
@@ -47,6 +50,11 @@ export function StoreContextSelectors({
           ))}
         </select>
       </label>
+      {currencyNotice && (
+        <span id="currency-notice" className="sr-only">
+          {currencyNotice}
+        </span>
+      )}
       <label>
         <span className="sr-only">Shopping destination</span>
         <select

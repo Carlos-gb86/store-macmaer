@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { StoreContextSelectors } from "./store-context-selectors";
@@ -14,7 +15,13 @@ export async function Header() {
     <header className="site-header">
       <Container className="header-inner">
         <Link href="/" className="wordmark" aria-label="Macmaer home">
-          macmaer<span>HANDMADE IN SWEDEN</span>
+          <Image
+            src="/logo/Logo-macmaer-name.svg"
+            alt="Macmaer — handmade in Sweden"
+            width={982}
+            height={187}
+            priority
+          />
         </Link>
         <nav aria-label="Main navigation" className="main-nav">
           <Link href="/shop">Shop all</Link>
@@ -31,6 +38,7 @@ export async function Header() {
               ),
             }))}
             destination={context.destinationCountry}
+            currencyNotice={context.pricing.unavailableReason}
             countries={countries.filter((country) =>
               context.supportedCountries.includes(country.code),
             )}

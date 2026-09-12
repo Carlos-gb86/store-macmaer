@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildOrderItemSnapshots } from "@/modules/checkout/snapshot";
-import { normalizeEmail, normalizePhone } from "@/modules/checkout/repository";
+import {
+  discountRemovalNotice,
+  normalizeEmail,
+  normalizePhone,
+} from "@/modules/checkout/repository";
 import type { CartLine } from "@/modules/cart/schema";
 import type { DisplayQuote, QuoteConfiguration } from "@/modules/quote/schema";
 
@@ -57,6 +61,15 @@ describe("Phase 5 checkout snapshots", () => {
   it("normalizes discount identities consistently", () => {
     expect(normalizeEmail("  BUYER@Example.COM ")).toBe("buyer@example.com");
     expect(normalizePhone("+46 (0)70-123 45 67")).toBe("+460701234567");
+  });
+
+  it("uses a friendly customer-specific notice when removing a used code", () => {
+    expect(discountRemovalNotice("Discount already used")).toBe(
+      "It looks like you’ve already enjoyed this discount. We removed the code so you can continue.",
+    );
+    expect(discountRemovalNotice("Discount usage limit reached")).toBe(
+      "That discount is no longer available, so we removed it and kept your checkout moving.",
+    );
   });
 
   it("reconciles every discount and VAT minor unit to the order totals", () => {

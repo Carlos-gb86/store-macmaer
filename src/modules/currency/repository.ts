@@ -80,67 +80,38 @@ export type StorefrontContext = {
   supportedCountries: string[];
 };
 
-export async function readStorefrontContext(): Promise<StorefrontContext> {
-  const cookieStore = await cookies();
-  const requestedCurrency = readCurrency(
-    cookieStore.get(CURRENCY_COOKIE)?.value,
-  );
-  const parsedCountry = countryCodeSchema.safeParse(
-    cookieStore.get(DESTINATION_COOKIE)?.value,
-  );
-  const requestedCountry = parsedCountry.success ? parsedCountry.data : "SE";
+type CurrencyConfiguration = {
+  settings: CurrencySetting[];
+  rates: FxRate[];
+  supportedCountries: string[];
+};
 
-  if (getServerEnv().CATALOG_SOURCE === "demo")
-    return {
-      destinationCountry: initialSupportedCountryCodes.includes(
-        requestedCountry as (typeof initialSupportedCountryCodes)[number],
-      )
-        ? requestedCountry
-        : "SE",
-      settings: demoSettings,
-      supportedCountries: [...initialSupportedCountryCodes],
-      pricing: {
-        currency: "SEK",
-        requestedCurrency,
-        rate: null,
-        setting: defaultSetting,
-        availableCurrencies: ["SEK"],
-        ...(requestedCurrency !== "SEK"
-          ? {
-              unavailableReason:
-                "Live exchange rates require the shop database.",
-            }
-          : {}),
-      },
-    };
+let lastKnownConfiguration: CurrencyConfiguration | null = null;
 
-  const client = createServiceSupabaseClient();
-  const [settingsResult, ratesResult, countriesResult] = await Promise.all([
-    client.from("store_currencies").select().order("sort_order"),
-    client
-      .from("currency_rates")
-      .select()
-      .order("source_effective_at", { ascending: false })
-      .order("fetched_at", { ascending: false }),
-    client.from("shipping_zone_countries").select("country_code"),
-  ]);
-  if (settingsResult.error || ratesResult.error || countriesResult.error)
-    throw new Error("Currency configuration could not be loaded.");
-  const supportedCountries = countriesResult.data.map(
-    (country) => country.country_code,
-  );
+function fallbackConfiguration(): CurrencyConfiguration {
+  return {
+    settings: demoSettings,
+    rates: [],
+    supportedCountries: [...initialSupportedCountryCodes],
+  };
+}
+
+function buildStorefrontContext(
+  requestedCurrency: Currency,
+  requestedCountry: string,
+  configuration: CurrencyConfiguration,
+  configurationUnavailable = false,
+): StorefrontContext {
+  const { settings, rates, supportedCountries } = configuration;
   const destinationCountry = supportedCountries.includes(requestedCountry)
     ? requestedCountry
     : supportedCountries.includes("SE")
       ? "SE"
       : (supportedCountries[0] ?? "SE");
-  const settings = settingsResult.data.map(mapSetting);
   const latestRates = new Map<Currency, FxRate>();
-  for (const row of ratesResult.data) {
-    const rate = mapRate(row);
+  for (const rate of rates)
     if (!latestRates.has(rate.quoteCurrency))
       latestRates.set(rate.quoteCurrency, rate);
-  }
   const availableCurrencies = settings
     .filter((setting) => setting.enabled)
     .filter(
@@ -165,16 +136,96 @@ export async function readStorefrontContext(): Promise<StorefrontContext> {
       rate: currency === "SEK" ? null : requestedRate,
       setting,
       availableCurrencies,
-      ...(!usable && requestedCurrency !== "SEK"
+      ...(configurationUnavailable
         ? {
-            unavailableReason: "That currency does not have an available rate.",
+            unavailableReason: usable
+              ? "Using the most recently loaded currency configuration while the live settings reconnect."
+              : "Currency options are temporarily unavailable. Prices are shown in SEK.",
           }
-        : {}),
+        : !usable && requestedCurrency !== "SEK"
+          ? {
+              unavailableReason:
+                "That currency does not have an available rate.",
+            }
+          : {}),
     },
   };
 }
 
+async function loadCurrencyConfiguration(): Promise<CurrencyConfiguration> {
+  const client = createServiceSupabaseClient();
+  const [settingsResult, ratesResult, countriesResult] = await Promise.all([
+    client.from("store_currencies").select().order("sort_order"),
+    client
+      .from("currency_rates")
+      .select()
+      .order("source_effective_at", { ascending: false })
+      .order("fetched_at", { ascending: false }),
+    client.from("shipping_zone_countries").select("country_code"),
+  ]);
+  if (settingsResult.error || ratesResult.error || countriesResult.error)
+    throw new Error("Currency configuration could not be loaded.");
+  const configuration = {
+    settings: settingsResult.data.map(mapSetting),
+    rates: ratesResult.data.map(mapRate),
+    supportedCountries: countriesResult.data.map(
+      (country) => country.country_code,
+    ),
+  };
+  lastKnownConfiguration = configuration;
+  return configuration;
+}
+
+async function readStorefrontContextWithMode(
+  strict: boolean,
+): Promise<StorefrontContext> {
+  const cookieStore = await cookies();
+  const requestedCurrency = readCurrency(
+    cookieStore.get(CURRENCY_COOKIE)?.value,
+  );
+  const parsedCountry = countryCodeSchema.safeParse(
+    cookieStore.get(DESTINATION_COOKIE)?.value,
+  );
+  const requestedCountry = parsedCountry.success ? parsedCountry.data : "SE";
+
+  if (getServerEnv().CATALOG_SOURCE === "demo")
+    return buildStorefrontContext(
+      requestedCurrency,
+      requestedCountry,
+      fallbackConfiguration(),
+      true,
+    );
+
+  try {
+    return buildStorefrontContext(
+      requestedCurrency,
+      requestedCountry,
+      await loadCurrencyConfiguration(),
+    );
+  } catch (error) {
+    if (strict) throw error;
+    console.warn(
+      "[currency] Live configuration unavailable; using the last known configuration or SEK fallback.",
+    );
+    return buildStorefrontContext(
+      requestedCurrency,
+      requestedCountry,
+      lastKnownConfiguration ?? fallbackConfiguration(),
+      true,
+    );
+  }
+}
+
+export async function readStorefrontContext(): Promise<StorefrontContext> {
+  return readStorefrontContextWithMode(false);
+}
+
+export async function readStrictStorefrontContext(): Promise<StorefrontContext> {
+  return readStorefrontContextWithMode(true);
+}
+
 export const getStorefrontContext = cache(readStorefrontContext);
+export const getStrictStorefrontContext = cache(readStrictStorefrontContext);
 
 export async function latestRatesForAdmin() {
   const client = createServiceSupabaseClient();

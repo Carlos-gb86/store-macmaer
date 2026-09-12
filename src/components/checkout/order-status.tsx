@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatMoney } from "@/modules/currency/money";
@@ -53,8 +54,29 @@ export function OrderStatus({
 
   const paid = order.payment_status === "SUCCEEDED";
   const failed = order.payment_status === "FAILED";
+  const pending = !paid && !failed;
   return (
-    <div className="confirmation-card" aria-live="polite">
+    <div
+      className={`confirmation-card confirmation-card--${paid ? "paid" : failed ? "failed" : "pending"}`}
+      aria-live="polite"
+    >
+      <div className="confirmation-visual" aria-hidden="true">
+        {pending && <span className="confirmation-spinner" />}
+        <Image
+          src="/logo/logo-macmaer.png"
+          alt=""
+          width={1185}
+          height={1104}
+          priority
+        />
+        {paid && (
+          <>
+            <span className="celebration-dot celebration-dot--one" />
+            <span className="celebration-dot celebration-dot--two" />
+            <span className="celebration-dot celebration-dot--three" />
+          </>
+        )}
+      </div>
       <p className="eyebrow">Order {order.order_number}</p>
       <h1>
         {paid
@@ -65,7 +87,7 @@ export function OrderStatus({
       </h1>
       <p>
         {paid
-          ? `Payment of ${formatMoney(order.total_amount, order.currency)} is confirmed. A receipt has been requested for ${order.customer_email}.`
+          ? `Payment of ${formatMoney(order.total_amount, order.currency)} is confirmed. We’ve sent a confirmation email to ${order.customer_email} with the receipt for your purchase. We’ll prepare your order with care.`
           : failed
             ? "Your order has not been marked as paid. Return to your cart to try again or contact us if you need help."
             : "We’re securely verifying the payment with Stripe. Keep this page open; it updates automatically. Please do not submit another payment."}
@@ -78,6 +100,11 @@ export function OrderStatus({
           <a href="mailto:info@macmaer.com">info@macmaer.com</a> if the status
           does not update.
         </p>
+      )}
+      {pending && (
+        <div className="confirmation-progress" aria-hidden="true">
+          <span />
+        </div>
       )}
       <p className="status-pill">
         Payment: {order.payment_status.toLowerCase().replaceAll("_", " ")}

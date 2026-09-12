@@ -108,6 +108,7 @@ export function CheckoutClient({
   const [checkout, setCheckout] = useState<CreateCheckoutResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const [notice, setNotice] = useState("");
   const credentials = useRef({
     checkoutAttemptId: initialAttemptId,
     accessToken: initialAccessToken,
@@ -127,6 +128,12 @@ export function CheckoutClient({
     } else
       window.sessionStorage.setItem(key, JSON.stringify(credentials.current));
   }, [cartId, initialAccessToken, initialAttemptId]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(""), 9_000);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
 
   async function changeCountry(nextCountry: string) {
     setCountry(nextCountry);
@@ -197,6 +204,7 @@ export function CheckoutClient({
     }
     setCheckout(data);
     setSummary(data.summary);
+    setNotice(data.notice ?? "");
     setSubmitting(false);
   }
 
@@ -297,7 +305,12 @@ export function CheckoutClient({
               clientSecret: checkout.clientSecret,
               appearance: {
                 theme: "stripe",
-                variables: { colorPrimary: "#555c47", borderRadius: "0px" },
+                variables: {
+                  colorPrimary: "#555c47",
+                  colorBackground: "#f8f6f2",
+                  colorText: "#302e29",
+                  borderRadius: "0px",
+                },
               },
             }}
           >
@@ -316,6 +329,19 @@ export function CheckoutClient({
         )}
         <CheckoutSummary summary={summary} />
       </div>
+      {notice && (
+        <div className="checkout-toast" role="status">
+          <span aria-hidden="true">✓</span>
+          <p>{notice}</p>
+          <button
+            type="button"
+            onClick={() => setNotice("")}
+            aria-label="Dismiss notification"
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }

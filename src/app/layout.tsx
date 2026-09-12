@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   },
   description:
     "Sculptural knot pillows and thoughtful accessories, handmade in Sweden.",
+  icons: { icon: "/logo/macmaer.ico" },
   robots: { index: false, follow: false },
 };
 export default function RootLayout({

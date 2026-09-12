@@ -7,7 +7,10 @@ import { getServerEnv } from "@/lib/env/server";
 import { productSchema, type Product } from "@/modules/catalog/schema";
 import { isAvailable } from "@/modules/catalog/selection";
 import { currencySchema, type PricingContext } from "@/modules/currency/schema";
-import { getStorefrontContext } from "@/modules/currency/repository";
+import {
+  getStorefrontContext,
+  type StorefrontContext,
+} from "@/modules/currency/repository";
 import { calculateUnitWeight } from "@/modules/shipping/weight";
 import {
   calculateBaseLinePrice,
@@ -353,8 +356,11 @@ function rowToLine(
   };
 }
 
-export async function getCart(): Promise<CartView> {
-  const { pricing, destinationCountry } = await getStorefrontContext();
+export async function getCart(
+  storefrontContext?: StorefrontContext,
+): Promise<CartView> {
+  const { pricing, destinationCountry } =
+    storefrontContext ?? (await getStorefrontContext());
   const empty: CartView = {
     id: null,
     lines: [],

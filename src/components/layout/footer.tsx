@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 export function Footer() {
@@ -6,8 +7,13 @@ export function Footer() {
       <Container>
         <div className="footer-top">
           <div>
-            <Link href="/" className="wordmark">
-              macmaer
+            <Link href="/" className="wordmark" aria-label="Macmaer home">
+              <Image
+                src="/logo/Logo-macmaer-name.svg"
+                alt="Macmaer"
+                width={982}
+                height={187}
+              />
             </Link>
             <p>
               Thoughtfully knotted.

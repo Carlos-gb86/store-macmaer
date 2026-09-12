@@ -43,11 +43,16 @@ export function PaymentForm({
     <div className="payment-panel">
       <p className="eyebrow">Secure payment</p>
       <h2>Pay for {orderNumber}</h2>
-      <ExpressCheckoutElement onConfirm={confirm} />
+      <ExpressCheckoutElement
+        options={{ paymentMethods: { link: "never" } }}
+        onConfirm={confirm}
+      />
       <div className="payment-divider">
         <span>or pay by card</span>
       </div>
-      <PaymentElement options={{ layout: "tabs" }} />
+      <PaymentElement
+        options={{ layout: "tabs", wallets: { link: "never" } }}
+      />
       <p className="checkout-legal-note">
         By placing this order, you agree to the Terms of Sale and acknowledge
         the Returns/Withdrawal Policy and Privacy Policy.
