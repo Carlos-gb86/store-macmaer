@@ -6,6 +6,7 @@ export function AdminNavigation() {
   return (
     <nav aria-label="Administration">
       {[
+        ["orders", "Orders"],
         ["products", "Products"],
         ["collections", "Collections"],
         ["tags", "Tags"],

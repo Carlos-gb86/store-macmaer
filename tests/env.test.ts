@@ -25,9 +25,10 @@ describe("environment boundaries", () => {
     ).toThrow("NEXT_PUBLIC_SITE_URL");
   });
   it("keeps checkout off by default and requires every payment secret when enabled", () => {
-    expect(
-      parseEnv(serverEnvSchema, { CATALOG_SOURCE: "demo" }).CHECKOUT_ENABLED,
-    ).toBe(false);
+    const defaults = parseEnv(serverEnvSchema, { CATALOG_SOURCE: "demo" });
+    expect(defaults.CHECKOUT_ENABLED).toBe(false);
+    expect(defaults.REFUNDS_ENABLED).toBe(false);
+    expect(defaults.EMAIL_ENABLED).toBe(false);
     expect(() =>
       parseEnv(serverEnvSchema, {
         CATALOG_SOURCE: "demo",
@@ -36,6 +37,18 @@ describe("environment boundaries", () => {
         STRIPE_SECRET_KEY: "sk_test_example",
       }),
     ).toThrow("STRIPE_WEBHOOK_SECRET");
+    expect(() =>
+      parseEnv(serverEnvSchema, {
+        CATALOG_SOURCE: "demo",
+        REFUNDS_ENABLED: "true",
+      }),
+    ).toThrow("STRIPE_SECRET_KEY");
+    expect(() =>
+      parseEnv(serverEnvSchema, {
+        CATALOG_SOURCE: "demo",
+        EMAIL_ENABLED: "true",
+      }),
+    ).toThrow("RESEND_API_KEY");
   });
   it("strips server secrets from public configuration and errors", () => {
     const input = {

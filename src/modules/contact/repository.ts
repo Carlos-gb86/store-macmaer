@@ -36,13 +36,25 @@ export async function saveContactMessage(
       "Too many messages were sent recently. Please wait a while or email info@macmaer.com.",
     );
 
-  const { error } = await client.from("contact_messages").insert({
-    first_name: input.firstName,
-    last_name: input.lastName,
-    email: input.email,
-    subject: input.subject,
-    message: input.message,
-    sender_hash: hash,
-  });
+  const { data, error } = await client
+    .from("contact_messages")
+    .insert({
+      first_name: input.firstName,
+      last_name: input.lastName,
+      email: input.email,
+      subject: input.subject,
+      message: input.message,
+      sender_hash: hash,
+    })
+    .select("id,first_name,last_name,email,subject,message")
+    .single();
   if (error) throw error;
+  return {
+    id: data.id,
+    firstName: data.first_name,
+    lastName: data.last_name,
+    email: data.email,
+    subject: data.subject,
+    message: data.message,
+  };
 }

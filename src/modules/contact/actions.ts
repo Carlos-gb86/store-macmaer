@@ -6,6 +6,7 @@ import {
   type ContactField,
   type ContactFormState,
 } from "./schema";
+import { deliverContactEmails } from "@/modules/email/service";
 import { ContactSubmissionError, saveContactMessage } from "./repository";
 
 function validationErrors(issues: { path: PropertyKey[]; message: string }[]) {
@@ -54,7 +55,17 @@ export async function submitContactFormAction(
       forwarded?.trim() ||
       requestHeaders.get("x-real-ip") ||
       `email:${parsed.data.email}`;
-    await saveContactMessage(parsed.data, identifier);
+    const message = await saveContactMessage(parsed.data, identifier);
+    // The saved enquiry is authoritative; an email-provider outage must not
+    // make the customer resubmit and create a duplicate message.
+    try {
+      await deliverContactEmails(message);
+    } catch (error) {
+      console.error("Contact email delivery failed", {
+        messageId: message.id,
+        message: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
     return {
       ok: true,
       message:

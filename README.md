@@ -1,6 +1,6 @@
 # Macmaer
 
-Next.js storefront and catalogue administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–5 are implemented.** Checkout remains safely disabled until Stripe webhooks and the launch policies are approved; fulfilment and transactional email remain deferred.
+Next.js storefront and shop administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–6 are implemented.** Checkout and transactional email each have an explicit environment switch so provider credentials can be configured before either feature is activated.
 
 ## Setup and environment
 
@@ -27,6 +27,9 @@ Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative f
 | `STRIPE_WEBHOOK_SECRET`                | Signing secret for this deployment's `/api/stripe/webhook` endpoint.                                                               |
 | `CUSTOMER_IDENTITY_HASH_SECRET`        | At least 32 random characters used to HMAC normalized email and phone identities for discount enforcement.                         |
 | `CHECKOUT_ENABLED`                     | Explicit `true` opens checkout; absent or `false` keeps all PaymentIntent creation disabled.                                       |
+| `REFUNDS_ENABLED`                      | Explicit `true` enables real Stripe refund controls after the refund webhook events are configured.                                |
+| `RESEND_API_KEY`                       | Server-only Resend API key. Required only when transactional email is enabled.                                                     |
+| `EMAIL_ENABLED`                        | Explicit `true` enables Resend delivery; absent or `false` records pending attempts without contacting the provider.               |
 | `NEXT_BUILD_DIR`                       | Optional isolated build directory, used by browser tests.                                                                          |
 
 Actual `.env*` files are ignored. `SUPABASE_SERVICE_ROLE_KEY` may contain Supabase's newer secret API key; despite the backwards-compatible variable name, a legacy JWT is not required. Never expose this credential through `NEXT_PUBLIC_*`. Validation errors identify fields without printing values. Rebuild after changing public variables.
@@ -43,7 +46,7 @@ Catalogue amounts are fixed customer-facing selling prices. For VAT destinations
 
 `/admin/settings/tax` manages the EU strategy, catalogue price mode, export treatment, tax categories, destination rates, effective dates, source notes, and review status. The initial destination/OSS rates came from the European Commission's current standard-rate table and deliberately remain marked for owner/accountant review. Monaco follows France for VAT; Åland and Greenland are treated as non-EU VAT territories. Regional exceptions within Spain and Portugal require additional address-level handling before selling to excluded territories.
 
-`/admin/discounts` manages percentage/fixed codes, dates, minimums, usage limits, and product/collection restrictions. `MACMAER10` is initially active for 10% with one use per customer. Cart eligibility is authoritative on the server. Phase 5 will collect both email and phone and atomically reserve/redeem against the stored identity hashes; Phase 4 does not claim to enforce identity reuse before checkout has those fields.
+`/admin/discounts` manages percentage/fixed codes, dates, minimums, usage limits, and product/collection restrictions. `MACMAER10` is initially active for 10% with one use per customer. Cart eligibility is authoritative on the server. Checkout collects both email and phone and atomically reserves/redeems against stored identity hashes.
 
 Demo catalogue mode remains intentionally non-purchasable and does not fabricate converted prices.
 
@@ -51,13 +54,23 @@ Demo catalogue mode remains intentionally non-purchasable and does not fabricate
 
 Phase 5 creates immutable server-priced order snapshots, atomic `MAC-YYYY-NNNNNN` order numbers, inventory reservations, and one-customer discount reservations before creating a Stripe PaymentIntent. Only opaque order references are sent to Stripe. The signed webhook is authoritative for payment success, commits inventory exactly once, redeems the discount, and closes the cart. Cards are enabled first; Stripe's card payment method also presents Apple Pay or Google Pay when the browser, device, domain, and Stripe account are eligible. Klarna remains deferred.
 
-Checkout is fail-closed. Keep `CHECKOUT_ENABLED=false` (or omit it) in production until all five policies are approved and published, the live webhook exists, and a live-mode acceptance payment is authorized. Local sandbox testing requires the matching `pk_test_`, `sk_test_`, and webhook signing secret. With the Stripe CLI installed and authenticated, forward the four subscribed events with:
+Checkout is fail-closed. Keep `CHECKOUT_ENABLED=false` (or omit it) in production until all five policies are approved and published, the live webhook exists, and a live-mode acceptance payment is authorized. Local sandbox testing requires the matching `pk_test_`, `sk_test_`, and webhook signing secret. With the Stripe CLI installed and authenticated, forward the payment and refund events with:
 
 ```sh
 npm run stripe:listen
 ```
 
-Keep that process running while testing. A forwarded event prints a `<-- [200] POST` response; seeing only incoming `-->` event lines means the CLI is listening without forwarding. Copy the command's `whsec_...` value into local `STRIPE_WEBHOOK_SECRET`, generate a separate `CUSTOMER_IDENTITY_HASH_SECRET`, set `CHECKOUT_ENABLED=true`, and restart development. If a restarted listener prints a different signing secret, update the local value and restart Next.js. Never put live Stripe keys in the local file. For production, create a Stripe endpoint at `https://YOUR_PRODUCTION_DOMAIN/api/stripe/webhook` with the same four events and store that endpoint's separate signing secret in Vercel.
+Keep that process running while testing. A forwarded event prints a `<-- [200] POST` response; seeing only incoming `-->` event lines means the CLI is listening without forwarding. Copy the command's `whsec_...` value into local `STRIPE_WEBHOOK_SECRET`, generate a separate `CUSTOMER_IDENTITY_HASH_SECRET`, set `CHECKOUT_ENABLED=true`, and restart development. If a restarted listener prints a different signing secret, update the local value and restart Next.js. Never put live Stripe keys in the local file. For production, create a Stripe endpoint at `https://YOUR_PRODUCTION_DOMAIN/api/stripe/webhook` for `payment_intent.processing`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `refund.created`, `refund.updated`, and `refund.failed`, then store that endpoint's separate signing secret in Vercel.
+
+## Orders, fulfilment, refunds, and email
+
+`/admin/orders` provides search and filters for order, payment, and fulfilment state. Each order retains the immutable checkout snapshot, customer and address details, line/tax/shipping/discount breakdowns, Stripe PaymentIntent ID, timeline, private notes, fulfilment controls, refund history, and email delivery history. Paid made-to-order purchases progress from unfulfilled to processing, ready to ship, and shipped. PostNord or UPS and a tracking number are required at shipment; the customer never chooses the carrier.
+
+Full and partial refunds are initiated from the order page after typing the order number. The server reserves the amount against concurrent requests and calls Stripe with an idempotency key. The order is not marked partially or fully refunded until a signed Stripe refund webhook confirms success. No stock-restoration action is performed for made-to-order products. The accounting export is a UTF-8 CSV with product and shipping tax lines, destinations, discounts, provider IDs, and confirmed refunds, filterable by date for VAT/OSS work. The local immutable order snapshot is the accounting source of truth; Stripe corroborates payment and refund movement but does not contain Macmaer's complete tax and product allocation.
+
+Keep `REFUNDS_ENABLED=false` until the production endpoint subscribes to all three refund events. Enable it locally with sandbox Stripe credentials for testing; only set it to `true` in Vercel after the live endpoint is ready.
+
+Transactional email uses Resend behind a small server-only service. Paid-order confirmation and shop notification use `info@macmaer.com`; contact-form delivery and acknowledgment use `contact@macmaer.com`; shipping and refund confirmations return to the order address. Delivery attempts and provider errors are retained for support. To activate it, verify `macmaer.com` in Resend, create an API key, set `RESEND_API_KEY`, and only then set `EMAIL_ENABLED=true`. Leaving email disabled is safe: the commerce/contact records still save and an email attempt remains pending for later manual retry.
 
 ## Administrator access
 
@@ -101,7 +114,7 @@ Descriptions use open-source Tiptap. Structured JSON permits paragraphs, heading
 
 Start Docker Desktop, then `npm run db:start`. `npm run db:reset` replaces **disposable local data only**. If Docker cannot mount optional Studio folders, use `npx supabase start --exclude studio,edge-runtime,logflare,vector`. Never reset hosted data.
 
-Migrations `001`–`002` retain the original Phase 1 history. Migrations through `011` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, Phase 4 shipping/tax/discount configuration, Phase 5 order/payment/reservation/webhook state, and versioned policy snapshots. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
+Migrations `001`–`002` retain the original Phase 1 history. Migrations through `014` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, shipping/tax/discount configuration, order/payment/reservation/webhook state, versioned policy snapshots, private contact messages, and Phase 6 fulfilment/refund/email history. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
 
 `npm run seed:generate` generates deterministic fixture IDs from `src/modules/catalog/fixtures/catalogue.json`. Seeds use `ON CONFLICT DO NOTHING`, preserve existing rows, and are not a catalogue updater. After local checks, stage explicitly:
 
@@ -142,6 +155,8 @@ Phase 4 acceptance on 2026-09-09: 72 unit/database/action checks, 6 real Supabas
 
 Phase 5 acceptance on 2026-09-10: 79 unit/database/action checks and 10 desktop/mobile commerce browser checks passed. A clean local reset applied migrations through `010`, the production build completed, and the linked production database reported no pending migrations. Checkout remains deliberately disabled pending policy approval and Stripe webhook acceptance.
 
+Phase 6 acceptance on 2026-09-12: lint, formatting, strict types, 89 unit/database/action checks, and the production build passed. The linked production database applied migrations `013`–`014` and reported no pending migrations afterward. Transactional email remains independently disabled until the Resend domain and API key are configured; the deployed Stripe endpoint must also subscribe to the three refund events before production refunds are used.
+
 ## Architecture and deployment
 
 - `src/app/(storefront)` and `src/app/admin`: separate public/admin layouts.
@@ -150,6 +165,7 @@ Phase 5 acceptance on 2026-09-10: 79 unit/database/action checks and 10 desktop/
 - `src/modules/cart`: canonical option snapshots, secure anonymous ownership, validation, and persistence.
 - `src/modules/quote`, `shipping`, `tax`, `discount`: server-authoritative quote orchestration and isolated commerce rules.
 - `src/modules/checkout`, `payments`: immutable order snapshots, inventory/discount reservations, Stripe PaymentIntents, and idempotent webhook reconciliation.
+- `src/modules/orders`, `email`: admin fulfilment/refund operations, accounting exports, branded transactional templates, and recorded Resend delivery.
 - `src/modules/admin`: authorization, inputs, actions, money parsing, media lifecycle.
 - `src/modules/content`: homepage persistence and structured rich text.
 - `src/lib/supabase`: typed stateless public, browser, cookie server, isolated service clients.
@@ -157,4 +173,4 @@ Phase 5 acceptance on 2026-09-10: 79 unit/database/action checks and 10 desktop/
 
 Public catalogue reads use a stateless anonymous client and 60-second cache with immediate admin invalidation. Request-specific context and carts are never put in that shared cache. Admin lists query PostgreSQL with search/status filters and pagination. The media picker currently shows the most recent 500 assets; revisit search/pagination as the catalogue grows.
 
-Deploy to Vercel with Node 22, `npm ci`, `npm run build`, and preview environment variables. Production builds use webpack; development uses Turbopack. All pages intentionally remain `noindex`. Checkout, order/payment snapshots, Stripe, transactional email, policies, and launch hardening belong to later phases. See [DECISIONS.md](DECISIONS.md).
+Deploy to Vercel with Node 22, `npm ci`, and `npm run build`. Production builds use webpack; development uses Turbopack. All pages intentionally remain `noindex`; public indexing and launch hardening belong to later phases. See [DECISIONS.md](DECISIONS.md).

@@ -377,6 +377,57 @@ Update: {
 };
 Relationships: [];
 };
+"email_deliveries": {
+Row: {
+"id": string;
+"order_id": string | null;
+"contact_message_id": string | null;
+"kind": "ORDER_CONFIRMATION" | "ADMIN_NEW_ORDER" | "SHIPPING_CONFIRMATION" | "REFUND_CONFIRMATION" | "CONTACT_NOTIFICATION" | "CONTACT_ACKNOWLEDGEMENT";
+"recipient_email": string;
+"provider": string;
+"provider_message_id": string | null;
+"status": "PENDING" | "SENT" | "FAILED";
+"idempotency_key": string;
+"attempt_count": number;
+"last_error": string | null;
+"sent_at": string | null;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"order_id"?: string | null;
+"contact_message_id"?: string | null;
+"kind": "ORDER_CONFIRMATION" | "ADMIN_NEW_ORDER" | "SHIPPING_CONFIRMATION" | "REFUND_CONFIRMATION" | "CONTACT_NOTIFICATION" | "CONTACT_ACKNOWLEDGEMENT";
+"recipient_email": string;
+"provider"?: string;
+"provider_message_id"?: string | null;
+"status"?: "PENDING" | "SENT" | "FAILED";
+"idempotency_key": string;
+"attempt_count"?: number;
+"last_error"?: string | null;
+"sent_at"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"order_id"?: string | null;
+"contact_message_id"?: string | null;
+"kind"?: "ORDER_CONFIRMATION" | "ADMIN_NEW_ORDER" | "SHIPPING_CONFIRMATION" | "REFUND_CONFIRMATION" | "CONTACT_NOTIFICATION" | "CONTACT_ACKNOWLEDGEMENT";
+"recipient_email"?: string;
+"provider"?: string;
+"provider_message_id"?: string | null;
+"status"?: "PENDING" | "SENT" | "FAILED";
+"idempotency_key"?: string;
+"attempt_count"?: number;
+"last_error"?: string | null;
+"sent_at"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
 "homepage_collections": {
 Row: {
 "collection_id": string;
@@ -605,6 +656,66 @@ Update: {
 };
 Relationships: [];
 };
+"order_fulfilments": {
+Row: {
+"id": string;
+"order_id": string;
+"carrier": string | null;
+"tracking_number": string | null;
+"tracking_url": string | null;
+"shipped_at": string | null;
+"delivered_at": string | null;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"order_id": string;
+"carrier"?: string | null;
+"tracking_number"?: string | null;
+"tracking_url"?: string | null;
+"shipped_at"?: string | null;
+"delivered_at"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"order_id"?: string;
+"carrier"?: string | null;
+"tracking_number"?: string | null;
+"tracking_url"?: string | null;
+"shipped_at"?: string | null;
+"delivered_at"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"order_internal_notes": {
+Row: {
+"id": string;
+"order_id": string;
+"author_id": string | null;
+"note": string;
+"created_at": string;
+};
+Insert: {
+"id"?: string;
+"order_id": string;
+"author_id"?: string | null;
+"note": string;
+"created_at"?: string;
+};
+Update: {
+"id"?: string;
+"order_id"?: string;
+"author_id"?: string | null;
+"note"?: string;
+"created_at"?: string;
+};
+Relationships: [];
+};
 "order_items": {
 Row: {
 "id": string;
@@ -732,6 +843,7 @@ Row: {
 "cancelled_at": string | null;
 "created_at": string;
 "updated_at": string;
+"fulfilment_status": "UNFULFILLED" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 };
 Insert: {
 "id"?: string;
@@ -775,6 +887,7 @@ Insert: {
 "cancelled_at"?: string | null;
 "created_at"?: string;
 "updated_at"?: string;
+"fulfilment_status"?: "UNFULFILLED" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 };
 Update: {
 "id"?: string;
@@ -818,6 +931,7 @@ Update: {
 "cancelled_at"?: string | null;
 "created_at"?: string;
 "updated_at"?: string;
+"fulfilment_status"?: "UNFULFILLED" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 };
 Relationships: [];
 };
@@ -1229,6 +1343,60 @@ Update: {
 };
 Relationships: [];
 };
+"refunds": {
+Row: {
+"id": string;
+"request_key": string;
+"order_id": string;
+"stripe_refund_id": string | null;
+"amount": number;
+"currency": string;
+"reason": string;
+"note": string | null;
+"status": "REQUESTED" | "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+"provider_status": string | null;
+"provider_failure_reason": string | null;
+"requested_by": string | null;
+"processed_at": string | null;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"request_key": string;
+"order_id": string;
+"stripe_refund_id"?: string | null;
+"amount": number;
+"currency": string;
+"reason": string;
+"note"?: string | null;
+"status"?: "REQUESTED" | "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+"provider_status"?: string | null;
+"provider_failure_reason"?: string | null;
+"requested_by"?: string | null;
+"processed_at"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"request_key"?: string;
+"order_id"?: string;
+"stripe_refund_id"?: string | null;
+"amount"?: number;
+"currency"?: string;
+"reason"?: string;
+"note"?: string | null;
+"status"?: "REQUESTED" | "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+"provider_status"?: string | null;
+"provider_failure_reason"?: string | null;
+"requested_by"?: string | null;
+"processed_at"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
 "shipping_methods": {
 Row: {
 "id": string;
@@ -1591,10 +1759,12 @@ Relationships: [];
 };
 Functions: {
 "admin_acquire_media_lease": { Args: {"asset": string;"token": string;}; Returns: undefined};
+"admin_add_order_note": { Args: {"target_order_id": string;"note_text": string;}; Returns: string};
 "admin_claim_media_cleanup": { Args: {"asset": string;}; Returns: boolean};
 "admin_claim_public_cleanup": { Args: {"asset": string;}; Returns: boolean};
 "admin_media_references": { Args: {"asset": string;}; Returns: boolean};
 "admin_mutate_tag": { Args: {"operation": string;"document": Json;"expected_updated_at"?: string;"target_id"?: string;}; Returns: undefined};
+"admin_prepare_refund": { Args: {"target_order_id": string;"refund_request_key": string;"refund_amount": string;"refund_reason": string;"refund_note"?: string;}; Returns: string};
 "admin_save_collection": { Args: {"document": Json;"expected_updated_at"?: string;}; Returns: Json};
 "admin_save_currency_settings": { Args: {"document": Json;}; Returns: undefined};
 "admin_save_discounts": { Args: {"document": Json;}; Returns: undefined};
@@ -1602,22 +1772,30 @@ Functions: {
 "admin_save_product": { Args: {"document": Json;"expected_updated_at"?: string;}; Returns: Json};
 "admin_save_shipping_settings": { Args: {"document": Json;}; Returns: undefined};
 "admin_save_tax_settings": { Args: {"document": Json;}; Returns: undefined};
+"admin_set_fulfilment": { Args: {"target_order_id": string;"new_status": string;"selected_carrier"?: string;"selected_tracking_number"?: string;"selected_tracking_url"?: string;}; Returns: undefined};
 "checkout_cancel_order": { Args: {"target_order_id": string;"reason"?: string;}; Returns: undefined};
 "checkout_create_order": { Args: {"document": Json;}; Returns: string};
+"checkout_fail_refund_request": { Args: {"target_refund_id": string;"failure_reason": string;}; Returns: undefined};
+"checkout_process_refund_event": { Args: {"stripe_event_id": string;"stripe_event_type": string;"provider_refund_id": string;"target_order_id": string;"target_refund_id": string;"current_provider_status": string;"failure_reason"?: string;}; Returns: string};
 "checkout_process_stripe_event": { Args: {"stripe_event_id": string;"stripe_event_type": string;"stripe_object_id": string;"target_order_id": string;"provider_error"?: string;}; Returns: string};
 "checkout_set_payment_intent": { Args: {"target_order_id": string;"payment_intent_id": string;}; Returns: undefined};
+"checkout_set_refund_provider": { Args: {"target_refund_id": string;"provider_refund_id": string;"current_provider_status": string;}; Returns: undefined};
 "is_admin": { Args: Record<never, never>; Returns: boolean};
 }; Enums: {
-"shipping_threshold_basis": "BEFORE_DISCOUNT" | "AFTER_DISCOUNT";
-"policy_type": "TERMS" | "PRIVACY" | "SHIPPING" | "RETURNS" | "CUSTOMS";
-"option_display_type": "select" | "radio" | "colour_swatch" | "image_swatch" | "checkbox" | "short_text" | "number" | "repeated_select";
+"email_delivery_status": "PENDING" | "SENT" | "FAILED";
 "shipping_calculation_type": "FLAT" | "BASE_PLUS_ADDITIONAL" | "PER_ITEM";
-"inventory_reservation_status": "ACTIVE" | "COMMITTED" | "RELEASED" | "EXPIRED";
-"product_status": "draft" | "active" | "archived";
-"inventory_strategy": "TRACKED" | "MADE_TO_ORDER" | "UNLIMITED" | "UNAVAILABLE";
-"payment_status": "NOT_STARTED" | "REQUIRES_PAYMENT" | "PROCESSING" | "SUCCEEDED" | "FAILED" | "PARTIALLY_REFUNDED" | "REFUNDED" | "DISPUTED";
 "order_status": "PENDING_PAYMENT" | "PAID" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "PARTIALLY_REFUNDED" | "REFUNDED";
-"discount_redemption_status": "RESERVED" | "REDEEMED" | "RELEASED";
-"discount_kind": "PERCENTAGE" | "FIXED_AMOUNT";
+"shipping_threshold_basis": "BEFORE_DISCOUNT" | "AFTER_DISCOUNT";
+"refund_status": "REQUESTED" | "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
 "eu_vat_mode": "SWEDISH_ORIGIN" | "DESTINATION";
+"inventory_strategy": "TRACKED" | "MADE_TO_ORDER" | "UNLIMITED" | "UNAVAILABLE";
+"discount_kind": "PERCENTAGE" | "FIXED_AMOUNT";
+"product_status": "draft" | "active" | "archived";
+"payment_status": "NOT_STARTED" | "REQUIRES_PAYMENT" | "PROCESSING" | "SUCCEEDED" | "FAILED" | "PARTIALLY_REFUNDED" | "REFUNDED" | "DISPUTED";
+"discount_redemption_status": "RESERVED" | "REDEEMED" | "RELEASED";
+"fulfilment_status": "UNFULFILLED" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+"option_display_type": "select" | "radio" | "colour_swatch" | "image_swatch" | "checkbox" | "short_text" | "number" | "repeated_select";
+"policy_type": "TERMS" | "PRIVACY" | "SHIPPING" | "RETURNS" | "CUSTOMS";
+"email_kind": "ORDER_CONFIRMATION" | "ADMIN_NEW_ORDER" | "SHIPPING_CONFIRMATION" | "REFUND_CONFIRMATION" | "CONTACT_NOTIFICATION" | "CONTACT_ACKNOWLEDGEMENT";
+"inventory_reservation_status": "ACTIVE" | "COMMITTED" | "RELEASED" | "EXPIRED";
 }; CompositeTypes: Record<never, never>; }; };

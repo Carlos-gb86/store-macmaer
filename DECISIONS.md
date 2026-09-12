@@ -121,3 +121,11 @@ Destination/OSS is the initial tax mode. Standard rates were transcribed from th
 Phase 4 intentionally stops before checkout, order snapshots, payment, address validation, identity redemption, or customs collection. Tax rates are configurable implementation data, not legal advice, and production launch remains blocked on explicit rate/strategy review.
 
 Verification covers 72 unit/database/action checks, 6 real Supabase integration checks, 15 admin browser checks, 8 desktop/mobile commerce checks, and 8 desktop/mobile storefront checks. The clean local migration/reset, database lint, formatting, strict types, lint, and demo production build pass. Database lint reports only the pre-existing unused variable in the older product validator.
+
+## Phase 6 — orders, fulfilment, refunds, and email — 2026-09-12
+
+Macmaer products are made after a paid order is received. The fulfilment workflow therefore has no stock-restoration action and progresses through unfulfilled, processing, ready to ship, shipped, and optionally delivered. Fulfilment state is stored separately from the overall refund-aware order state so a shipped order can remain visibly partially refunded. Customers do not choose a carrier; an administrator records PostNord or UPS plus tracking when shipping.
+
+Refund requests reserve their amount transactionally, require an explicit order-number confirmation in admin, and use stable Stripe idempotency keys. Stripe refund webhooks are authoritative for succeeded, failed, and updated state; the local order is never marked refunded from the button response alone. The immutable Macmaer order snapshot—not Stripe alone—is the source for accounting and OSS allocation because it contains destination, product, shipping, discount, net, and tax detail. Stripe IDs and confirmed refund totals are included for reconciliation.
+
+Resend is the transactional email provider behind a small server-only service. Order, shipping, refund, and new-order mail use `info@macmaer.com`; contact notifications and acknowledgments use `contact@macmaer.com`. Sends are idempotent and attempts are recorded. Delivery is independently gated by `EMAIL_ENABLED`; saving a paid order, fulfilment update, refund, or contact message does not depend on provider availability. The owner must verify `macmaer.com` in Resend and install the API key before enabling delivery.

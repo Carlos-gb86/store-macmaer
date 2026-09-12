@@ -422,3 +422,58 @@ export async function processStripePaymentEvent(event: Stripe.Event) {
   if (error) throw error;
   return data;
 }
+
+export async function processStripeRefundEvent(event: Stripe.Event) {
+  const refund = event.data.object as Stripe.Refund;
+  const orderId = refund.metadata?.order_id;
+  const refundId = refund.metadata?.refund_id;
+  if (!orderId || !refundId)
+    throw new Error("Stripe refund is missing Macmaer metadata.");
+  const client = createServiceSupabaseClient();
+  const [refundResult, paymentResult] = await Promise.all([
+    client
+      .from("refunds")
+      .select("id,order_id,amount,currency")
+      .eq("id", refundId)
+      .eq("order_id", orderId)
+      .single(),
+    client
+      .from("payments")
+      .select("stripe_payment_intent_id")
+      .eq("order_id", orderId)
+      .single(),
+  ]);
+  if (refundResult.error) throw refundResult.error;
+  if (paymentResult.error) throw paymentResult.error;
+  const localRefund = refundResult.data;
+  if (
+    localRefund.amount !== refund.amount ||
+    localRefund.currency !== refund.currency.toUpperCase()
+  )
+    throw new Error("Stripe refund amount or currency does not match.");
+  const paymentIntentId =
+    typeof refund.payment_intent === "string"
+      ? refund.payment_intent
+      : refund.payment_intent?.id;
+  if (
+    !paymentIntentId ||
+    paymentIntentId !== paymentResult.data.stripe_payment_intent_id
+  )
+    throw new Error("Stripe refund does not match the order payment.");
+  const { data, error: processError } = await client.rpc(
+    "checkout_process_refund_event",
+    {
+      stripe_event_id: event.id,
+      stripe_event_type: event.type,
+      provider_refund_id: refund.id,
+      target_order_id: orderId,
+      target_refund_id: refundId,
+      current_provider_status: refund.status ?? "pending",
+      ...(refund.failure_reason
+        ? { failure_reason: refund.failure_reason }
+        : {}),
+    },
+  );
+  if (processError) throw processError;
+  return { result: data, refundId, status: refund.status };
+}
