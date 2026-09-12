@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { getServerEnv } from "@/lib/env/server";
+import { getPublicEnv } from "@/lib/env/public";
 import "./globals.css";
 export function generateMetadata(): Metadata {
-  const env = getServerEnv();
+  const env = getPublicEnv();
+  const indexingEnabled = process.env.SEO_INDEXING_ENABLED === "true";
   const description =
     "Sculptural knot pillows and thoughtful accessories, handmade in Sweden.";
   return {
@@ -32,7 +33,7 @@ export function generateMetadata(): Metadata {
       description,
       images: ["/images/catalogue/story.jpg"],
     },
-    robots: env.SEO_INDEXING_ENABLED
+    robots: indexingEnabled
       ? { index: true, follow: true }
       : { index: false, follow: false },
   };

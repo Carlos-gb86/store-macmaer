@@ -1,9 +1,8 @@
 import type { MetadataRoute } from "next";
-import { getServerEnv } from "@/lib/env/server";
 import { siteUrl } from "@/modules/seo/site";
 
 export default function robots(): MetadataRoute.Robots {
-  const enabled = getServerEnv().SEO_INDEXING_ENABLED;
+  const enabled = process.env.SEO_INDEXING_ENABLED === "true";
   return {
     rules: enabled
       ? {
