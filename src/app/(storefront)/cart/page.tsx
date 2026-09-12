@@ -4,26 +4,35 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { CartLineControls } from "@/components/cart/cart-line-controls";
 import { DiscountCodeForm } from "@/components/cart/discount-code-form";
+import { DestinationSelector } from "@/components/currency/destination-selector";
 import { getCart } from "@/modules/cart/repository";
+import { getStorefrontContext } from "@/modules/currency/repository";
 import { quoteCart } from "@/modules/quote/repository";
 import { formatMoney } from "@/modules/currency/money";
-import { countryName } from "@/modules/country/countries";
+import { countries } from "@/modules/country/countries";
 import { resolveImage } from "@/modules/media/resolve-image";
 
 export const metadata: Metadata = { title: "Your cart" };
 
 export default async function CartPage() {
-  const cart = await getCart();
+  const context = await getStorefrontContext();
+  const cart = await getCart(context);
   const quote = cart.lines.length ? await quoteCart(cart) : null;
   return (
     <Container className="page-section cart-page">
       <div className="page-intro">
         <p className="eyebrow">Your selections</p>
         <h1>Your cart.</h1>
-        <p>
-          Shopping destination: {countryName(cart.destinationCountry)} · Prices
-          shown in {cart.currency}.
-        </p>
+        <p>Review your pieces and delivery estimate before checkout.</p>
+      </div>
+      <div className="cart-preferences">
+        <DestinationSelector
+          destination={cart.destinationCountry}
+          countries={countries.filter((country) =>
+            context.supportedCountries.includes(country.code),
+          )}
+        />
+        <p className="small muted">Prices shown in {cart.currency}.</p>
       </div>
       {!cart.lines.length ? (
         <div className="empty-state">

@@ -33,6 +33,9 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_URL: env.url,
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: env.key,
       SUPABASE_SERVICE_ROLE_KEY: env.serviceKey,
+      CHECKOUT_ENABLED: "false",
+      CUSTOMER_IDENTITY_HASH_SECRET:
+        "commerce-browser-test-secret-do-not-use-in-production",
     },
   },
 });

@@ -64,6 +64,21 @@ export type CartView = {
   destinationCountry: string;
   discountCode: string | null;
 };
+export type MiniCartLine = {
+  id: string;
+  productTitle: string;
+  productSlug: string;
+  imagePath: string | null;
+  quantity: number;
+  displayUnitAmount: number;
+};
+export type MiniCartView = {
+  lines: MiniCartLine[];
+  lineCount: number;
+  itemCount: number;
+  subtotal: number;
+  currency: z.infer<typeof currencySchema>;
+};
 export type CartActionResult =
   | { ok: true; message: string; itemCount: number }
   | { ok: false; message: string };

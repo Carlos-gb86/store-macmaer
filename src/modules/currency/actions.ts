@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { countryCodeSchema } from "@/modules/country/countries";
-import { updateCartContext } from "@/modules/cart/repository";
+import { getCart, updateCartContext } from "@/modules/cart/repository";
 import { requireAdmin } from "@/modules/admin/auth";
 import { mutationError } from "@/modules/admin/errors";
 import type { Json } from "@/lib/supabase/database.types";
@@ -36,6 +36,7 @@ export async function setCurrencyAction(
     return { ok: false, message: "That currency is not currently available." };
   (await cookies()).set(CURRENCY_COOKIE, currency.data, cookieOptions);
   await updateCartContext(currency.data, context.destinationCountry);
+  await getCart(await readStorefrontContext());
   refresh();
   return { ok: true, message: "Currency updated." };
 }

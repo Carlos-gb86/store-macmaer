@@ -15,6 +15,7 @@ import {
 } from "@/modules/pricing/calculate";
 import { getServerEnv } from "@/lib/env/server";
 import { RichText } from "@/components/content/rich-text";
+import { CurrencySelector } from "@/components/currency/currency-selector";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct((await params).slug);
@@ -65,10 +66,22 @@ export default async function ProductPage({ params }: Props) {
         <div className="product-information">
           <p className="eyebrow">{collection?.name ?? "Macmaer"}</p>
           <h1>{product.title}</h1>
-          <p className="product-price">
-            {product.variants.length ? "From " : ""}
-            {formatMoney(startingPrice, context.pricing.currency)}
-          </p>
+          <div className="product-price-row">
+            <p className="product-price">
+              {product.variants.length ? "From " : ""}
+              {formatMoney(startingPrice, context.pricing.currency)}
+            </p>
+            <CurrencySelector
+              currency={context.pricing.currency}
+              currencies={context.settings.map((setting) => ({
+                code: setting.code,
+                available: context.pricing.availableCurrencies.includes(
+                  setting.code,
+                ),
+              }))}
+              notice={context.pricing.unavailableReason}
+            />
+          </div>
           {product.compare_at_price !== null && !product.variants.length && (
             <p className="small muted">
               <span className="sr-only">Previous catalogue price </span>
@@ -81,8 +94,8 @@ export default async function ProductPage({ params }: Props) {
             </p>
           )}
           <p className="small muted">
-            Display estimate. Tax and delivery are calculated in later checkout
-            phases.
+            Display estimate. Tax and delivery are confirmed in your cart and
+            checkout.
           </p>
           <p className="product-description">{product.short_description}</p>
           <ProductConfigurator

@@ -25,6 +25,16 @@ async function asRole<T>(
   }
 }
 describe("PostgreSQL migrations and RLS", () => {
+  it("keeps contact enquiries behind the server boundary", async () => {
+    await expect(
+      asRole("anon", () => db.query("select * from public.contact_messages")),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      db.exec(
+        "insert into public.contact_messages(first_name,last_name,email,message,sender_hash) values ('A','B','a@example.com','Too short',repeat('a',64))",
+      ),
+    ).rejects.toThrow(/check constraint/);
+  });
   it("keeps anonymous cart and FX records behind the server boundary", async () => {
     await expect(
       asRole("anon", () => db.query("select * from public.carts")),

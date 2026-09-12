@@ -185,6 +185,42 @@ Update: {
 };
 Relationships: [];
 };
+"contact_messages": {
+Row: {
+"id": string;
+"first_name": string;
+"last_name": string;
+"email": string;
+"subject": string;
+"message": string;
+"sender_hash": string;
+"status": string;
+"created_at": string;
+};
+Insert: {
+"id"?: string;
+"first_name": string;
+"last_name": string;
+"email": string;
+"subject"?: string;
+"message": string;
+"sender_hash": string;
+"status"?: string;
+"created_at"?: string;
+};
+Update: {
+"id"?: string;
+"first_name"?: string;
+"last_name"?: string;
+"email"?: string;
+"subject"?: string;
+"message"?: string;
+"sender_hash"?: string;
+"status"?: string;
+"created_at"?: string;
+};
+Relationships: [];
+};
 "currency_rates": {
 Row: {
 "id": string;

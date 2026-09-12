@@ -14,6 +14,7 @@ import { addToCartAction } from "@/modules/cart/actions";
 import { calculateBaseLinePrice } from "@/modules/pricing/calculate";
 import { convertMinorAmount, formatMoney } from "@/modules/currency/money";
 import type { ClientPricingContext, FxRate } from "@/modules/currency/schema";
+import { announceCartUpdate } from "@/modules/cart/events";
 function OptionControl({
   option,
   values,
@@ -214,13 +215,17 @@ export function ProductConfigurator({
           const validation = validateSelections(product, selections);
           if (validation.length || !commerceEnabled) return;
           startTransition(async () => {
-            setResult(
-              await addToCartAction({
-                productId: product.id,
-                selections,
-                quantity,
-              }),
-            );
+            const nextResult = await addToCartAction({
+              productId: product.id,
+              selections,
+              quantity,
+            });
+            setResult(nextResult);
+            if (nextResult.ok)
+              announceCartUpdate({
+                itemCount: nextResult.itemCount,
+                open: true,
+              });
           });
         }}
       >

@@ -5,6 +5,7 @@ import {
   removeCartItemAction,
   updateCartItemAction,
 } from "@/modules/cart/actions";
+import { announceCartUpdate } from "@/modules/cart/events";
 
 export function CartLineControls({
   lineId,
@@ -24,7 +25,10 @@ export function CartLineControls({
           ? await updateCartItemAction({ lineId, quantity: value })
           : await removeCartItemAction(lineId);
       setMessage(result.message);
-      if (result.ok) router.refresh();
+      if (result.ok) {
+        announceCartUpdate({ itemCount: result.itemCount, open: false });
+        router.refresh();
+      }
     });
   }
   return (

@@ -1,16 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
-import { StoreContextSelectors } from "./store-context-selectors";
-import { getStorefrontContext } from "@/modules/currency/repository";
-import { getCartCount } from "@/modules/cart/repository";
-import { countries } from "@/modules/country/countries";
+import { MiniCart } from "@/components/cart/mini-cart";
+import { getMiniCart } from "@/modules/cart/repository";
 
 export async function Header() {
-  const [context, cartCount] = await Promise.all([
-    getStorefrontContext(),
-    getCartCount(),
-  ]);
+  const cart = await getMiniCart();
   return (
     <header className="site-header">
       <Container className="header-inner">
@@ -27,22 +22,9 @@ export async function Header() {
           <Link href="/shop">Shop all</Link>
           <Link href="/collections">Collections</Link>
           <Link href="/#story">Our story</Link>
+          <Link href="/contact">Contact</Link>
         </nav>
         <div className="header-tools">
-          <StoreContextSelectors
-            currency={context.pricing.currency}
-            currencies={context.settings.map((setting) => ({
-              code: setting.code,
-              available: context.pricing.availableCurrencies.includes(
-                setting.code,
-              ),
-            }))}
-            destination={context.destinationCountry}
-            currencyNotice={context.pricing.unavailableReason}
-            countries={countries.filter((country) =>
-              context.supportedCountries.includes(country.code),
-            )}
-          />
           <Link
             className="header-search"
             href="/shop#catalogue-search"
@@ -59,13 +41,7 @@ export async function Header() {
               <path d="m16 16 5 5" />
             </svg>
           </Link>
-          <Link
-            className="header-cart"
-            href="/cart"
-            aria-label={`Cart, ${cartCount} items`}
-          >
-            Cart <span>{cartCount}</span>
-          </Link>
+          <MiniCart initialCart={cart} />
         </div>
       </Container>
     </header>

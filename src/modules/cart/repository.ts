@@ -1,6 +1,7 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
+import { unstable_rethrow } from "next/navigation";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/database.types";
 import { getServerEnv } from "@/lib/env/server";
@@ -22,6 +23,7 @@ import {
   CartValidationError,
   type CartLine,
   type CartView,
+  type MiniCartView,
 } from "./schema";
 import { canonicalizeSelections, selectionsFromSnapshot } from "./selections";
 
@@ -479,4 +481,48 @@ export async function getCartCount() {
   if (!token) return 0;
   const cart = await existingCart(token);
   return cart ? cartItemCount(cart.id) : 0;
+}
+
+export async function getMiniCart(): Promise<MiniCartView> {
+  const empty: MiniCartView = {
+    lines: [],
+    lineCount: 0,
+    itemCount: 0,
+    subtotal: 0,
+    currency: "SEK",
+  };
+  if (getServerEnv().CATALOG_SOURCE === "demo") return empty;
+
+  try {
+    const token = await cartToken();
+    if (!token) return empty;
+    const cart = await existingCart(token);
+    if (!cart) return empty;
+    const rows = await rowsForCart(cart.id);
+    const currency = currencySchema.safeParse(cart.currency);
+    if (!currency.success) return empty;
+    const validRows = rows.filter((row) => row.is_valid);
+
+    return {
+      lines: validRows.slice(0, 4).map((row) => ({
+        id: row.id,
+        productTitle: row.product_title,
+        productSlug: row.product_slug,
+        imagePath: row.image_path,
+        quantity: row.quantity,
+        displayUnitAmount: row.display_unit_amount,
+      })),
+      lineCount: validRows.length,
+      itemCount: validRows.reduce((sum, row) => sum + row.quantity, 0),
+      subtotal: validRows.reduce(
+        (sum, row) => sum + row.display_unit_amount * row.quantity,
+        0,
+      ),
+      currency: currency.data,
+    };
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("Mini cart could not be loaded.", error);
+    return empty;
+  }
 }

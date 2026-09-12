@@ -47,10 +47,18 @@ test("adds a server-priced item, persists it, updates quantity, and removes it",
   await page.goto("/products/infinity-knot");
   await page.getByRole("button", { name: "Add to cart" }).click();
   await expect(page.getByText("Added to your cart.")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Cart, 1 items" })).toBeVisible();
+  await expect(
+    page.getByRole("dialog", { name: "Cart summary" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Cart, 1 item" }),
+  ).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("link", { name: "Cart, 1 items" })).toBeVisible();
-  await page.getByRole("link", { name: "Cart, 1 items" }).click();
+  await expect(
+    page.getByRole("button", { name: "Cart, 1 item" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Cart, 1 item" }).click();
+  await page.getByRole("link", { name: "View cart" }).click();
   await expect(page.getByRole("heading", { name: "Your cart." })).toBeVisible();
   await expect(
     page.getByText("600 SEK", { exact: true }).first(),
@@ -75,9 +83,12 @@ test("keeps repeated custom configurations as separate persistent lines", async 
     await choices.nth(index).selectOption({ index: 1 });
   await page.getByRole("button", { name: "Add to cart" }).click();
   await expect(page.getByText("Added to your cart.")).toBeVisible();
+  await page.getByRole("button", { name: "Close cart summary" }).click();
   await choices.nth(0).selectOption({ index: 2 });
   await page.getByRole("button", { name: "Add to cart" }).click();
-  await expect(page.getByRole("link", { name: "Cart, 2 items" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Cart, 2 items" }),
+  ).toBeVisible();
   await page.goto("/cart");
   await expect(page.locator(".cart-line")).toHaveCount(2);
 });
@@ -120,13 +131,16 @@ test("changes currency independently from destination and rejects unavailable st
   await page.goto("/products/infinity-knot");
   await page.getByLabel("Display currency").selectOption("EUR");
   await expect(page.getByText("60 EUR", { exact: true }).first()).toBeVisible();
+  await page.goto("/cart");
   await page.getByLabel("Shopping destination").selectOption("US");
   await expect(page.getByText("Destination updated.")).toBeAttached();
   await expect(page.getByLabel("Shopping destination")).toHaveValue("US");
+  await page.goto("/products/infinity-knot");
   await expect(page.getByLabel("Display currency")).toHaveValue("EUR");
   await page.reload();
-  await expect(page.getByLabel("Shopping destination")).toHaveValue("US");
   await expect(page.getByLabel("Display currency")).toHaveValue("EUR");
+  await page.goto("/cart");
+  await expect(page.getByLabel("Shopping destination")).toHaveValue("US");
 
   await page.goto("/products/velvet-knot");
   await page.getByRole("radio", { name: "Sage" }).check();

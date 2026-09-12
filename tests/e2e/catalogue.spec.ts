@@ -103,3 +103,47 @@ test("footer social links and policy accordions are accessible", async ({
     page.getByText("VAT registration number: SE820627434501"),
   ).toBeVisible();
 });
+
+test("uses a compact cart, product currency control, and contact page", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByLabel("Shopping destination")).toHaveCount(0);
+  await page.getByRole("button", { name: "Cart, 0 items" }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Cart summary" }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: test.info().outputPath("mini-cart.png"),
+    fullPage: false,
+  });
+  await expect(
+    page.getByRole("link", { name: "Explore all pieces", exact: true }),
+  ).toBeVisible();
+
+  await page.goto("/products/infinity-knot");
+  await expect(page.getByLabel("Display currency")).toBeVisible();
+  await expect(
+    page.getByLabel("Display currency").locator("option").first(),
+  ).toContainText("🇸🇪 SEK");
+
+  await page.goto("/contact");
+  await expect(
+    page.getByRole("heading", { name: "Get in touch." }),
+  ).toBeVisible();
+  await page.screenshot({
+    path: test.info().outputPath("contact.png"),
+    fullPage: true,
+  });
+  await expect(
+    page.getByRole("link", { name: "info@macmaer.com" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Send message" }),
+  ).toBeVisible();
+  await expect(
+    page
+      .locator("#main-content")
+      .getByRole("link", { name: "Follow Macmaer on Instagram" }),
+  ).toBeVisible();
+});
