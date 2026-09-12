@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "Contact Macmaer",
   description:
     "Contact Macmaer about an order, a handmade piece, materials or delivery.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

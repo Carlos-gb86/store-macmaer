@@ -84,6 +84,33 @@
   margin: 0 0 10px;
   text-transform: capitalize;
 }
+.admin-section {
+  margin-top: 42px;
+}
+.review-admin-list {
+  display: grid;
+  gap: 18px;
+}
+.review-admin-list .admin-card {
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 22px;
+}
+.review-admin-list .admin-card > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.review-admin-list .admin-card header small,
+.review-admin-list .admin-card > small {
+  display: block;
+  color: var(--admin-muted);
+  margin-top: 4px;
+}
+.review-admin-list .admin-actions form {
+  margin: 0;
+}
 .admin p {
   margin: 8px 0 16px;
 }

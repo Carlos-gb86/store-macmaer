@@ -12,6 +12,7 @@ export function AdminNavigation() {
         ["tags", "Tags"],
         ["media", "Media"],
         ["content", "Homepage"],
+        ["reviews", "Reviews"],
         ["discounts", "Discounts"],
         ["settings/shipping", "Shipping"],
         ["settings/tax", "Tax"],

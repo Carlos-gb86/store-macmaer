@@ -25,6 +25,36 @@ async function asRole<T>(
   }
 }
 describe("PostgreSQL migrations and RLS", () => {
+  it("publishes only approved reviews and active testimonials", async () => {
+    const productId = "00000000-0000-4000-8000-000000000001";
+    await db.exec(`insert into public.product_reviews(
+      id,product_id,display_name,rating,body,status,source,source_reference
+    ) values
+      ('30000000-0000-4000-8000-000000000001','${productId}','Pending',5,'This remains private.','PENDING','CUSTOMER','pending'),
+      ('30000000-0000-4000-8000-000000000002','${productId}','Approved',5,'This is an approved review.','APPROVED','WOOCOMMERCE','approved');
+    insert into public.testimonials(id,review_id,quote,attribution,active)
+    values
+      ('31000000-0000-4000-8000-000000000001','30000000-0000-4000-8000-000000000002','This is an approved review.','Approved',true),
+      ('31000000-0000-4000-8000-000000000002',null,'This testimonial stays in draft.','Draft',false);`);
+    await asRole("anon", async () => {
+      expect(
+        (await db.query("select * from public.product_reviews")).rows,
+      ).toHaveLength(1);
+      expect(
+        (await db.query("select * from public.testimonials")).rows,
+      ).toHaveLength(1);
+    });
+    await expect(
+      asRole("anon", () =>
+        db.exec(
+          `insert into public.product_reviews(product_id,display_name,rating,body) values ('${productId}','Injected',5,'Anonymous insertion is denied.')`,
+        ),
+      ),
+    ).rejects.toThrow(/permission denied/);
+    await expect(
+      asRole("anon", () => db.query("select * from public.legacy_redirects")),
+    ).rejects.toThrow(/permission denied/);
+  });
   it("keeps contact enquiries behind the server boundary", async () => {
     await expect(
       asRole("anon", () => db.query("select * from public.contact_messages")),

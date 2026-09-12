@@ -3,6 +3,8 @@ import { connection } from "next/server";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { getHomepage } from "@/modules/content/repository";
+import { JsonLd } from "@/components/seo/json-ld";
+import { siteUrl, socialProfiles } from "@/modules/seo/site";
 export default async function StorefrontLayout({
   children,
 }: {
@@ -15,6 +17,28 @@ export default async function StorefrontLayout({
   const content = await getHomepage();
   return (
     <>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "@id": siteUrl("/#organization"),
+            name: "Macmaer",
+            url: siteUrl(),
+            logo: siteUrl("/logo/Logo-macmaer-name.svg"),
+            email: "info@macmaer.com",
+            sameAs: socialProfiles,
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "@id": siteUrl("/#website"),
+            name: "Macmaer",
+            url: siteUrl(),
+            publisher: { "@id": siteUrl("/#organization") },
+          },
+        ]}
+      />
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>

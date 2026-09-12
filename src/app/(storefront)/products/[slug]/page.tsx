@@ -16,12 +16,29 @@ import {
 import { getServerEnv } from "@/lib/env/server";
 import { RichText } from "@/components/content/rich-text";
 import { CurrencySelector } from "@/components/currency/currency-selector";
+import { getProductReviews } from "@/modules/reviews/repository";
+import { ProductReviews } from "@/components/reviews/product-reviews";
+import { JsonLd } from "@/components/seo/json-ld";
+import { absoluteAsset, siteUrl } from "@/modules/seo/site";
+import { resolveImage } from "@/modules/media/resolve-image";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct((await params).slug);
   return {
     title: product?.seo_title ?? product?.title ?? "Product not found",
     description: product?.seo_description ?? product?.short_description,
+    alternates: { canonical: `/products/${(await params).slug}` },
+    openGraph: product
+      ? {
+          type: "website",
+          title: product.seo_title ?? product.title,
+          description: product.seo_description ?? product.short_description,
+          images: product.images.slice(0, 4).map((image) => ({
+            url: resolveImage(image.path),
+            alt: image.alt,
+          })),
+        }
+      : undefined,
   };
 }
 export default async function ProductPage({ params }: Props) {
@@ -32,6 +49,7 @@ export default async function ProductPage({ params }: Props) {
   ]);
   const product = data.products.find((product) => product.slug === slug);
   if (!product) notFound();
+  const reviews = await getProductReviews(product.id);
   const collection = data.collections.find((collection) =>
     product.collections.includes(collection.slug),
   );
@@ -46,8 +64,87 @@ export default async function ProductPage({ params }: Props) {
     calculateProductStartingPrice(product),
     context.pricing,
   );
+  const aggregateRating = reviews.length
+    ? {
+        "@type": "AggregateRating",
+        ratingValue:
+          reviews.reduce((sum, review) => sum + review.rating, 0) /
+          reviews.length,
+        reviewCount: reviews.length,
+      }
+    : undefined;
   return (
     <Container className="page-section">
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: product.title,
+            description: product.short_description,
+            sku: product.sku ?? undefined,
+            image: product.images.map((image) =>
+              absoluteAsset(resolveImage(image.path)),
+            ),
+            url: siteUrl(`/products/${product.slug}`),
+            brand: { "@type": "Brand", name: "Macmaer" },
+            offers: {
+              "@type": "Offer",
+              url: siteUrl(`/products/${product.slug}`),
+              priceCurrency: "SEK",
+              price: (calculateProductStartingPrice(product) / 100).toFixed(2),
+              availability:
+                product.inventory_strategy === "UNAVAILABLE" ||
+                (product.inventory_strategy === "TRACKED" &&
+                  !product.stock_quantity)
+                  ? "https://schema.org/OutOfStock"
+                  : "https://schema.org/InStock",
+              itemCondition: "https://schema.org/NewCondition",
+            },
+            aggregateRating,
+            review: reviews.slice(0, 20).map((review) => ({
+              "@type": "Review",
+              author: { "@type": "Person", name: review.display_name },
+              datePublished: review.created_at.slice(0, 10),
+              name: review.title || undefined,
+              reviewBody: review.body,
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+                bestRating: 5,
+              },
+            })),
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              {
+                "@type": "ListItem",
+                position: 1,
+                name: "Shop",
+                item: siteUrl("/shop"),
+              },
+              ...(collection
+                ? [
+                    {
+                      "@type": "ListItem",
+                      position: 2,
+                      name: collection.name,
+                      item: siteUrl(`/collections/${collection.slug}`),
+                    },
+                  ]
+                : []),
+              {
+                "@type": "ListItem",
+                position: collection ? 3 : 2,
+                name: product.title,
+                item: siteUrl(`/products/${product.slug}`),
+              },
+            ],
+          },
+        ]}
+      />
       <nav aria-label="Breadcrumb" className="breadcrumb">
         <Link href="/shop">All pieces</Link>
         <span>/</span>
@@ -135,6 +232,11 @@ export default async function ProductPage({ params }: Props) {
           </div>
         </section>
       )}
+      <ProductReviews
+        reviews={reviews}
+        productId={product.id}
+        productSlug={product.slug}
+      />
     </Container>
   );
 }

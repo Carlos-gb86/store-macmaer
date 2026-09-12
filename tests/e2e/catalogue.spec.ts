@@ -45,6 +45,18 @@ test("browse collections and enlarge a product image with keyboard dismissal", a
   await page.getByLabel("Large", { exact: true }).check();
   await page.getByRole("button", { name: "Preview configuration" }).click();
   await expect(page.getByText(/Your selections are ready/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Customer reviews" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Submit review" }),
+  ).toBeVisible();
+  const structuredData = await page
+    .locator('script[type="application/ld+json"]')
+    .allTextContents();
+  expect(
+    structuredData.some((value) => value.includes('"@type":"Product"')),
+  ).toBe(true);
 });
 test("preview five repeated colours without a cart or payment flow", async ({
   page,

@@ -1,6 +1,6 @@
 # Macmaer
 
-Next.js storefront and shop administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–6 are implemented.** Checkout and transactional email each have an explicit environment switch so provider credentials can be configured before either feature is activated.
+Next.js storefront and shop administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–7 are implemented.** Checkout, refunds, transactional email, and search indexing have explicit environment switches so provider credentials and launch data can be reviewed before activation.
 
 ## Setup and environment
 
@@ -30,6 +30,7 @@ Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative f
 | `REFUNDS_ENABLED`                      | Explicit `true` enables real Stripe refund controls after the refund webhook events are configured.                                |
 | `RESEND_API_KEY`                       | Server-only Resend API key. Required only when transactional email is enabled.                                                     |
 | `EMAIL_ENABLED`                        | Explicit `true` enables Resend delivery; absent or `false` records pending attempts without contacting the provider.               |
+| `SEO_INDEXING_ENABLED`                 | Explicit `true` permits crawling. Keep false until the custom domain, catalogue, policies, and legacy redirects are launch-ready.  |
 | `NEXT_BUILD_DIR`                       | Optional isolated build directory, used by browser tests.                                                                          |
 
 Actual `.env*` files are ignored. `SUPABASE_SERVICE_ROLE_KEY` may contain Supabase's newer secret API key; despite the backwards-compatible variable name, a legacy JWT is not required. Never expose this credential through `NEXT_PUBLIC_*`. Validation errors identify fields without printing values. Rebuild after changing public variables.
@@ -71,6 +72,20 @@ Full and partial refunds are initiated from the order page after typing the orde
 Keep `REFUNDS_ENABLED=false` until the production endpoint subscribes to all three refund events. Enable it locally with sandbox Stripe credentials for testing; only set it to `true` in Vercel after the live endpoint is ready.
 
 Transactional email uses Resend behind a small server-only service. Paid-order confirmation and shop notification use `info@macmaer.com`; contact-form delivery and acknowledgment use `contact@macmaer.com`; shipping and refund confirmations return to the order address. Delivery attempts and provider errors are retained for support. To activate it, verify `macmaer.com` in Resend, create an API key, set `RESEND_API_KEY`, and only then set `EMAIL_ENABLED=true`. Leaving email disabled is safe: the commerce/contact records still save and an email attempt remains pending for later manual retry.
+
+## Reviews, SEO, and WooCommerce migration
+
+Product pages accept reviews through a service-only path. Email addresses are normalized and HMAC-hashed; they are never published or stored with the review. A matching paid order marks a submission as a verified purchase, but every customer and imported review remains `PENDING` until an administrator approves it at `/admin/reviews`. Approved reviews can be copied into editable homepage testimonials without altering the original review.
+
+The storefront publishes canonical metadata, Open Graph cards, a dynamic `/sitemap.xml`, `/robots.txt`, Organization/WebSite/Product/Breadcrumb JSON-LD, and reviewed permanent redirects. Keep `SEO_INDEXING_ENABLED=false` while WordPress owns `macmaer.com`; at cutover, set `NEXT_PUBLIC_SITE_URL=https://macmaer.com`, verify the complete redirect map, then enable indexing and redeploy. Admin, API, cart, checkout, and order-status routes remain excluded from crawling.
+
+Export products and reviews as JSON through the WooCommerce REST API, then prepare a non-mutating migration bundle with:
+
+```sh
+npm run migration:prepare -- --products products.json --reviews reviews.json
+```
+
+The command writes a product review manifest, product redirects, and idempotent review SQL under `migration/woocommerce-prepared`. It does not change the database. Product prices, images, categories, attributes, and variations must be reviewed and mapped in admin; generated review SQL leaves all imported reviews pending. Merge the reviewed redirect output into `config/legacy-redirects.json` before cutover.
 
 ## Administrator access
 
@@ -114,7 +129,7 @@ Descriptions use open-source Tiptap. Structured JSON permits paragraphs, heading
 
 Start Docker Desktop, then `npm run db:start`. `npm run db:reset` replaces **disposable local data only**. If Docker cannot mount optional Studio folders, use `npx supabase start --exclude studio,edge-runtime,logflare,vector`. Never reset hosted data.
 
-Migrations `001`–`002` retain the original Phase 1 history. Migrations through `014` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, shipping/tax/discount configuration, order/payment/reservation/webhook state, versioned policy snapshots, private contact messages, and Phase 6 fulfilment/refund/email history. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
+Migrations `001`–`002` retain the original Phase 1 history. Migrations through `015` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, shipping/tax/discount configuration, order/payment/reservation/webhook state, versioned policy snapshots, private contact messages, fulfilment/refund/email history, moderated reviews/testimonials, and the legacy URL audit map. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
 
 `npm run seed:generate` generates deterministic fixture IDs from `src/modules/catalog/fixtures/catalogue.json`. Seeds use `ON CONFLICT DO NOTHING`, preserve existing rows, and are not a catalogue updater. After local checks, stage explicitly:
 

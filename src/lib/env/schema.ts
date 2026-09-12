@@ -20,6 +20,10 @@ export const serverEnvSchema = publicEnvSchema
     STRIPE_SECRET_KEY: optionalText,
     STRIPE_WEBHOOK_SECRET: optionalText,
     RESEND_API_KEY: optionalText,
+    SEO_INDEXING_ENABLED: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     EMAIL_ENABLED: z
       .enum(["true", "false"])
       .default("false")

@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "All pieces",
   description:
     "Explore Macmaer's collection of handmade knot pillows and accessories.",
+  alternates: { canonical: "/shop" },
 };
 export default async function Shop({
   searchParams,

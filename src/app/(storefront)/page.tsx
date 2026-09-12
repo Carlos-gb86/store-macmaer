@@ -6,11 +6,17 @@ import { getCatalogue } from "@/modules/catalog/repository";
 import { getHomepage } from "@/modules/content/repository";
 import { resolveImage } from "@/modules/media/resolve-image";
 import { getStorefrontContext } from "@/modules/currency/repository";
+import { getTestimonials } from "@/modules/reviews/repository";
+import { Testimonials } from "@/components/reviews/testimonials";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 export default async function Home() {
-  const [catalogue, content, context] = await Promise.all([
+  const [catalogue, content, context, testimonials] = await Promise.all([
     getCatalogue(),
     getHomepage(),
     getStorefrontContext(),
+    getTestimonials(),
   ]);
   return (
     <>
@@ -110,6 +116,7 @@ export default async function Home() {
         </section>
       )}
       <Container>
+        <Testimonials items={testimonials} />
         <div className="values-strip">
           <p>
             <span>01</span> Made by hand

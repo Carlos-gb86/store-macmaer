@@ -29,6 +29,7 @@ describe("environment boundaries", () => {
     expect(defaults.CHECKOUT_ENABLED).toBe(false);
     expect(defaults.REFUNDS_ENABLED).toBe(false);
     expect(defaults.EMAIL_ENABLED).toBe(false);
+    expect(defaults.SEO_INDEXING_ENABLED).toBe(false);
     expect(() =>
       parseEnv(serverEnvSchema, {
         CATALOG_SOURCE: "demo",

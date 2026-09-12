@@ -572,6 +572,33 @@ Update: {
 };
 Relationships: [];
 };
+"legacy_redirects": {
+Row: {
+"id": string;
+"source_path": string;
+"destination_path": string;
+"permanent": boolean;
+"source_reference": string | null;
+"created_at": string;
+};
+Insert: {
+"id"?: string;
+"source_path": string;
+"destination_path": string;
+"permanent"?: boolean;
+"source_reference"?: string | null;
+"created_at"?: string;
+};
+Update: {
+"id"?: string;
+"source_path"?: string;
+"destination_path"?: string;
+"permanent"?: boolean;
+"source_reference"?: string | null;
+"created_at"?: string;
+};
+Relationships: [];
+};
 "media_assets": {
 Row: {
 "id": string;
@@ -1190,6 +1217,57 @@ Update: {
 };
 Relationships: [];
 };
+"product_reviews": {
+Row: {
+"id": string;
+"product_id": string;
+"order_id": string | null;
+"display_name": string;
+"email_hash": string | null;
+"rating": number;
+"title": string;
+"body": string;
+"status": string;
+"verified_purchase": boolean;
+"source": string;
+"source_reference": string | null;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"product_id": string;
+"order_id"?: string | null;
+"display_name": string;
+"email_hash"?: string | null;
+"rating": number;
+"title"?: string;
+"body": string;
+"status"?: string;
+"verified_purchase"?: boolean;
+"source"?: string;
+"source_reference"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"product_id"?: string;
+"order_id"?: string | null;
+"display_name"?: string;
+"email_hash"?: string | null;
+"rating"?: number;
+"title"?: string;
+"body"?: string;
+"status"?: string;
+"verified_purchase"?: boolean;
+"source"?: string;
+"source_reference"?: string | null;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Relationships: [];
+};
 "product_tags": {
 Row: {
 "product_id": string;
@@ -1720,6 +1798,39 @@ Update: {
 "export_rate_basis_points"?: number;
 "export_message"?: string;
 "reviewed_at"?: string | null;
+"updated_at"?: string;
+};
+Relationships: [];
+};
+"testimonials": {
+Row: {
+"id": string;
+"review_id": string | null;
+"quote": string;
+"attribution": string;
+"active": boolean;
+"sort_order": number;
+"created_at": string;
+"updated_at": string;
+};
+Insert: {
+"id"?: string;
+"review_id"?: string | null;
+"quote": string;
+"attribution": string;
+"active"?: boolean;
+"sort_order"?: number;
+"created_at"?: string;
+"updated_at"?: string;
+};
+Update: {
+"id"?: string;
+"review_id"?: string | null;
+"quote"?: string;
+"attribution"?: string;
+"active"?: boolean;
+"sort_order"?: number;
+"created_at"?: string;
 "updated_at"?: string;
 };
 Relationships: [];

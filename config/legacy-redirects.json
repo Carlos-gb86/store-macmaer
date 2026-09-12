@@ -1,0 +1,21 @@
+[
+  {
+    "source": "/product-category/boucle",
+    "destination": "/collections/boucle"
+  },
+  {
+    "source": "/product-category/velvet",
+    "destination": "/collections/velvet"
+  },
+  {
+    "source": "/product-category/velour",
+    "destination": "/collections/cotton-velour"
+  },
+  {
+    "source": "/product-category/velour/:rest*",
+    "destination": "/collections/cotton-velour"
+  },
+  { "source": "/privacy-policy", "destination": "/privacy" },
+  { "source": "/terms-and-conditions", "destination": "/terms" },
+  { "source": "/refund_returns", "destination": "/returns" }
+]

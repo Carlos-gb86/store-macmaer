@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { CollectionCard } from "@/components/catalog/collection-card";
 import { getCatalogue } from "@/modules/catalog/repository";
-export const metadata: Metadata = { title: "Collections" };
+export const metadata: Metadata = {
+  title: "Collections",
+  alternates: { canonical: "/collections" },
+};
 export default async function Collections() {
   const { collections } = await getCatalogue();
   return (

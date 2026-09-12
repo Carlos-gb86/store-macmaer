@@ -3,7 +3,7 @@ import { requireAdminPage } from "@/modules/admin/auth";
 import { formatCataloguePrice } from "@/modules/catalog/format";
 export default async function Dashboard() {
   const { client } = await requireAdminPage();
-  const [unfulfilled, recent] = await Promise.all([
+  const [unfulfilled, recent, pendingReviews] = await Promise.all([
     client
       .from("orders")
       .select("id", { count: "exact", head: true })
@@ -17,9 +17,14 @@ export default async function Dashboard() {
       .in("payment_status", ["SUCCEEDED", "PARTIALLY_REFUNDED"])
       .order("created_at", { ascending: false })
       .limit(5),
+    client
+      .from("product_reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "PENDING"),
   ]);
   if (unfulfilled.error) throw unfulfilled.error;
   if (recent.error) throw recent.error;
+  if (pendingReviews.error) throw pendingReviews.error;
   return (
     <>
       <h1>Dashboard</h1>
@@ -37,6 +42,10 @@ export default async function Dashboard() {
         <Link className="admin-card" href="/admin/orders">
           <span>Recent paid orders</span>
           <strong>{recent.data.length}</strong>
+        </Link>
+        <Link className="admin-card" href="/admin/reviews">
+          <span>Reviews awaiting moderation</span>
+          <strong>{pendingReviews.count ?? 0}</strong>
         </Link>
       </div>
       <section className="admin-card">

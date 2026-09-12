@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import legacyRedirects from "./config/legacy-redirects.json";
 
 const remotePatterns: NonNullable<
   NonNullable<NextConfig["images"]>["remotePatterns"]
@@ -23,5 +24,25 @@ const config: NextConfig = {
       new URL(storageUrl).hostname === "127.0.0.1",
   },
   poweredByHeader: false,
+  async redirects() {
+    return [
+      ...legacyRedirects.map((entry) => ({ ...entry, permanent: true })),
+      {
+        source: "/product/:slug",
+        destination: "/products/:slug",
+        permanent: true,
+      },
+      {
+        source: "/product-tag/:slug",
+        destination: "/shop?tag=:slug",
+        permanent: true,
+      },
+      {
+        source: "/product-category/:collection/:rest*",
+        destination: "/collections/:collection",
+        permanent: true,
+      },
+    ];
+  },
 };
 export default config;

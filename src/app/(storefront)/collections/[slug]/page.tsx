@@ -9,6 +9,8 @@ import { resolveImage } from "@/modules/media/resolve-image";
 import type { SearchParams } from "@/modules/catalog/query";
 import { RichText } from "@/components/content/rich-text";
 import { getStorefrontContext } from "@/modules/currency/repository";
+import { JsonLd } from "@/components/seo/json-ld";
+import { siteUrl } from "@/modules/seo/site";
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
@@ -18,6 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: collection?.seo_title ?? collection?.name ?? "Collection not found",
     description: collection?.seo_description ?? collection?.description,
+    alternates: { canonical: `/collections/${(await params).slug}` },
   };
 }
 export default async function CollectionPage({ params, searchParams }: Props) {
@@ -33,6 +36,26 @@ export default async function CollectionPage({ params, searchParams }: Props) {
   if (!collection) notFound();
   return (
     <Container className="page-section">
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Collections",
+              item: siteUrl("/collections"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: collection.name,
+              item: siteUrl(`/collections/${collection.slug}`),
+            },
+          ],
+        }}
+      />
       <Link href="/collections" className="breadcrumb">
         Collections / {collection.name}
       </Link>
