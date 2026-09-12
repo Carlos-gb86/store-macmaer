@@ -18,7 +18,7 @@ Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative f
 | Variable                               | Purpose                                                                                                                            |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `CATALOG_SOURCE`                       | `demo` or `supabase`.                                                                                                              |
-| `NEXT_PUBLIC_SITE_URL`                 | Application URL for the deployment.                                                                                                |
+| `NEXT_PUBLIC_SITE_URL`                 | Canonical application URL. Vercel's stable production URL is used when omitted; set `https://macmaer.com` at cutover.              |
 | `NEXT_PUBLIC_SUPABASE_URL`             | Supabase API URL.                                                                                                                  |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key or local legacy anon key.                                                                                          |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Server-only Supabase secret key required for anonymous cart persistence. The existing name also supports legacy service-role keys. |

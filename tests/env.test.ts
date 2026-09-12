@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseEnv, publicEnvSchema, serverEnvSchema } from "@/lib/env/schema";
+import { getPublicEnv } from "@/lib/env/public";
 describe("environment boundaries", () => {
   it("requires Supabase by default and allows explicitly selected fixtures", () => {
     expect(() => parseEnv(serverEnvSchema, {})).toThrow(
@@ -23,6 +24,23 @@ describe("environment boundaries", () => {
         NEXT_PUBLIC_SITE_URL: "invalid",
       }),
     ).toThrow("NEXT_PUBLIC_SITE_URL");
+  });
+  it("uses Vercel's stable production domain when no canonical URL is set", () => {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.VERCEL_PROJECT_PRODUCTION_URL = "store-macmaer.vercel.app";
+    try {
+      expect(getPublicEnv().NEXT_PUBLIC_SITE_URL).toBe(
+        "https://store-macmaer.vercel.app",
+      );
+    } finally {
+      if (siteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+      else process.env.NEXT_PUBLIC_SITE_URL = siteUrl;
+      if (vercelUrl === undefined)
+        delete process.env.VERCEL_PROJECT_PRODUCTION_URL;
+      else process.env.VERCEL_PROJECT_PRODUCTION_URL = vercelUrl;
+    }
   });
   it("keeps checkout off by default and requires every payment secret when enabled", () => {
     const defaults = parseEnv(serverEnvSchema, { CATALOG_SOURCE: "demo" });
