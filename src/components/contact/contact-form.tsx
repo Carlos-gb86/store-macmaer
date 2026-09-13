@@ -1,11 +1,15 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useId, useRef } from "react";
 import { submitContactFormAction } from "@/modules/contact/actions";
 import { initialContactFormState } from "@/modules/contact/schema";
 
-function FieldError({ message }: { message?: string }) {
-  return message ? <span className="form-field-error">{message}</span> : null;
+function FieldError({ id, message }: { id: string; message?: string }) {
+  return message ? (
+    <span id={id} className="form-field-error">
+      {message}
+    </span>
+  ) : null;
 }
 
 export function ContactForm() {
@@ -14,6 +18,7 @@ export function ContactForm() {
     initialContactFormState,
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const errorPrefix = useId();
 
   useEffect(() => {
     if (state.ok) formRef.current?.reset();
@@ -29,8 +34,16 @@ export function ContactForm() {
             autoComplete="given-name"
             required
             aria-invalid={Boolean(state.fieldErrors?.firstName)}
+            aria-describedby={
+              state.fieldErrors?.firstName
+                ? `${errorPrefix}-first-name`
+                : undefined
+            }
           />
-          <FieldError message={state.fieldErrors?.firstName} />
+          <FieldError
+            id={`${errorPrefix}-first-name`}
+            message={state.fieldErrors?.firstName}
+          />
         </label>
         <label>
           Last name
@@ -39,8 +52,16 @@ export function ContactForm() {
             autoComplete="family-name"
             required
             aria-invalid={Boolean(state.fieldErrors?.lastName)}
+            aria-describedby={
+              state.fieldErrors?.lastName
+                ? `${errorPrefix}-last-name`
+                : undefined
+            }
           />
-          <FieldError message={state.fieldErrors?.lastName} />
+          <FieldError
+            id={`${errorPrefix}-last-name`}
+            message={state.fieldErrors?.lastName}
+          />
         </label>
       </div>
       <label>
@@ -51,13 +72,29 @@ export function ContactForm() {
           autoComplete="email"
           required
           aria-invalid={Boolean(state.fieldErrors?.email)}
+          aria-describedby={
+            state.fieldErrors?.email ? `${errorPrefix}-email` : undefined
+          }
         />
-        <FieldError message={state.fieldErrors?.email} />
+        <FieldError
+          id={`${errorPrefix}-email`}
+          message={state.fieldErrors?.email}
+        />
       </label>
       <label>
         Subject <span className="muted">(optional)</span>
-        <input name="subject" maxLength={160} />
-        <FieldError message={state.fieldErrors?.subject} />
+        <input
+          name="subject"
+          maxLength={160}
+          aria-invalid={Boolean(state.fieldErrors?.subject)}
+          aria-describedby={
+            state.fieldErrors?.subject ? `${errorPrefix}-subject` : undefined
+          }
+        />
+        <FieldError
+          id={`${errorPrefix}-subject`}
+          message={state.fieldErrors?.subject}
+        />
       </label>
       <label>
         How can we help?
@@ -68,8 +105,14 @@ export function ContactForm() {
           maxLength={5000}
           required
           aria-invalid={Boolean(state.fieldErrors?.message)}
+          aria-describedby={
+            state.fieldErrors?.message ? `${errorPrefix}-message` : undefined
+          }
         />
-        <FieldError message={state.fieldErrors?.message} />
+        <FieldError
+          id={`${errorPrefix}-message`}
+          message={state.fieldErrors?.message}
+        />
       </label>
       <label className="contact-honeypot" aria-hidden="true">
         Company

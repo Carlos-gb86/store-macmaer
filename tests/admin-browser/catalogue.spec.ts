@@ -45,9 +45,7 @@ test("refreshes an expired cookie session through the proxy", async ({
   const response = await page.goto("/admin");
   // Next's development server replaces route cache headers; production is checked separately.
   expect(response?.headers()["cache-control"]).toMatch(/no-cache|no-store/);
-  await expect(
-    page.getByRole("heading", { name: "Catalogue overview" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   const renewed = (await context.cookies())
     .filter((c) => /^sb-.*-auth-token(?:\.\d+)?$/.test(c.name))
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -73,9 +71,7 @@ test("protects pages and rejects invalid and ordinary accounts", async ({
     page.getByRole("alert").filter({ hasText: "does not have" }),
   ).toBeVisible();
   await login(page);
-  await expect(
-    page.getByRole("heading", { name: "Catalogue overview" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page).toHaveURL(/\/admin\/login/);
 });

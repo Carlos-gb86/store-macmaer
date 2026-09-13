@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useId, useRef } from "react";
 import { submitReviewAction } from "@/modules/reviews/actions";
 import type { ReviewFormState } from "@/modules/reviews/schema";
 
@@ -22,6 +22,7 @@ export function ReviewForm({
     initialState,
   );
   const form = useRef<HTMLFormElement>(null);
+  const errorPrefix = useId();
   useEffect(() => {
     if (state.ok) form.current?.reset();
   }, [state.ok, state.submissionId]);
@@ -44,9 +45,14 @@ export function ReviewForm({
               required
               maxLength={100}
               aria-invalid={!!state.fieldErrors?.displayName}
+              aria-describedby={
+                state.fieldErrors?.displayName
+                  ? `${errorPrefix}-display-name`
+                  : undefined
+              }
             />
             {state.fieldErrors?.displayName && (
-              <small className="field-error">
+              <small id={`${errorPrefix}-display-name`} className="field-error">
                 {state.fieldErrors.displayName}
               </small>
             )}
@@ -60,9 +66,14 @@ export function ReviewForm({
               required
               maxLength={320}
               aria-invalid={!!state.fieldErrors?.email}
+              aria-describedby={
+                state.fieldErrors?.email ? `${errorPrefix}-email` : undefined
+              }
             />
             {state.fieldErrors?.email && (
-              <small className="field-error">{state.fieldErrors.email}</small>
+              <small id={`${errorPrefix}-email`} className="field-error">
+                {state.fieldErrors.email}
+              </small>
             )}
           </label>
         </div>
@@ -82,9 +93,20 @@ export function ReviewForm({
         </label>
         <label>
           Your review
-          <textarea name="body" required minLength={10} maxLength={5000} />
+          <textarea
+            name="body"
+            required
+            minLength={10}
+            maxLength={5000}
+            aria-invalid={!!state.fieldErrors?.body}
+            aria-describedby={
+              state.fieldErrors?.body ? `${errorPrefix}-body` : undefined
+            }
+          />
           {state.fieldErrors?.body && (
-            <small className="field-error">{state.fieldErrors.body}</small>
+            <small id={`${errorPrefix}-body`} className="field-error">
+              {state.fieldErrors.body}
+            </small>
           )}
         </label>
         <label className="honeypot" aria-hidden="true">

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stripeKeyMode } from "./provider-mode";
 const optionalText = z.preprocess(
   (value) => (value === "" ? undefined : value),
   z.string().min(1).optional(),
@@ -70,6 +71,23 @@ export const serverEnvSchema = publicEnvSchema
             message: "Required when checkout is enabled",
           });
       }
+      const publishableMode = stripeKeyMode(
+        env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+        "publishable",
+      );
+      const secretMode = stripeKeyMode(env.STRIPE_SECRET_KEY, "secret");
+      if (env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY && !publishableMode)
+        ctx.addIssue({
+          code: "custom",
+          path: ["NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"],
+          message: "Expected a Stripe publishable key",
+        });
+      if (publishableMode && secretMode && publishableMode !== secretMode)
+        ctx.addIssue({
+          code: "custom",
+          path: ["STRIPE_SECRET_KEY"],
+          message: "Stripe test/live key modes must match",
+        });
     }
     if (env.EMAIL_ENABLED && !env.RESEND_API_KEY)
       ctx.addIssue({
@@ -86,6 +104,35 @@ export const serverEnvSchema = publicEnvSchema
             message: "Required when refunds are enabled",
           });
     }
+    if (env.CHECKOUT_ENABLED || env.REFUNDS_ENABLED) {
+      if (
+        env.STRIPE_SECRET_KEY &&
+        !stripeKeyMode(env.STRIPE_SECRET_KEY, "secret")
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["STRIPE_SECRET_KEY"],
+          message: "Expected a Stripe secret key",
+        });
+      if (
+        env.STRIPE_WEBHOOK_SECRET &&
+        !env.STRIPE_WEBHOOK_SECRET.startsWith("whsec_")
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["STRIPE_WEBHOOK_SECRET"],
+          message: "Expected a Stripe webhook signing secret",
+        });
+    }
+    if (
+      env.SEO_INDEXING_ENABLED &&
+      new URL(env.NEXT_PUBLIC_SITE_URL).protocol !== "https:"
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["NEXT_PUBLIC_SITE_URL"],
+        message: "Public indexing requires HTTPS",
+      });
   });
 export function parseEnv<T>(schema: z.ZodType<T>, input: unknown): T {
   const result = schema.safeParse(input);

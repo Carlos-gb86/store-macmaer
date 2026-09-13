@@ -101,60 +101,22 @@ export async function saveReviewSubmission(input: {
   body: string;
 }) {
   const client = createServiceSupabaseClient();
-  const { data: product, error: productError } = await client
-    .from("products")
-    .select("id")
-    .eq("id", input.productId)
-    .eq("status", "active")
-    .maybeSingle();
-  if (productError) throw productError;
-  if (!product) throw new Error("The product is not available for review.");
   const hash = emailHash(input.email);
-  const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const { count, error: countError } = await client
-    .from("product_reviews")
-    .select("id", { count: "exact", head: true })
-    .eq("email_hash", hash)
-    .gte("created_at", since);
-  if (countError) throw countError;
-  if ((count ?? 0) >= 3)
-    throw new Error("Too many reviews were submitted recently.");
-
-  const { data: orders, error: orderError } = await client
-    .from("orders")
-    .select("id")
-    .eq("email_identity_hash", hash)
-    .in("payment_status", ["SUCCEEDED", "PARTIALLY_REFUNDED", "REFUNDED"])
-    .order("created_at", { ascending: false })
-    .limit(100);
-  if (orderError) throw orderError;
-  let orderId: string | null = null;
-  if (orders.length) {
-    const { data: item, error: itemError } = await client
-      .from("order_items")
-      .select("order_id")
-      .eq("product_id", input.productId)
-      .in(
-        "order_id",
-        orders.map((order) => order.id),
-      )
-      .limit(1)
-      .maybeSingle();
-    if (itemError) throw itemError;
-    orderId = item?.order_id ?? null;
-  }
-
-  const { error } = await client.from("product_reviews").insert({
-    product_id: input.productId,
-    order_id: orderId,
-    display_name: input.displayName,
-    email_hash: hash,
-    rating: input.rating,
-    title: input.title,
-    body: input.body,
-    verified_purchase: orderId !== null,
-    status: "PENDING",
-    source: "CUSTOMER",
+  const { error } = await client.rpc("submit_product_review", {
+    document: {
+      product_id: input.productId,
+      display_name: input.displayName,
+      email_hash: hash,
+      rating: input.rating,
+      title: input.title,
+      body: input.body,
+    },
   });
-  if (error) throw error;
+  if (error) {
+    if (/too many reviews/i.test(error.message))
+      throw new Error("Too many reviews were submitted recently.");
+    if (/not available for review/i.test(error.message))
+      throw new Error("The product is not available for review.");
+    throw error;
+  }
 }

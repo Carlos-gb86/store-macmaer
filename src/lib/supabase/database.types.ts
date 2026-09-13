@@ -1892,6 +1892,8 @@ Functions: {
 "checkout_set_payment_intent": { Args: {"target_order_id": string;"payment_intent_id": string;}; Returns: undefined};
 "checkout_set_refund_provider": { Args: {"target_refund_id": string;"provider_refund_id": string;"current_provider_status": string;}; Returns: undefined};
 "is_admin": { Args: Record<never, never>; Returns: boolean};
+"submit_contact_message": { Args: {"document": Json;}; Returns: Json};
+"submit_product_review": { Args: {"document": Json;}; Returns: string};
 }; Enums: {
 "email_delivery_status": "PENDING" | "SENT" | "FAILED";
 "shipping_calculation_type": "FLAT" | "BASE_PLUS_ADDITIONAL" | "PER_ITEM";

@@ -1,7 +1,8 @@
 import { parseEnv, publicEnvSchema } from "./schema";
-export function getPublicEnv() {
+
+export function publicEnvInput() {
   const vercelProductionUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  return parseEnv(publicEnvSchema, {
+  return {
     NEXT_PUBLIC_SITE_URL:
       process.env.NEXT_PUBLIC_SITE_URL ??
       (vercelProductionUrl ? `https://${vercelProductionUrl}` : undefined),
@@ -10,7 +11,11 @@ export function getPublicEnv() {
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-  });
+  };
+}
+
+export function getPublicEnv() {
+  return parseEnv(publicEnvSchema, publicEnvInput());
 }
 export function getSupabasePublicEnv() {
   const env = getPublicEnv();

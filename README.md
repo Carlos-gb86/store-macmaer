@@ -1,6 +1,6 @@
 # Macmaer
 
-Next.js storefront and shop administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–7 are implemented.** Checkout, refunds, transactional email, and search indexing have explicit environment switches so provider credentials and launch data can be reviewed before activation.
+Next.js storefront and shop administration. Read [SPEC.md](SPEC.md) before architectural or domain changes. **Phases 0–8 are implemented.** Checkout, refunds, transactional email, and search indexing have explicit environment switches so provider credentials and launch data can be reviewed before activation.
 
 ## Setup and environment
 
@@ -18,7 +18,7 @@ Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative f
 | Variable                               | Purpose                                                                                                                            |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `CATALOG_SOURCE`                       | `demo` or `supabase`.                                                                                                              |
-| `NEXT_PUBLIC_SITE_URL`                 | Canonical application URL. Vercel's stable production URL is used when omitted; set `https://macmaer.com` at cutover.              |
+| `NEXT_PUBLIC_SITE_URL`                 | Canonical application URL. Vercel's stable production URL is used when omitted; set the final custom origin before indexing.       |
 | `NEXT_PUBLIC_SUPABASE_URL`             | Supabase API URL.                                                                                                                  |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Publishable key or local legacy anon key.                                                                                          |
 | `SUPABASE_SERVICE_ROLE_KEY`            | Server-only Supabase secret key required for anonymous cart persistence. The existing name also supports legacy service-role keys. |
@@ -77,7 +77,7 @@ Transactional email uses Resend behind a small server-only service. Paid-order c
 
 Product pages accept reviews through a service-only path. Email addresses are normalized and HMAC-hashed; they are never published or stored with the review. A matching paid order marks a submission as a verified purchase, but every customer and imported review remains `PENDING` until an administrator approves it at `/admin/reviews`. Approved reviews can be copied into editable homepage testimonials without altering the original review.
 
-The storefront publishes canonical metadata, Open Graph cards, a dynamic `/sitemap.xml`, `/robots.txt`, Organization/WebSite/Product/Breadcrumb JSON-LD, and reviewed permanent redirects. Keep `SEO_INDEXING_ENABLED=false` while WordPress owns `macmaer.com`; at cutover, set `NEXT_PUBLIC_SITE_URL=https://macmaer.com`, verify the complete redirect map, then enable indexing and redeploy. Admin, API, cart, checkout, and order-status routes remain excluded from crawling.
+The storefront publishes canonical metadata, Open Graph cards, a dynamic `/sitemap.xml`, `/robots.txt`, Organization/WebSite/Product/Breadcrumb JSON-LD, and reviewed permanent redirects. Keep `SEO_INDEXING_ENABLED=false` while the stable Vercel address is used for acceptance testing and WordPress remains live at `macmaer.com`. The intended new canonical storefront is `macmaer.se`; set that origin only after the domain is owned and connected, verify the complete redirect map, and enable indexing only after final approval. Admin, API, cart, checkout, and order-status routes remain excluded from crawling.
 
 Export products and reviews as JSON through the WooCommerce REST API, then prepare a non-mutating migration bundle with:
 
@@ -129,7 +129,7 @@ Descriptions use open-source Tiptap. Structured JSON permits paragraphs, heading
 
 Start Docker Desktop, then `npm run db:start`. `npm run db:reset` replaces **disposable local data only**. If Docker cannot mount optional Studio folders, use `npx supabase start --exclude studio,edge-runtime,logflare,vector`. Never reset hosted data.
 
-Migrations `001`–`002` retain the original Phase 1 history. Migrations through `015` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, shipping/tax/discount configuration, order/payment/reservation/webhook state, versioned policy snapshots, private contact messages, fulfilment/refund/email history, moderated reviews/testimonials, and the legacy URL audit map. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
+Migrations `001`–`002` retain the original Phase 1 history. Migrations through `016` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, shipping/tax/discount configuration, order/payment/reservation/webhook state, versioned policy snapshots, private contact messages, fulfilment/refund/email history, moderated reviews/testimonials, the legacy URL audit map, and transactionally enforced public-form limits. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
 
 `npm run seed:generate` generates deterministic fixture IDs from `src/modules/catalog/fixtures/catalogue.json`. Seeds use `ON CONFLICT DO NOTHING`, preserve existing rows, and are not a catalogue updater. After local checks, stage explicitly:
 
@@ -188,4 +188,6 @@ Phase 6 acceptance on 2026-09-12: lint, formatting, strict types, 89 unit/databa
 
 Public catalogue reads use a stateless anonymous client and 60-second cache with immediate admin invalidation. Request-specific context and carts are never put in that shared cache. Admin lists query PostgreSQL with search/status filters and pagination. The media picker currently shows the most recent 500 assets; revisit search/pagination as the catalogue grows.
 
-Deploy to Vercel with Node 22, `npm ci`, and `npm run build`. Production builds use webpack; development uses Turbopack. All pages intentionally remain `noindex`; public indexing and launch hardening belong to later phases. See [DECISIONS.md](DECISIONS.md).
+Deploy to Vercel with Node 22, `npm ci`, and `npm run build`. Production builds use webpack; development uses Turbopack. Public indexing remains intentionally disabled during acceptance on the stable Vercel address. See [DECISIONS.md](DECISIONS.md).
+
+Phase 8 adds a read-only `/admin/settings/readiness` report, browser security headers compatible with Stripe Elements and Supabase, sanitized unhandled-server-error correlation in Vercel logs, an application-wide recovery screen, atomic public contact/review rate limits, and accessibility assertions for the cart disclosure and form errors. Operational response, backup, deployment, payment, and domain-cutover procedures are in [docs/PRODUCTION_RUNBOOK.md](docs/PRODUCTION_RUNBOOK.md). Keep the readiness report's deliberate review gates open until the owner has approved final catalogue, VAT, shipping, policies, backups, custom domain, redirects, and the final live payment/refund.

@@ -16,6 +16,8 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
   const [cart, setCart] = useState(initialCart);
   const [open, setOpen] = useState(false);
   const shellRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const refreshCart = useCallback(async () => {
     try {
@@ -40,11 +42,15 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
   }, [refreshCart]);
   useEffect(() => {
     if (!open) return;
+    panelRef.current?.focus();
     function closeOnOutsideClick(event: PointerEvent) {
       if (!shellRef.current?.contains(event.target as Node)) setOpen(false);
     }
     function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     }
     document.addEventListener("pointerdown", closeOnOutsideClick);
     document.addEventListener("keydown", closeOnEscape);
@@ -59,6 +65,7 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
   return (
     <div className="mini-cart-shell" ref={shellRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="header-cart-button"
         aria-label={`Cart, ${itemLabel}`}
@@ -78,10 +85,12 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
       </button>
       {open && (
         <div
+          ref={panelRef}
           id="mini-cart-panel"
           className="mini-cart-panel"
           role="dialog"
           aria-label="Cart summary"
+          tabIndex={-1}
         >
           <div className="mini-cart-heading">
             <div>
@@ -92,7 +101,10 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
               type="button"
               className="mini-cart-close"
               aria-label="Close cart summary"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false);
+                triggerRef.current?.focus();
+              }}
             >
               <X aria-hidden="true" />
             </button>
@@ -163,6 +175,9 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
           )}
         </div>
       )}
+      <span className="sr-only" aria-live="polite">
+        Cart now contains {itemLabel}.
+      </span>
     </div>
   );
 }

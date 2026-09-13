@@ -15,7 +15,7 @@ export async function Header() {
             alt="Macmaer — handmade in Sweden"
             width={982}
             height={187}
-            priority
+            loading="eager"
           />
         </Link>
         <nav aria-label="Main navigation" className="main-nav">

@@ -67,7 +67,7 @@ export function OrderStatus({
           alt=""
           width={1185}
           height={1104}
-          priority
+          loading="eager"
         />
         {paid && (
           <>

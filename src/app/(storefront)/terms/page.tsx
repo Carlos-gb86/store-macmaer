@@ -11,7 +11,7 @@ export default function TermsPage() {
   return (
     <PolicyPage eyebrow="Legal" title="Terms of Sale and Website Use">
       <p>
-        These draft terms apply when you browse macmaer.com or place an order
+        These draft terms apply when you browse this website or place an order
         with Maria Botyan, a Swedish sole trader trading as Macmaer,
         identification number 19820627-4345 and VAT number SE820627434501.
         Nothing in them limits mandatory consumer rights.

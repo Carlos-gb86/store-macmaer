@@ -31,7 +31,8 @@ export function ProductImage({
       alt={image.alt}
       fill
       sizes={sizes}
-      priority={priority}
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
       className="product-photo"
     />
   );

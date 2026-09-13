@@ -36,7 +36,8 @@ export default async function Home() {
               src={resolveImage(content.hero_image)}
               alt={content.hero_alt}
               fill
-              priority
+              loading="eager"
+              fetchPriority="high"
               sizes="(max-width: 800px) 100vw, 55vw"
             />
             <span className="hero-image-caption">

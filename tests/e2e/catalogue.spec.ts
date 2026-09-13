@@ -2,7 +2,14 @@ import { expect, test } from "@playwright/test";
 test("browse the public catalogue and use search and filters", async ({
   page,
 }) => {
-  await page.goto("/");
+  const response = await page.goto("/");
+  expect(response?.headers()["content-security-policy"]).toContain(
+    "frame-ancestors 'none'",
+  );
+  expect(response?.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(response?.headers()["referrer-policy"]).toBe(
+    "strict-origin-when-cross-origin",
+  );
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "A softer",
   );
@@ -122,9 +129,15 @@ test("uses a compact cart, product currency control, and contact page", async ({
   await page.goto("/");
   await expect(page.getByLabel("Shopping destination")).toHaveCount(0);
   await page.getByRole("button", { name: "Cart, 0 items" }).click();
+  const miniCart = page.getByRole("dialog", { name: "Cart summary" });
+  await expect(miniCart).toBeVisible();
+  await expect(miniCart).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(miniCart).not.toBeVisible();
   await expect(
-    page.getByRole("dialog", { name: "Cart summary" }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Cart, 0 items" }),
+  ).toBeFocused();
+  await page.getByRole("button", { name: "Cart, 0 items" }).click();
   await page.screenshot({
     path: test.info().outputPath("mini-cart.png"),
     fullPage: false,

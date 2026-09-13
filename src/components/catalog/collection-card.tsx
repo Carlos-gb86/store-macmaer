@@ -17,7 +17,8 @@ export function CollectionCard({
             src={resolveImage(collection.image_path)}
             alt={collection.image_alt}
             fill
-            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             sizes="(max-width: 640px) 100vw, 50vw"
             className="product-photo"
           />

@@ -74,7 +74,8 @@ export default async function CollectionPage({ params, searchParams }: Props) {
               src={resolveImage(collection.image_path)}
               alt={collection.image_alt}
               fill
-              priority
+              loading="eager"
+              fetchPriority="high"
               sizes="(max-width: 640px) 100vw, 35vw"
               className="product-photo"
             />

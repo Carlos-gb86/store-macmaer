@@ -17,6 +17,7 @@ export function AdminNavigation() {
         ["settings/shipping", "Shipping"],
         ["settings/tax", "Tax"],
         ["settings/currency", "Currency"],
+        ["settings/readiness", "Launch"],
       ].map(([item, label]) => (
         <Link
           key={item}

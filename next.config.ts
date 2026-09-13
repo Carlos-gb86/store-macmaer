@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import legacyRedirects from "./config/legacy-redirects.json";
+import { securityHeaders } from "./src/lib/security/headers";
 
 const remotePatterns: NonNullable<
   NonNullable<NextConfig["images"]>["remotePatterns"]
@@ -24,6 +25,17 @@ const config: NextConfig = {
       new URL(storageUrl).hostname === "127.0.0.1",
   },
   poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders({
+          isDevelopment: process.env.NODE_ENV === "development",
+          supabaseUrl: storageUrl,
+        }),
+      },
+    ];
+  },
   async redirects() {
     return [
       ...legacyRedirects.map((entry) => ({ ...entry, permanent: true })),

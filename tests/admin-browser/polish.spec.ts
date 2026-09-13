@@ -11,9 +11,7 @@ async function login(page: Page) {
   await page.getByLabel("Email", { exact: true }).fill(env.admin.email);
   await page.getByLabel("Password", { exact: true }).fill(env.admin.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "Catalogue overview" }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
 }
 test("creates a tag inside an unsaved product, then configures options and a variant", async ({
   page,
@@ -125,6 +123,7 @@ test("keeps admin screens usable on desktop and phone", async ({ page }) => {
       "tags",
       "media",
       "content",
+      "settings/readiness",
     ]) {
       await page.goto("/admin/" + path);
       await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
