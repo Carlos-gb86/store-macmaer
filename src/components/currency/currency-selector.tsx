@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { setCurrencyAction } from "@/modules/currency/actions";
 import type { Currency } from "@/modules/currency/schema";
 import { announceCartUpdate } from "@/modules/cart/events";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
+import { StorefrontSelect } from "@/components/ui/storefront-select";
 
 const currencyFlags: Record<Currency, string> = {
   SEK: "🇸🇪",
@@ -20,46 +22,42 @@ export function CurrencySelector({
   currencies: { code: Currency; available: boolean }[];
   notice?: string;
 }) {
+  const { t } = useStorefrontI18n();
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
 
   return (
     <div className="currency-selector">
-      <label title={notice}>
-        <span className="sr-only">Display currency</span>
-        <select
-          aria-label="Display currency"
-          aria-describedby={notice ? "currency-notice" : undefined}
+      <div title={notice}>
+        <span className="sr-only">{t("displayCurrency")}</span>
+        <StorefrontSelect
+          ariaLabel={t("displayCurrency")}
+          ariaDescribedBy={notice ? "currency-notice" : undefined}
           value={currency}
           disabled={pending}
-          onChange={(event) => {
-            const value = event.target.value;
+          className="currency-select-trigger"
+          options={currencies.map((option) => ({
+            value: option.code,
+            label: `${option.code}${option.available ? "" : ` — ${t("currencyUnavailable")}`}`,
+            leading: currencyFlags[option.code],
+            disabled: !option.available,
+          }))}
+          onValueChange={(value) => {
             startTransition(async () => {
               const result = await setCurrencyAction(value);
               setMessage(result.message ?? "");
               if (result.ok) announceCartUpdate({ open: false });
             });
           }}
-        >
-          {currencies.map((option) => (
-            <option
-              key={option.code}
-              value={option.code}
-              disabled={!option.available}
-            >
-              {currencyFlags[option.code]} {option.code}
-              {option.available ? "" : " — unavailable"}
-            </option>
-          ))}
-        </select>
-      </label>
+        />
+      </div>
       {notice && (
         <span id="currency-notice" className="sr-only">
           {notice}
         </span>
       )}
       <span className="sr-only" aria-live="polite">
-        {pending ? "Updating currency" : message}
+        {pending ? t("updatingCurrency") : message}
       </span>
     </div>
   );

@@ -5,5 +5,6 @@ export function getDemoCatalogue() {
   return {
     collections: data.collections.filter((collection) => collection.active),
     products: data.products.filter((product) => product.status === "active"),
+    tagDefinitions: data.tagDefinitions,
   };
 }

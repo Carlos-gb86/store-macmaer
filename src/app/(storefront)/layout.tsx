@@ -5,6 +5,10 @@ import { Footer } from "@/components/layout/footer";
 import { getHomepage } from "@/modules/content/repository";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteUrl, socialProfiles } from "@/modules/seo/site";
+import { getStorefrontLocale } from "@/modules/i18n/server";
+import { storefrontMessages } from "@/modules/i18n/messages";
+import { StorefrontI18nProvider } from "@/components/i18n/storefront-i18n";
+import { localizeHomepage } from "@/modules/i18n/localize";
 export default async function StorefrontLayout({
   children,
 }: {
@@ -14,9 +18,11 @@ export default async function StorefrontLayout({
   // request-specific. Stop before any Supabase-backed content is evaluated;
   // production builds must not depend on live database availability.
   await connection();
-  const content = await getHomepage();
+  const locale = await getStorefrontLocale();
+  const content = localizeHomepage(await getHomepage(), locale);
+  const t = storefrontMessages[locale];
   return (
-    <>
+    <StorefrontI18nProvider locale={locale}>
       <JsonLd
         data={[
           {
@@ -40,16 +46,18 @@ export default async function StorefrontLayout({
         ]}
       />
       <a className="skip-link" href="#main-content">
-        Skip to content
+        {t.skipToContent}
       </a>
       <div className="announcement">
         {getServerEnv().CATALOG_SOURCE === "demo"
-          ? "Sample catalogue · Illustrative products & prices · Ordering opens soon"
+          ? t.sampleAnnouncement
           : content.announcement}
       </div>
-      <Header />
-      <main id="main-content">{children}</main>
-      <Footer />
-    </>
+      <div lang={locale === "sv" ? "sv-SE" : "en"}>
+        <Header locale={locale} />
+        <main id="main-content">{children}</main>
+        <Footer locale={locale} />
+      </div>
+    </StorefrontI18nProvider>
   );
 }

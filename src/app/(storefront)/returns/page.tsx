@@ -1,13 +1,73 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PolicyPage } from "@/components/policies/policy-page";
+import { getStorefrontLocale } from "@/modules/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Returns and Withdrawal",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title:
+      (await getStorefrontLocale()) === "sv"
+        ? "Returer och ångerrätt"
+        : "Returns and Withdrawal",
+    robots: { index: false },
+  };
+}
 
-export default function ReturnsPage() {
+export default async function ReturnsPage() {
+  const sv = (await getStorefrontLocale()) === "sv";
+  if (sv)
+    return (
+      <PolicyPage
+        eyebrow="Kundservice"
+        title="Returer, ångerrätt och reklamationer"
+      >
+        <h2>14 dagars ångerrätt</h2>
+        <p>
+          När svensk eller EU-rätt om distansavtal gäller har du normalt 14
+          dagar från mottagandet att tydligt meddela Macmaer att du ångrar
+          köpet, utan att ange något skäl. Du kan använda ångerfunktionen
+          online, mejla <a href="mailto:info@macmaer.com">info@macmaer.com</a>{" "}
+          eller använda Konsumentverkets standardblankett. Förhandsgodkännande
+          krävs inte.
+        </p>
+        <p>
+          Efter att du meddelat oss ska varan returneras inom 14 dagar. Vid
+          vanlig ånger betalar du normalt den direkta returfrakten. Ett
+          lagenligt avdrag får göras för en styrkt värdeminskning som beror på
+          mer hantering än vad som rimligen behövdes för att undersöka
+          produkten.
+        </p>
+        <h2>Återbetalningar</h2>
+        <p>
+          En giltig fullständig ånger omfattar de betalningar som ska
+          återbetalas enligt lag och kostnaden för den billigaste
+          standardleveransen. Tillägg för dyrare leverans behöver inte
+          återbetalas när lagen medger det. Återbetalning sker normalt till
+          ursprungligt betalningssätt och får, när det är tillåtet, hållas inne
+          tills varan eller bevis på retur har tagits emot.
+        </p>
+        <h2>Personanpassade och rabatterade varor</h2>
+        <p>
+          Undantaget från ångerrätten är begränsat till varor som verkligen har
+          tillverkats enligt individuella anvisningar eller fått en tydlig
+          personlig prägel. Val av standardsortimentets storlek, färg, tyg, knut
+          eller spänne omfattas inte automatiskt. Rabatterade varor behåller
+          lagstadgade rättigheter.
+        </p>
+        <h2>Fel och reklamationer</h2>
+        <p>
+          Reklamation av en felaktig eller avtalsstridig vara är skild från
+          ångerrätten. Svensk lag ger i allmänhet konsumenten tre års
+          reklamationsrätt enligt lagens villkor. Kontakta oss med ordernummer
+          och gärna en beskrivning eller bild. Macmaer står för kostnader och
+          erbjuder de åtgärder som lagen kräver.
+        </p>
+        <p>
+          Den offentliga <Link href="/withdrawal">ångerfunktionen online</Link>{" "}
+          aktiveras innan beställning öppnar.
+        </p>
+      </PolicyPage>
+    );
   return (
     <PolicyPage
       eyebrow="Customer care"

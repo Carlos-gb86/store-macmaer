@@ -151,6 +151,12 @@ Row: {
 "description_document": Json | null;
 "asset_id": string | null;
 "legacy_woocommerce_id": number | null;
+"name_sv": string | null;
+"description_sv": string | null;
+"description_document_sv": Json | null;
+"image_alt_sv": string | null;
+"seo_title_sv": string | null;
+"seo_description_sv": string | null;
 };
 Insert: {
 "id"?: string;
@@ -168,6 +174,12 @@ Insert: {
 "description_document"?: Json | null;
 "asset_id"?: string | null;
 "legacy_woocommerce_id"?: number | null;
+"name_sv"?: string | null;
+"description_sv"?: string | null;
+"description_document_sv"?: Json | null;
+"image_alt_sv"?: string | null;
+"seo_title_sv"?: string | null;
+"seo_description_sv"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -185,6 +197,12 @@ Update: {
 "description_document"?: Json | null;
 "asset_id"?: string | null;
 "legacy_woocommerce_id"?: number | null;
+"name_sv"?: string | null;
+"description_sv"?: string | null;
+"description_document_sv"?: Json | null;
+"image_alt_sv"?: string | null;
+"seo_title_sv"?: string | null;
+"seo_description_sv"?: string | null;
 };
 Relationships: [];
 };
@@ -469,6 +487,16 @@ Row: {
 "featured_visible": boolean;
 "collections_visible": boolean;
 "updated_at": string;
+"announcement_sv": string | null;
+"hero_eyebrow_sv": string | null;
+"hero_title_sv": string | null;
+"hero_subtitle_sv": string | null;
+"hero_alt_sv": string | null;
+"hero_cta_label_sv": string | null;
+"story_eyebrow_sv": string | null;
+"story_title_sv": string | null;
+"story_text_sv": string | null;
+"story_alt_sv": string | null;
 };
 Insert: {
 "id"?: boolean;
@@ -492,6 +520,16 @@ Insert: {
 "featured_visible"?: boolean;
 "collections_visible"?: boolean;
 "updated_at"?: string;
+"announcement_sv"?: string | null;
+"hero_eyebrow_sv"?: string | null;
+"hero_title_sv"?: string | null;
+"hero_subtitle_sv"?: string | null;
+"hero_alt_sv"?: string | null;
+"hero_cta_label_sv"?: string | null;
+"story_eyebrow_sv"?: string | null;
+"story_title_sv"?: string | null;
+"story_text_sv"?: string | null;
+"story_alt_sv"?: string | null;
 };
 Update: {
 "id"?: boolean;
@@ -515,6 +553,16 @@ Update: {
 "featured_visible"?: boolean;
 "collections_visible"?: boolean;
 "updated_at"?: string;
+"announcement_sv"?: string | null;
+"hero_eyebrow_sv"?: string | null;
+"hero_title_sv"?: string | null;
+"hero_subtitle_sv"?: string | null;
+"hero_alt_sv"?: string | null;
+"hero_cta_label_sv"?: string | null;
+"story_eyebrow_sv"?: string | null;
+"story_title_sv"?: string | null;
+"story_text_sv"?: string | null;
+"story_alt_sv"?: string | null;
 };
 Relationships: [];
 };
@@ -1101,6 +1149,7 @@ Row: {
 "sort_order": number;
 "asset_id": string | null;
 "legacy_wordpress_media_id": number | null;
+"alt_sv": string | null;
 };
 Insert: {
 "id"?: string;
@@ -1114,6 +1163,7 @@ Insert: {
 "sort_order"?: number;
 "asset_id"?: string | null;
 "legacy_wordpress_media_id"?: number | null;
+"alt_sv"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -1127,6 +1177,7 @@ Update: {
 "sort_order"?: number;
 "asset_id"?: string | null;
 "legacy_wordpress_media_id"?: number | null;
+"alt_sv"?: string | null;
 };
 Relationships: [];
 };
@@ -1144,6 +1195,7 @@ Row: {
 "active": boolean;
 "sort_order": number;
 "asset_id": string | null;
+"label_sv": string | null;
 };
 Insert: {
 "id"?: string;
@@ -1158,6 +1210,7 @@ Insert: {
 "active"?: boolean;
 "sort_order"?: number;
 "asset_id"?: string | null;
+"label_sv"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -1172,6 +1225,7 @@ Update: {
 "active"?: boolean;
 "sort_order"?: number;
 "asset_id"?: string | null;
+"label_sv"?: string | null;
 };
 Relationships: [];
 };
@@ -1192,6 +1246,7 @@ Row: {
 "allow_duplicates": boolean;
 "validation_rules": Json;
 "sort_order": number;
+"label_sv": string | null;
 };
 Insert: {
 "id"?: string;
@@ -1209,6 +1264,7 @@ Insert: {
 "allow_duplicates"?: boolean;
 "validation_rules"?: Json;
 "sort_order"?: number;
+"label_sv"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -1226,6 +1282,7 @@ Update: {
 "allow_duplicates"?: boolean;
 "validation_rules"?: Json;
 "sort_order"?: number;
+"label_sv"?: string | null;
 };
 Relationships: [];
 };
@@ -1311,6 +1368,7 @@ Row: {
 "sort_order": number;
 "legacy_woocommerce_id": number | null;
 "legacy_metadata": Json;
+"title_sv": string | null;
 };
 Insert: {
 "id"?: string;
@@ -1327,6 +1385,7 @@ Insert: {
 "sort_order"?: number;
 "legacy_woocommerce_id"?: number | null;
 "legacy_metadata"?: Json;
+"title_sv"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -1343,6 +1402,7 @@ Update: {
 "sort_order"?: number;
 "legacy_woocommerce_id"?: number | null;
 "legacy_metadata"?: Json;
+"title_sv"?: string | null;
 };
 Relationships: [];
 };
@@ -1378,6 +1438,16 @@ Row: {
 "shipping_class_key": string;
 "legacy_woocommerce_id": number | null;
 "legacy_metadata": Json;
+"title_sv": string | null;
+"subtitle_sv": string | null;
+"short_description_sv": string | null;
+"description_sv": string | null;
+"description_document_sv": Json | null;
+"materials_sv": string | null;
+"care_sv": string | null;
+"processing_time_sv": string | null;
+"seo_title_sv": string | null;
+"seo_description_sv": string | null;
 };
 Insert: {
 "id"?: string;
@@ -1410,6 +1480,16 @@ Insert: {
 "shipping_class_key"?: string;
 "legacy_woocommerce_id"?: number | null;
 "legacy_metadata"?: Json;
+"title_sv"?: string | null;
+"subtitle_sv"?: string | null;
+"short_description_sv"?: string | null;
+"description_sv"?: string | null;
+"description_document_sv"?: Json | null;
+"materials_sv"?: string | null;
+"care_sv"?: string | null;
+"processing_time_sv"?: string | null;
+"seo_title_sv"?: string | null;
+"seo_description_sv"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -1442,6 +1522,16 @@ Update: {
 "shipping_class_key"?: string;
 "legacy_woocommerce_id"?: number | null;
 "legacy_metadata"?: Json;
+"title_sv"?: string | null;
+"subtitle_sv"?: string | null;
+"short_description_sv"?: string | null;
+"description_sv"?: string | null;
+"description_document_sv"?: Json | null;
+"materials_sv"?: string | null;
+"care_sv"?: string | null;
+"processing_time_sv"?: string | null;
+"seo_title_sv"?: string | null;
+"seo_description_sv"?: string | null;
 };
 Relationships: [];
 };
@@ -1719,6 +1809,7 @@ Row: {
 "name": string;
 "updated_at": string;
 "legacy_woocommerce_id": number | null;
+"name_sv": string | null;
 };
 Insert: {
 "id"?: string;
@@ -1726,6 +1817,7 @@ Insert: {
 "name": string;
 "updated_at"?: string;
 "legacy_woocommerce_id"?: number | null;
+"name_sv"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -1733,6 +1825,7 @@ Update: {
 "name"?: string;
 "updated_at"?: string;
 "legacy_woocommerce_id"?: number | null;
+"name_sv"?: string | null;
 };
 Relationships: [];
 };

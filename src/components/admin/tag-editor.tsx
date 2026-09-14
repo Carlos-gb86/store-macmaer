@@ -9,6 +9,7 @@ import { Plus, Trash2 } from "lucide-react";
 export type Tag = {
   id: string;
   name: string;
+  name_sv: string | null;
   slug: string;
   updated_at?: string;
 };
@@ -28,7 +29,14 @@ export function TagDialogButton({
         type="button"
         className={initial ? "text-button" : "secondary"}
         onClick={() =>
-          setEditing(initial ?? { id: crypto.randomUUID(), name: "", slug: "" })
+          setEditing(
+            initial ?? {
+              id: crypto.randomUUID(),
+              name: "",
+              name_sv: null,
+              slug: "",
+            },
+          )
         }
       >
         {!initial && <Plus size={16} />}
@@ -108,6 +116,13 @@ export function TagEditor({
         help="A unique URL-friendly name. Created automatically from the name; you can change it."
         value={tag.slug}
         onChange={(v) => setTag({ ...tag, slug: String(v) })}
+      />
+      <Field
+        label="Swedish name"
+        help="Optional. The English name is used as a fallback."
+        value={tag.name_sv}
+        nullable
+        onChange={(v) => setTag({ ...tag, name_sv: v as string | null })}
       />
       <Result result={result} />
       <div className="admin-actions">

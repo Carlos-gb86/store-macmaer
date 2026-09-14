@@ -11,7 +11,7 @@ export default async function Tags({
     { q, page, status } = searchInput(await searchParams);
   let query = client
     .from("tags")
-    .select("id,name,slug,updated_at", { count: "exact" })
+    .select("id,name,name_sv,slug,updated_at", { count: "exact" })
     .order("name")
     .order("id")
     .range((page - 1) * 20, page * 20 - 1);
@@ -20,7 +20,7 @@ export default async function Tags({
   if (error) throw error;
   const { data: targets, error: targetError } = await client
     .from("tags")
-    .select("id,name,slug,updated_at")
+    .select("id,name,name_sv,slug,updated_at")
     .order("name");
   if (targetError) throw targetError;
   return (

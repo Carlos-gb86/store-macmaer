@@ -57,3 +57,11 @@ export const initialSupportedCountryCodes = [
 export function countryName(code: string) {
   return names.of(code) ?? code;
 }
+
+export function localizedCountries(locale: "en" | "sv") {
+  if (locale === "en") return countries;
+  const displayNames = new Intl.DisplayNames(["sv-SE"], { type: "region" });
+  return codes
+    .map((code) => ({ code, name: displayNames.of(code) ?? code }))
+    .sort((a, b) => a.name.localeCompare(b.name, "sv-SE"));
+}

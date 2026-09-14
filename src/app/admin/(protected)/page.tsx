@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdminPage } from "@/modules/admin/auth";
 import { formatCataloguePrice } from "@/modules/catalog/format";
+import { ExternalArrow } from "@/components/ui/external-arrow";
 export default async function Dashboard() {
   const { client } = await requireAdminPage();
   const [unfulfilled, recent, pendingReviews] = await Promise.all([
@@ -86,7 +87,7 @@ export default async function Dashboard() {
           <Link href="/admin/media">Upload photos →</Link>
           <Link href="/admin/content">Edit homepage →</Link>
           <Link href="/" target="_blank">
-            View shop ↗
+            View shop <ExternalArrow />
           </Link>
         </div>
       </div>

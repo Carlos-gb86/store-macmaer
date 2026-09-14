@@ -8,6 +8,7 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
 
 export function PaymentForm({
   orderId,
@@ -16,6 +17,8 @@ export function PaymentForm({
   orderId: string;
   orderNumber: string;
 }) {
+  const { locale } = useStorefrontI18n();
+  const sv = locale === "sv";
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
@@ -32,7 +35,12 @@ export function PaymentForm({
       redirect: "if_required",
     });
     if (result.error) {
-      setMessage(result.error.message ?? "The payment could not be completed.");
+      setMessage(
+        result.error.message ??
+          (sv
+            ? "Betalningen kunde inte genomföras."
+            : "The payment could not be completed."),
+      );
       setSubmitting(false);
       return;
     }
@@ -41,21 +49,24 @@ export function PaymentForm({
 
   return (
     <div className="payment-panel">
-      <p className="eyebrow">Secure payment</p>
-      <h2>Pay for {orderNumber}</h2>
+      <p className="eyebrow">{sv ? "Säker betalning" : "Secure payment"}</p>
+      <h2>
+        {sv ? "Betala för" : "Pay for"} {orderNumber}
+      </h2>
       <ExpressCheckoutElement
         options={{ paymentMethods: { link: "never" } }}
         onConfirm={confirm}
       />
       <div className="payment-divider">
-        <span>or pay by card</span>
+        <span>{sv ? "eller betala med kort" : "or pay by card"}</span>
       </div>
       <PaymentElement
         options={{ layout: "tabs", wallets: { link: "never" } }}
       />
       <p className="checkout-legal-note">
-        By placing this order, you agree to the Terms of Sale and acknowledge
-        the Returns/Withdrawal Policy and Privacy Policy.
+        {sv
+          ? "Genom att lägga beställningen godkänner du köpvillkoren och bekräftar retur- och ångervillkoren samt integritetspolicyn."
+          : "By placing this order, you agree to the Terms of Sale and acknowledge the Returns/Withdrawal Policy and Privacy Policy."}
       </p>
       {message && (
         <p className="cart-error" role="alert">
@@ -68,7 +79,13 @@ export function PaymentForm({
         onClick={confirm}
         disabled={!stripe || submitting}
       >
-        {submitting ? "Processing payment…" : "Place order and pay"}
+        {submitting
+          ? sv
+            ? "Behandlar betalningen…"
+            : "Processing payment…"
+          : sv
+            ? "Lägg beställning och betala"
+            : "Place order and pay"}
       </button>
     </div>
   );

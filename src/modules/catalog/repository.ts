@@ -12,6 +12,7 @@ const readSupabaseCatalogue = unstable_cache(
     // Read in bounded pages so PostgREST's row limit cannot silently truncate the catalogue.
     const products: unknown[] = [];
     const collections: unknown[] = [];
+    const tagDefinitions: unknown[] = [];
     for (let from = 0; ; from += 100) {
       const { data, error } = await client
         .from("catalogue_products")
@@ -33,7 +34,17 @@ const readSupabaseCatalogue = unstable_cache(
       collections.push(...data);
       if (data.length < 100) break;
     }
-    return catalogueSchema.parse({ products, collections });
+    for (let from = 0; ; from += 100) {
+      const { data, error } = await client
+        .from("tags")
+        .select("id,slug,name,name_sv")
+        .order("name")
+        .range(from, from + 99);
+      if (error) throw new Error("Catalogue tags could not be loaded.");
+      tagDefinitions.push(...data);
+      if (data.length < 100) break;
+    }
+    return catalogueSchema.parse({ products, collections, tagDefinitions });
   },
   ["public-catalogue-v1"],
   { revalidate: 60, tags: ["catalogue"] },

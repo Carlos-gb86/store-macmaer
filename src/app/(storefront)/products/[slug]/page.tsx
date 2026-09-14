@@ -21,11 +21,21 @@ import { ProductReviews } from "@/components/reviews/product-reviews";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteAsset, siteUrl } from "@/modules/seo/site";
 import { resolveImage } from "@/modules/media/resolve-image";
+import { getStorefrontLocale } from "@/modules/i18n/server";
+import { storefrontMessages } from "@/modules/i18n/messages";
+import { localizeCatalogue, localizeProduct } from "@/modules/i18n/localize";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await getProduct((await params).slug);
+  const [rawProduct, locale] = await Promise.all([
+    getProduct((await params).slug),
+    getStorefrontLocale(),
+  ]);
+  const product = rawProduct ? localizeProduct(rawProduct, locale) : undefined;
   return {
-    title: product?.seo_title ?? product?.title ?? "Product not found",
+    title:
+      product?.seo_title ??
+      product?.title ??
+      (locale === "sv" ? "Produkten hittades inte" : "Product not found"),
     description: product?.seo_description ?? product?.short_description,
     alternates: { canonical: `/products/${(await params).slug}` },
     openGraph: product
@@ -43,10 +53,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const [data, context] = await Promise.all([
+  const [rawData, context, locale] = await Promise.all([
     getCatalogue(),
     getStorefrontContext(),
+    getStorefrontLocale(),
   ]);
+  const data = localizeCatalogue(rawData, locale);
+  const t = storefrontMessages[locale];
   const product = data.products.find((product) => product.slug === slug);
   if (!product) notFound();
   const reviews = await getProductReviews(product.id);
@@ -122,7 +135,7 @@ export default async function ProductPage({ params }: Props) {
               {
                 "@type": "ListItem",
                 position: 1,
-                name: "Shop",
+                name: t.shopAll,
                 item: siteUrl("/shop"),
               },
               ...(collection
@@ -145,8 +158,8 @@ export default async function ProductPage({ params }: Props) {
           },
         ]}
       />
-      <nav aria-label="Breadcrumb" className="breadcrumb">
-        <Link href="/shop">All pieces</Link>
+      <nav aria-label={t.breadcrumbLabel} className="breadcrumb">
+        <Link href="/shop">{t.allPieces}</Link>
         <span>/</span>
         {collection && (
           <>
@@ -165,7 +178,7 @@ export default async function ProductPage({ params }: Props) {
           <h1>{product.title}</h1>
           <div className="product-price-row">
             <p className="product-price">
-              {product.variants.length ? "From " : ""}
+              {product.variants.length ? `${t.from} ` : ""}
               {formatMoney(startingPrice, context.pricing.currency)}
             </p>
             <CurrencySelector
@@ -181,7 +194,7 @@ export default async function ProductPage({ params }: Props) {
           </div>
           {product.compare_at_price !== null && !product.variants.length && (
             <p className="small muted">
-              <span className="sr-only">Previous catalogue price </span>
+              <span className="sr-only">{t.previousPrice} </span>
               <s>
                 {formatMoney(
                   displayAmount(product.compare_at_price, context.pricing),
@@ -190,10 +203,7 @@ export default async function ProductPage({ params }: Props) {
               </s>
             </p>
           )}
-          <p className="small muted">
-            Display estimate. Tax and delivery are confirmed in your cart and
-            checkout.
-          </p>
+          <p className="small muted">{t.displayEstimate}</p>
           <p className="product-description">{product.short_description}</p>
           <ProductConfigurator
             product={product}
@@ -202,14 +212,14 @@ export default async function ProductPage({ params }: Props) {
           />
           <div className="product-details-list">
             <details open>
-              <summary>The details</summary>
+              <summary>{t.productDetails}</summary>
               <RichText
                 document={product.description_document}
                 fallback={product.description}
               />
             </details>
             <details>
-              <summary>Materials & care</summary>
+              <summary>{t.materialsCare}</summary>
               <p>{product.materials}</p>
               <p>{product.care}</p>
             </details>
@@ -219,7 +229,7 @@ export default async function ProductPage({ params }: Props) {
       {related.length > 0 && (
         <section className="section">
           <div className="section-heading">
-            <h2>A little more to love.</h2>
+            <h2>{t.moreToLove}</h2>
           </div>
           <div className="product-grid">
             {related.map((product) => (
@@ -227,6 +237,7 @@ export default async function ProductPage({ params }: Props) {
                 key={product.id}
                 product={product}
                 pricing={context.pricing}
+                locale={locale}
               />
             ))}
           </div>
@@ -236,6 +247,7 @@ export default async function ProductPage({ params }: Props) {
         reviews={reviews}
         productId={product.id}
         productSlug={product.slug}
+        locale={locale}
       />
     </Container>
   );

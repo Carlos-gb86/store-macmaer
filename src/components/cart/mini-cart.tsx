@@ -11,8 +11,10 @@ import {
   type CartUpdatedDetail,
 } from "@/modules/cart/events";
 import type { MiniCartView } from "@/modules/cart/schema";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
 
 export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
+  const { t } = useStorefrontI18n();
   const [cart, setCart] = useState(initialCart);
   const [open, setOpen] = useState(false);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -60,7 +62,7 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
     };
   }, [open]);
 
-  const itemLabel = `${cart.itemCount} ${cart.itemCount === 1 ? "item" : "items"}`;
+  const itemLabel = `${cart.itemCount} ${cart.itemCount === 1 ? t("item") : t("items")}`;
 
   return (
     <div className="mini-cart-shell" ref={shellRef}>
@@ -68,7 +70,7 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
         ref={triggerRef}
         type="button"
         className="header-cart-button"
-        aria-label={`Cart, ${itemLabel}`}
+        aria-label={`${t("cart")}, ${itemLabel}`}
         aria-expanded={open}
         aria-controls="mini-cart-panel"
         onClick={() => {
@@ -89,18 +91,18 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
           id="mini-cart-panel"
           className="mini-cart-panel"
           role="dialog"
-          aria-label="Cart summary"
+          aria-label={t("cartSummary")}
           tabIndex={-1}
         >
           <div className="mini-cart-heading">
             <div>
-              <span className="eyebrow">Your cart</span>
+              <span className="eyebrow">{t("yourCart")}</span>
               <h2>{itemLabel}</h2>
             </div>
             <button
               type="button"
               className="mini-cart-close"
-              aria-label="Close cart summary"
+              aria-label={t("closeCart")}
               onClick={() => {
                 setOpen(false);
                 triggerRef.current?.focus();
@@ -131,7 +133,9 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
                     </span>
                     <span className="mini-cart-line-copy">
                       <strong>{line.productTitle}</strong>
-                      <span>Quantity {line.quantity}</span>
+                      <span>
+                        {t("quantity")} {line.quantity}
+                      </span>
                     </span>
                     <span>
                       {formatMoney(
@@ -143,40 +147,40 @@ export function MiniCart({ initialCart }: { initialCart: MiniCartView }) {
                 ))}
                 {cart.lineCount > cart.lines.length && (
                   <p className="small muted">
-                    +{cart.lineCount - cart.lines.length} more configuration
-                    {cart.lineCount - cart.lines.length === 1 ? "" : "s"}
+                    +{cart.lineCount - cart.lines.length}{" "}
+                    {t("moreConfigurations")}
                   </p>
                 )}
               </div>
               <div className="mini-cart-subtotal">
-                <span>Subtotal</span>
+                <span>{t("subtotal")}</span>
                 <strong>{formatMoney(cart.subtotal, cart.currency)}</strong>
               </div>
-              <p className="mini-cart-note">Shipping and VAT shown in cart.</p>
+              <p className="mini-cart-note">{t("shippingVatCart")}</p>
               <Link
                 href="/cart"
                 className="button"
                 onClick={() => setOpen(false)}
               >
-                View cart
+                {t("viewCart")}
               </Link>
             </>
           ) : (
             <div className="mini-cart-empty">
-              <p>Your bag is ready for something beautiful.</p>
+              <p>{t("emptyBag")}</p>
               <Link
                 href="/shop"
                 className="button button-secondary"
                 onClick={() => setOpen(false)}
               >
-                Explore all pieces
+                {t("exploreAll")}
               </Link>
             </div>
           )}
         </div>
       )}
       <span className="sr-only" aria-live="polite">
-        Cart now contains {itemLabel}.
+        {t("cartNowContains")} {itemLabel}.
       </span>
     </div>
   );

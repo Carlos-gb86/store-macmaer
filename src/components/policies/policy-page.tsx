@@ -1,11 +1,16 @@
 import { Children, isValidElement, type ReactNode } from "react";
 import { Container } from "@/components/ui/container";
+import { getStorefrontLocale } from "@/modules/i18n/server";
+import { storefrontMessages } from "@/modules/i18n/messages";
 
 type PolicySection = { title: ReactNode; content: ReactNode[] };
 
-function policySections(children: ReactNode): PolicySection[] {
+function policySections(
+  children: ReactNode,
+  overview: string,
+): PolicySection[] {
   const sections: PolicySection[] = [];
-  let current: PolicySection = { title: "Overview", content: [] };
+  let current: PolicySection = { title: overview, content: [] };
   for (const child of Children.toArray(children)) {
     if (
       isValidElement<{ children?: ReactNode }>(child) &&
@@ -19,7 +24,7 @@ function policySections(children: ReactNode): PolicySection[] {
   return sections;
 }
 
-export function PolicyPage({
+export async function PolicyPage({
   eyebrow,
   title,
   children,
@@ -28,17 +33,15 @@ export function PolicyPage({
   title: string;
   children: ReactNode;
 }) {
-  const sections = policySections(children);
+  const locale = await getStorefrontLocale();
+  const t = storefrontMessages[locale];
+  const sections = policySections(children, t.overview);
   return (
     <Container className="page-section policy-page">
       <header className="page-intro">
         <p className="eyebrow">{eyebrow}</p>
         <h1>{title}</h1>
-        <p className="policy-draft">
-          Pre-launch draft updated 11 September 2026. Ordering remains disabled
-          pending final legal review and activation of the online withdrawal
-          function.
-        </p>
+        <p className="policy-draft">{t.legalDraft}</p>
       </header>
       <article className="policy-content policy-accordion">
         {sections.map((section, index) => (

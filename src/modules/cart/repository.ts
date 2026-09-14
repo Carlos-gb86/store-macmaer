@@ -26,6 +26,9 @@ import {
   type MiniCartView,
 } from "./schema";
 import { canonicalizeSelections, selectionsFromSnapshot } from "./selections";
+import { getStorefrontLocale } from "@/modules/i18n/server";
+import { localizeProduct } from "@/modules/i18n/localize";
+import { getCatalogue } from "@/modules/catalog/repository";
 
 export const CART_COOKIE = "macmaer_cart";
 const MAX_AGE = 60 * 60 * 24 * 90;
@@ -446,9 +449,17 @@ export async function getCart(
       });
     }
   }
-  const lines = refreshed.map((item) =>
-    rowToLine(item.row, item.product, item.selections),
-  );
+  const locale = await getStorefrontLocale();
+  const lines = refreshed.map((item) => {
+    const line = rowToLine(item.row, item.product, item.selections);
+    if (!item.product || !item.selections) return line;
+    const displayProduct = localizeProduct(item.product, locale);
+    return {
+      ...line,
+      productTitle: displayProduct.title,
+      options: canonicalizeSelections(displayProduct, item.selections).snapshot,
+    };
+  });
   return {
     id: cart.id,
     lines,
@@ -502,16 +513,25 @@ export async function getMiniCart(): Promise<MiniCartView> {
     const currency = currencySchema.safeParse(cart.currency);
     if (!currency.success) return empty;
     const validRows = rows.filter((row) => row.is_valid);
+    const locale = await getStorefrontLocale();
+    const catalogue = await getCatalogue();
 
     return {
-      lines: validRows.slice(0, 4).map((row) => ({
-        id: row.id,
-        productTitle: row.product_title,
-        productSlug: row.product_slug,
-        imagePath: row.image_path,
-        quantity: row.quantity,
-        displayUnitAmount: row.display_unit_amount,
-      })),
+      lines: validRows.slice(0, 4).map((row) => {
+        const product = catalogue.products.find(
+          (candidate) => candidate.id === row.product_id,
+        );
+        return {
+          id: row.id,
+          productTitle: product
+            ? localizeProduct(product, locale).title
+            : row.product_title,
+          productSlug: row.product_slug,
+          imagePath: row.image_path,
+          quantity: row.quantity,
+          displayUnitAmount: row.display_unit_amount,
+        };
+      }),
       lineCount: validRows.length,
       itemCount: validRows.reduce((sum, row) => sum + row.quantity, 0),
       subtotal: validRows.reduce(

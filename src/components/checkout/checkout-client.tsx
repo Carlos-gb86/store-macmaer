@@ -11,6 +11,9 @@ import type {
   CreateCheckoutResult,
   CheckoutDisplayItem,
 } from "@/modules/checkout/schema";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
+import { StorefrontSelect } from "@/components/ui/storefront-select";
+import { countryFlag } from "@/modules/country/flag";
 
 type CountryOption = { code: string; name: string };
 
@@ -29,22 +32,25 @@ function AddressFields({
   countries: CountryOption[];
   onCountryChange?: (country: string) => void;
 }) {
+  const { locale } = useStorefrontI18n();
+  const sv = locale === "sv";
   return (
     <div className="address-fields">
       <label className="field-wide">
-        Full name
+        {sv ? "Fullständigt namn" : "Full name"}
         <input name={`${prefix}.name`} autoComplete="name" required />
       </label>
       <label className="field-wide">
-        Address
+        {sv ? "Adress" : "Address"}
         <input name={`${prefix}.line1`} autoComplete="address-line1" required />
       </label>
       <label className="field-wide">
-        Apartment, suite, etc. <span>(optional)</span>
+        {sv ? "Lägenhet, våning etc." : "Apartment, suite, etc."}{" "}
+        <span>({sv ? "valfritt" : "optional"})</span>
         <input name={`${prefix}.line2`} autoComplete="address-line2" />
       </label>
       <label>
-        Postal code
+        {sv ? "Postnummer" : "Postal code"}
         <input
           name={`${prefix}.postalCode`}
           autoComplete="postal-code"
@@ -52,34 +58,30 @@ function AddressFields({
         />
       </label>
       <label>
-        City
+        {sv ? "Ort" : "City"}
         <input name={`${prefix}.city`} autoComplete="address-level2" required />
       </label>
       <label>
-        Region/state <span>(optional)</span>
+        {sv ? "Region/län" : "Region/state"}{" "}
+        <span>({sv ? "valfritt" : "optional"})</span>
         <input name={`${prefix}.region`} autoComplete="address-level1" />
       </label>
-      <label>
-        Country
-        <select
+      <div>
+        <label htmlFor={`${prefix}-country`}>{sv ? "Land" : "Country"}</label>
+        <StorefrontSelect
+          id={`${prefix}-country`}
           name={`${prefix}.country`}
-          {...(onCountryChange
-            ? {
-                value: country,
-                onChange: (event: React.ChangeEvent<HTMLSelectElement>) =>
-                  onCountryChange(event.target.value),
-              }
-            : { defaultValue: country })}
-          autoComplete="country"
+          value={onCountryChange ? country : undefined}
+          defaultValue={country}
           required
-        >
-          {countries.map((item) => (
-            <option key={item.code} value={item.code}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-      </label>
+          options={countries.map((item) => ({
+            value: item.code,
+            label: item.name,
+            leading: countryFlag(item.code),
+          }))}
+          onValueChange={onCountryChange}
+        />
+      </div>
     </div>
   );
 }
@@ -103,6 +105,8 @@ export function CheckoutClient({
   initialAccessToken: string;
   items: CheckoutDisplayItem[];
 }) {
+  const { locale } = useStorefrontI18n();
+  const sv = locale === "sv";
   const stripe = useMemo(() => loadStripe(publishableKey), [publishableKey]);
   const [country, setCountry] = useState(initialCountry);
   const [summary, setSummary] = useState(initialSummary);
@@ -149,7 +153,11 @@ export function CheckoutClient({
     const data = (await response.json()) as Summary | { error: string };
     if (!response.ok || "error" in data) {
       setQuoteError(
-        "error" in data ? data.error : "That destination is unavailable.",
+        "error" in data
+          ? data.error
+          : sv
+            ? "Det leveranslandet är inte tillgängligt."
+            : "That destination is unavailable.",
       );
       return;
     }
@@ -189,7 +197,11 @@ export function CheckoutClient({
       CreateCheckoutResult | { error: string };
     if (!response.ok || "error" in data) {
       setMessage(
-        "error" in data ? data.error : "Checkout could not be started.",
+        "error" in data
+          ? data.error
+          : sv
+            ? "Kassan kunde inte startas."
+            : "Checkout could not be started.",
       );
       if (response.status === 409) {
         const next = {
@@ -207,7 +219,13 @@ export function CheckoutClient({
     }
     setCheckout(data);
     setSummary(data.summary);
-    setNotice(data.notice ?? "");
+    setNotice(
+      sv && data.notice
+        ? /already enjoyed/i.test(data.notice)
+          ? "Det verkar som att du redan har använt den här rabatten. Vi tog bort koden så att du kan fortsätta."
+          : "Rabatten är inte längre tillgänglig. Vi tog bort koden så att du kan fortsätta till betalning."
+        : (data.notice ?? ""),
+    );
     setSubmitting(false);
   }
 
@@ -217,11 +235,11 @@ export function CheckoutClient({
         {!checkout ? (
           <form className="checkout-form" onSubmit={submitDetails}>
             <section>
-              <p className="eyebrow">Contact</p>
-              <h2>Where should we reach you?</h2>
+              <p className="eyebrow">{sv ? "Kontakt" : "Contact"}</p>
+              <h2>{sv ? "Hur når vi dig?" : "Where should we reach you?"}</h2>
               <div className="address-fields">
                 <label>
-                  Email
+                  {sv ? "E-post" : "Email"}
                   <input
                     type="email"
                     name="email"
@@ -230,18 +248,19 @@ export function CheckoutClient({
                   />
                 </label>
                 <label>
-                  Telephone
+                  {sv ? "Telefon" : "Telephone"}
                   <input type="tel" name="phone" autoComplete="tel" required />
                 </label>
               </div>
               <p className="small muted">
-                Both are required for delivery updates, courier contact, and
-                discount eligibility.
+                {sv
+                  ? "Båda behövs för leveransuppdateringar, transportörens kontakt och rabattkontroll."
+                  : "Both are required for delivery updates, courier contact, and discount eligibility."}
               </p>
             </section>
             <section>
-              <p className="eyebrow">Delivery</p>
-              <h2>Shipping address</h2>
+              <p className="eyebrow">{sv ? "Leverans" : "Delivery"}</p>
+              <h2>{sv ? "Leveransadress" : "Shipping address"}</h2>
               <AddressFields
                 prefix="shipping"
                 country={country}
@@ -254,11 +273,13 @@ export function CheckoutClient({
                   checked={billingSame}
                   onChange={(event) => setBillingSame(event.target.checked)}
                 />
-                Billing address is the same as shipping
+                {sv
+                  ? "Faktureringsadressen är samma som leveransadressen"
+                  : "Billing address is the same as shipping"}
               </label>
               {!billingSame && (
                 <>
-                  <h3>Billing address</h3>
+                  <h3>{sv ? "Faktureringsadress" : "Billing address"}</h3>
                   <AddressFields
                     prefix="billing"
                     country={country}
@@ -271,17 +292,23 @@ export function CheckoutClient({
               <label className="checkout-check checkout-terms">
                 <input type="checkbox" name="acceptTerms" required />
                 <span>
-                  By continuing, you agree to the{" "}
+                  {sv
+                    ? "Genom att fortsätta godkänner du "
+                    : "By continuing, you agree to the "}
                   <Link href="/terms" target="_blank">
-                    Terms of Sale
+                    {sv ? "köpvillkoren" : "Terms of Sale"}
                   </Link>{" "}
-                  and acknowledge the{" "}
+                  {sv
+                    ? "och bekräftar att du har tagit del av "
+                    : "and acknowledge the "}
                   <Link href="/returns" target="_blank">
-                    Returns/Withdrawal Policy
+                    {sv
+                      ? "retur- och ångervillkoren"
+                      : "Returns/Withdrawal Policy"}
                   </Link>{" "}
-                  and{" "}
+                  {sv ? "samt " : "and "}
                   <Link href="/privacy" target="_blank">
-                    Privacy Policy
+                    {sv ? "integritetspolicyn" : "Privacy Policy"}
                   </Link>
                   .
                 </span>
@@ -296,8 +323,12 @@ export function CheckoutClient({
                 disabled={submitting || Boolean(quoteError)}
               >
                 {submitting
-                  ? "Securing your order…"
-                  : "Continue to secure payment"}
+                  ? sv
+                    ? "Säkrar din beställning…"
+                    : "Securing your order…"
+                  : sv
+                    ? "Fortsätt till säker betalning"
+                    : "Continue to secure payment"}
               </button>
             </section>
           </form>
@@ -315,6 +346,7 @@ export function CheckoutClient({
                   borderRadius: "0px",
                 },
               },
+              locale,
             }}
           >
             <PaymentForm
@@ -339,7 +371,7 @@ export function CheckoutClient({
           <button
             type="button"
             onClick={() => setNotice("")}
-            aria-label="Dismiss notification"
+            aria-label={sv ? "Stäng meddelandet" : "Dismiss notification"}
           >
             ×
           </button>

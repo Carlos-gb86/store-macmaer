@@ -7,6 +7,7 @@ const inventory = z.enum([
   "UNLIMITED",
   "UNAVAILABLE",
 ]);
+const localizedText = z.string().nullable().default(null);
 export const imageSchema = z.object({
   asset_id: z.uuid().nullable().default(null),
   resolved_src: z.string().optional(),
@@ -14,6 +15,7 @@ export const imageSchema = z.object({
   id: z.uuid(),
   path: z.string(),
   alt: z.string(),
+  alt_sv: localizedText,
   width: z.number().int().positive(),
   height: z.number().int().positive(),
   is_primary: z.boolean(),
@@ -27,6 +29,7 @@ export const optionValueSchema = z.object({
   id: z.uuid(),
   key: z.string(),
   label: z.string(),
+  label_sv: localizedText,
   colour_hex: z.string().nullable(),
   image_path: z.string().nullable(),
   price_delta: z.number().int(),
@@ -38,6 +41,7 @@ export const optionSchema = z.object({
   id: z.uuid(),
   key: z.string(),
   label: z.string(),
+  label_sv: localizedText,
   display_type: z.enum([
     "select",
     "radio",
@@ -69,6 +73,7 @@ export const variantSchema = z.object({
   id: z.uuid(),
   sku: z.string(),
   title: z.string(),
+  title_sv: localizedText,
   price_override: money.nullable(),
   price_delta: z.number().int().nullable(),
   compare_at_price: money.nullable(),
@@ -84,11 +89,18 @@ export const productSchema = z.object({
   id: z.uuid(),
   slug: z.string(),
   title: z.string(),
+  title_sv: localizedText,
   subtitle: z.string().nullable(),
+  subtitle_sv: localizedText,
   short_description: z.string(),
+  short_description_sv: localizedText,
   description: z.string(),
+  description_sv: localizedText,
   materials: z.string(),
+  materials_sv: localizedText,
   care: z.string(),
+  care_sv: localizedText,
+  description_document_sv: richTextSchema.nullable().default(null),
   status: z.enum(["draft", "active", "archived"]),
   base_price: money,
   compare_at_price: money.nullable(),
@@ -99,13 +111,16 @@ export const productSchema = z.object({
   inventory_strategy: inventory,
   stock_quantity: z.number().int().nonnegative().nullable(),
   processing_time: z.string().nullable(),
+  processing_time_sv: localizedText,
   weight_grams: z.number().int().nullable(),
   dimensions: z.record(z.string(), z.unknown()),
   return_policy_class: z.enum(["standard", "customized", "final_sale"]),
   featured: z.boolean(),
   sort_order: z.number().int(),
   seo_title: z.string().nullable(),
+  seo_title_sv: localizedText,
   seo_description: z.string().nullable(),
+  seo_description_sv: localizedText,
   created_at: z.string(),
   updated_at: z.string(),
   images: z.array(imageSchema),
@@ -121,21 +136,35 @@ export const collectionSchema = z.object({
   id: z.uuid(),
   slug: z.string(),
   name: z.string(),
+  name_sv: localizedText,
   description: z.string(),
+  description_sv: localizedText,
+  description_document_sv: richTextSchema.nullable().default(null),
   image_path: z.string().nullable(),
   image_alt: z.string(),
+  image_alt_sv: localizedText,
   active: z.boolean(),
   sort_order: z.number().int(),
   seo_title: z.string().nullable(),
+  seo_title_sv: localizedText,
   seo_description: z.string().nullable(),
+  seo_description_sv: localizedText,
+});
+export const tagSchema = z.object({
+  id: z.uuid(),
+  slug: z.string(),
+  name: z.string(),
+  name_sv: localizedText,
 });
 export const catalogueSchema = z.object({
   products: z.array(productSchema),
   collections: z.array(collectionSchema),
+  tagDefinitions: z.array(tagSchema).default([]),
 });
 export type Product = z.infer<typeof productSchema>;
 export type ProductOption = z.infer<typeof optionSchema>;
 export type ProductVariant = z.infer<typeof variantSchema>;
 export type ProductImage = z.infer<typeof imageSchema>;
 export type Collection = z.infer<typeof collectionSchema>;
+export type Tag = z.infer<typeof tagSchema>;
 export type Catalogue = z.infer<typeof catalogueSchema>;

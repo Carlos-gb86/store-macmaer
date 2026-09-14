@@ -57,7 +57,7 @@ export function ContentEditor({
         <a href="#hero">Hero</a>
         <a href="#featured-products">Featured products</a>
         <a href="#featured-collections">Collections</a>
-        <a href="#story">Our story</a>
+        <a href="#story">About page</a>
       </nav>
       <fieldset className="editor-lock" disabled={pending}>
         <fieldset id="announcement">
@@ -70,6 +70,14 @@ export function ContentEditor({
             value={c.announcement}
             onChange={(v) => setC({ ...c, announcement: String(v) })}
           />
+          <Field
+            label="Swedish announcement"
+            value={c.announcement_sv}
+            nullable
+            onChange={(v) =>
+              setC({ ...c, announcement_sv: v as string | null })
+            }
+          />
           <div className="announcement-preview">
             {c.announcement || "Announcement hidden"}
           </div>
@@ -81,10 +89,10 @@ export function ContentEditor({
               <legend>
                 {hero
                   ? "Hero · first impression"
-                  : "Our story · brand introduction"}
+                  : "About page · brand introduction"}
               </legend>
               <Field
-                label={hero ? "Show hero section" : "Show story section"}
+                label={hero ? "Show hero section" : "Show About introduction"}
                 value={hero ? c.hero_visible : c.story_visible}
                 onChange={(v) =>
                   setC({ ...c, [section + "_visible"]: Boolean(v) })
@@ -137,6 +145,59 @@ export function ContentEditor({
                       />
                     </div>
                   )}
+                  <details className="advanced-fields">
+                    <summary>Swedish copy</summary>
+                    <Field
+                      label="Swedish eyebrow"
+                      value={hero ? c.hero_eyebrow_sv : c.story_eyebrow_sv}
+                      nullable
+                      onChange={(v) =>
+                        setC(
+                          hero
+                            ? { ...c, hero_eyebrow_sv: v as string | null }
+                            : { ...c, story_eyebrow_sv: v as string | null },
+                        )
+                      }
+                    />
+                    <Field
+                      label="Swedish title"
+                      value={hero ? c.hero_title_sv : c.story_title_sv}
+                      nullable
+                      onChange={(v) =>
+                        setC(
+                          hero
+                            ? { ...c, hero_title_sv: v as string | null }
+                            : { ...c, story_title_sv: v as string | null },
+                        )
+                      }
+                    />
+                    <Field
+                      label={hero ? "Swedish subtitle" : "Swedish story text"}
+                      value={hero ? c.hero_subtitle_sv : c.story_text_sv}
+                      nullable
+                      multiline
+                      onChange={(v) =>
+                        setC(
+                          hero
+                            ? { ...c, hero_subtitle_sv: v as string | null }
+                            : { ...c, story_text_sv: v as string | null },
+                        )
+                      }
+                    />
+                    {hero && (
+                      <Field
+                        label="Swedish button text"
+                        value={c.hero_cta_label_sv}
+                        nullable
+                        onChange={(v) =>
+                          setC({
+                            ...c,
+                            hero_cta_label_sv: v as string | null,
+                          })
+                        }
+                      />
+                    )}
+                  </details>
                 </div>
                 <div>
                   <MediaPicker
@@ -170,6 +231,18 @@ export function ContentEditor({
                       setC({ ...c, [section + "_alt"]: String(v) })
                     }
                     help="Describe what is shown in the photo for screen readers."
+                  />
+                  <Field
+                    label="Swedish image description"
+                    value={hero ? c.hero_alt_sv : c.story_alt_sv}
+                    nullable
+                    onChange={(v) =>
+                      setC(
+                        hero
+                          ? { ...c, hero_alt_sv: v as string | null }
+                          : { ...c, story_alt_sv: v as string | null },
+                      )
+                    }
                   />
                 </div>
               </div>

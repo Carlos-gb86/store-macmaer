@@ -7,6 +7,7 @@ import { formatMoney } from "@/modules/currency/money";
 import type { Currency } from "@/modules/currency/schema";
 import type { CartOptionSnapshot } from "@/modules/cart/schema";
 import { formatOptions } from "@/modules/cart/format-options";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
 
 type Status = {
   order_number: string;
@@ -23,6 +24,22 @@ type Status = {
   }>;
 };
 
+function paymentStatusLabel(status: string, swedish: boolean) {
+  const normalized = status.toLowerCase().replaceAll("_", " ");
+  if (!swedish) return normalized;
+  return (
+    {
+      requires_payment: "inväntar betalning",
+      processing: "behandlas",
+      succeeded: "betald",
+      failed: "misslyckad",
+      canceled: "avbruten",
+      refunded: "återbetald",
+      partially_refunded: "delvis återbetald",
+    }[status.toLowerCase()] ?? normalized
+  );
+}
+
 export function OrderStatus({
   orderId,
   initial,
@@ -30,6 +47,8 @@ export function OrderStatus({
   orderId: string;
   initial: Status;
 }) {
+  const { locale } = useStorefrontI18n();
+  const sv = locale === "sv";
   const [order, setOrder] = useState(initial);
   const [takingLonger, setTakingLonger] = useState(false);
   useEffect(() => {
@@ -85,28 +104,46 @@ export function OrderStatus({
           </>
         )}
       </div>
-      <p className="eyebrow">Order {order.order_number}</p>
+      <p className="eyebrow">
+        {sv ? "Beställning" : "Order"} {order.order_number}
+      </p>
       <h1>
         {paid
-          ? "Thank you for your order."
+          ? sv
+            ? "Tack för din beställning."
+            : "Thank you for your order."
           : failed
-            ? "Payment was not completed."
-            : "Payment submitted."}
+            ? sv
+              ? "Betalningen genomfördes inte."
+              : "Payment was not completed."
+            : sv
+              ? "Betalningen har skickats."
+              : "Payment submitted."}
       </h1>
       <p>
         {paid
-          ? `Payment of ${formatMoney(order.total_amount, order.currency)} is confirmed. We’ve sent a confirmation email to ${order.customer_email} with the receipt for your purchase. We’ll prepare your order with care.`
+          ? sv
+            ? `Betalningen på ${formatMoney(order.total_amount, order.currency)} är bekräftad. Vi har skickat ett bekräftelsemejl till ${order.customer_email} med kvittot för ditt köp. Vi förbereder din beställning med omsorg.`
+            : `Payment of ${formatMoney(order.total_amount, order.currency)} is confirmed. We’ve sent a confirmation email to ${order.customer_email} with the receipt for your purchase. We’ll prepare your order with care.`
           : failed
-            ? "Your order has not been marked as paid. Return to your cart to try again or contact us if you need help."
-            : "We’re securely verifying the payment with Stripe. Keep this page open; it updates automatically. Please do not submit another payment."}
+            ? sv
+              ? "Din beställning har inte markerats som betald. Gå tillbaka till varukorgen för att försöka igen eller kontakta oss om du behöver hjälp."
+              : "Your order has not been marked as paid. Return to your cart to try again or contact us if you need help."
+            : sv
+              ? "Vi verifierar betalningen säkert med Stripe. Låt sidan vara öppen; den uppdateras automatiskt. Skicka inte en ny betalning."
+              : "We’re securely verifying the payment with Stripe. Keep this page open; it updates automatically. Please do not submit another payment."}
       </p>
       {!paid && !failed && takingLonger && (
         <p className="cart-notice">
-          This is taking longer than expected. Your order reference is{" "}
-          {order.order_number}. Do not try to pay again. You may safely close
-          this page and contact{" "}
-          <a href="mailto:info@macmaer.com">info@macmaer.com</a> if the status
-          does not update.
+          {sv
+            ? "Detta tar längre tid än väntat. Ditt ordernummer är "
+            : "This is taking longer than expected. Your order reference is "}
+          {order.order_number}.{" "}
+          {sv
+            ? "Försök inte betala igen. Du kan stänga sidan och kontakta "
+            : "Do not try to pay again. You may safely close this page and contact "}
+          <a href="mailto:info@macmaer.com">info@macmaer.com</a>
+          {sv ? " om statusen inte uppdateras." : " does not update."}
         </p>
       )}
       {pending && (
@@ -115,10 +152,11 @@ export function OrderStatus({
         </div>
       )}
       <p className="status-pill">
-        Payment: {order.payment_status.toLowerCase().replaceAll("_", " ")}
+        {sv ? "Betalning" : "Payment"}:{" "}
+        {paymentStatusLabel(order.payment_status, sv)}
       </p>
       <div className="confirmation-items">
-        <h2>Your pieces</h2>
+        <h2>{sv ? "Dina produkter" : "Your pieces"}</h2>
         {order.items.map((item) => (
           <div key={item.id}>
             <strong>
@@ -132,12 +170,12 @@ export function OrderStatus({
       </div>
       {paid && (
         <Link href="/shop" className="button">
-          Continue shopping
+          {sv ? "Fortsätt handla" : "Continue shopping"}
         </Link>
       )}
       {failed && (
         <Link href="/cart" className="button">
-          Return to cart
+          {sv ? "Tillbaka till varukorgen" : "Return to cart"}
         </Link>
       )}
     </div>

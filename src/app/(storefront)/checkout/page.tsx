@@ -5,23 +5,30 @@ import { Container } from "@/components/ui/container";
 import { CheckoutClient } from "@/components/checkout/checkout-client";
 import { getServerEnv } from "@/lib/env/server";
 import { getCart } from "@/modules/cart/repository";
-import { countries } from "@/modules/country/countries";
+import { localizedCountries } from "@/modules/country/countries";
 import { getStorefrontContext } from "@/modules/currency/repository";
 import { quoteCart } from "@/modules/quote/repository";
+import { getStorefrontLocale } from "@/modules/i18n/server";
 
-export const metadata: Metadata = { title: "Checkout" };
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: (await getStorefrontLocale()) === "sv" ? "Kassa" : "Checkout",
+  };
+}
 
 export default async function CheckoutPage() {
-  const [cart, context] = await Promise.all([
+  const [cart, context, locale] = await Promise.all([
     getCart(),
     getStorefrontContext(),
+    getStorefrontLocale(),
   ]);
+  const sv = locale === "sv";
   if (!cart.id || !cart.lines.length)
     return (
       <Container className="page-section empty-state">
-        <h1>Your cart is empty.</h1>
+        <h1>{sv ? "Din varukorg är tom." : "Your cart is empty."}</h1>
         <Link href="/shop" className="button">
-          Explore all pieces
+          {sv ? "Utforska alla produkter" : "Explore all pieces"}
         </Link>
       </Container>
     );
@@ -30,35 +37,50 @@ export default async function CheckoutPage() {
   if (!env.CHECKOUT_ENABLED || !env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
     return (
       <Container className="page-section empty-state">
-        <p className="eyebrow">Checkout</p>
-        <h1>Ordering is not open yet.</h1>
-        <p>Your cart is saved. Please return when checkout has been enabled.</p>
+        <p className="eyebrow">{sv ? "Kassa" : "Checkout"}</p>
+        <h1>
+          {sv ? "Beställning är inte öppen ännu." : "Ordering is not open yet."}
+        </h1>
+        <p>
+          {sv
+            ? "Din varukorg är sparad. Kom tillbaka när kassan har aktiverats."
+            : "Your cart is saved. Please return when checkout has been enabled."}
+        </p>
         <Link href="/cart" className="button">
-          Return to cart
+          {sv ? "Tillbaka till varukorgen" : "Return to cart"}
         </Link>
       </Container>
     );
   if (!quote.destinationSupported || !quote.shipping)
     return (
       <Container className="page-section empty-state">
-        <h1>Shipping needs your attention.</h1>
-        <p>Return to your cart and choose a supported destination.</p>
+        <h1>
+          {sv
+            ? "Leveransen behöver kontrolleras."
+            : "Shipping needs your attention."}
+        </h1>
+        <p>
+          {sv
+            ? "Gå tillbaka till varukorgen och välj ett leveransland som stöds."
+            : "Return to your cart and choose a supported destination."}
+        </p>
         <Link href="/cart" className="button">
-          Return to cart
+          {sv ? "Tillbaka till varukorgen" : "Return to cart"}
         </Link>
       </Container>
     );
-  const supported = countries.filter((country) =>
+  const supported = localizedCountries(locale).filter((country) =>
     context.supportedCountries.includes(country.code),
   );
   return (
     <Container className="page-section checkout-page">
       <div className="page-intro">
-        <p className="eyebrow">Secure checkout</p>
-        <h1>Delivery, then payment.</h1>
+        <p className="eyebrow">{sv ? "Säker kassa" : "Secure checkout"}</p>
+        <h1>{sv ? "Leverans, sedan betalning." : "Delivery, then payment."}</h1>
         <p>
-          We recalculate every price, discount, shipping charge and VAT amount
-          on the server before your payment begins.
+          {sv
+            ? "Vi räknar om varje pris, rabatt, fraktkostnad och momsbelopp på servern innan betalningen börjar."
+            : "We recalculate every price, discount, shipping charge and VAT amount on the server before your payment begins."}
         </p>
       </div>
       <CheckoutClient

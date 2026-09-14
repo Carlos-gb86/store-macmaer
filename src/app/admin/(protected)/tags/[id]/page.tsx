@@ -15,7 +15,7 @@ export default async function TagPage({
   if (error) throw error;
   const initial =
     id === "new"
-      ? { id: crypto.randomUUID(), name: "", slug: "" }
+      ? { id: crypto.randomUUID(), name: "", name_sv: null, slug: "" }
       : targets.find((t) => t.id === id);
   if (!initial) notFound();
   return <TagEditor key={id} initial={initial} targets={targets} />;

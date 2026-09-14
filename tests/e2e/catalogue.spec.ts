@@ -1,4 +1,9 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+
+async function chooseOption(page: Page, trigger: Locator, option: string) {
+  await trigger.click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
 test("browse the public catalogue and use search and filters", async ({
   page,
 }) => {
@@ -20,18 +25,18 @@ test("browse the public catalogue and use search and filters", async ({
   });
   await page.getByRole("link", { name: "Discover the collection" }).click();
   await page.getByLabel("Find your piece").fill("bouclé");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(page.locator(".product-card")).toHaveCount(3);
-  await page
-    .getByLabel("Availability", { exact: true })
-    .selectOption("available");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await expect(page).toHaveURL(/q=boucl%C3%A9/);
+  await chooseOption(
+    page,
+    page.getByLabel("Availability", { exact: true }),
+    "Available",
+  );
   await expect(page.locator(".product-card")).toHaveCount(2);
   await page.reload();
   await expect(page.getByLabel("Find your piece")).toHaveValue("bouclé");
   await expect(page.locator(".product-card")).toHaveCount(2);
   await page.getByLabel("Find your piece").fill("no-matching-product");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "No pieces found" }),
   ).toBeVisible();
@@ -44,11 +49,58 @@ test("browse collections and enlarge a product image with keyboard dismissal", a
   await expect(
     page.getByRole("heading", { name: "Bouclé", exact: true }),
   ).toBeVisible();
+  await expect(page).toHaveURL(/collection=boucle/);
   await page.getByRole("link", { name: /Bouclé ball knot pillow/ }).click();
+  await expect(page).toHaveURL("/products/boucle-ball");
+
+  const thumbnailGroup = page.getByRole("group", { name: "Product images" });
+  const thumbnails = thumbnailGroup.getByRole("button");
+  await expect(thumbnails).toHaveCount(2);
+  const thumbnailBox = await thumbnails.first().boundingBox();
+  const mainImageBox = await page.locator(".gallery-main").boundingBox();
+  expect(thumbnailBox?.x).toBeLessThan(mainImageBox?.x ?? 0);
+  expect(
+    await thumbnailGroup.evaluate(
+      (element) => getComputedStyle(element).flexDirection,
+    ),
+  ).toBe("column");
+
+  await page.getByRole("button", { name: "Next image" }).click();
+  await expect(
+    page.getByRole("button", { name: /Enlarge product image, 2 \/ 2/ }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Enlarge product image" }).click();
-  await expect(page.getByRole("dialog")).toBeVisible();
+  const lightbox = page.getByRole("dialog", { name: "Enlarged product image" });
+  await expect(lightbox).toBeVisible();
+  const viewport = page.viewportSize();
+  const lightboxBox = await lightbox.boundingBox();
+  expect(lightboxBox?.height).toBeGreaterThan((viewport?.height ?? 0) * 0.95);
+  await expect(
+    lightbox.getByRole("button", { name: "Close enlarged image" }),
+  ).toBeVisible();
+
+  const lightboxThumbnails = lightbox.getByRole("group", {
+    name: "Enlarged product images",
+  });
+  expect(
+    await lightboxThumbnails.evaluate(
+      (element) => getComputedStyle(element).flexDirection,
+    ),
+  ).toBe("row");
+  await lightboxThumbnails
+    .getByRole("button", { name: "View image 1" })
+    .click();
+  await lightbox.locator(".lightbox-stage").dispatchEvent("touchstart", {
+    touches: [{ identifier: 0, clientX: 280, clientY: 220 }],
+  });
+  await lightbox.locator(".lightbox-stage").dispatchEvent("touchend", {
+    changedTouches: [{ identifier: 0, clientX: 120, clientY: 225 }],
+  });
+  await expect(
+    lightboxThumbnails.getByRole("button", { name: "View image 2" }),
+  ).toHaveAttribute("aria-pressed", "true");
   await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(lightbox).not.toBeVisible();
   await page.getByLabel("Large", { exact: true }).check();
   await page.getByRole("button", { name: "Preview configuration" }).click();
   await expect(page.getByText(/Your selections are ready/)).toBeVisible();
@@ -70,9 +122,11 @@ test("preview five repeated colours without a cart or payment flow", async ({
 }) => {
   await page.goto("/products/colour-accessory-pack");
   for (let i = 1; i <= 5; i++)
-    await page
-      .getByLabel("Colour " + i, { exact: true })
-      .selectOption({ label: "Ivory" });
+    await chooseOption(
+      page,
+      page.getByLabel("Colour " + i, { exact: true }),
+      "Ivory",
+    );
   await page.getByRole("button", { name: "Preview configuration" }).click();
   await expect(page.getByText(/Your selections are ready/)).toBeVisible();
   await expect(
@@ -143,14 +197,13 @@ test("uses a compact cart, product currency control, and contact page", async ({
     fullPage: false,
   });
   await expect(
-    page.getByRole("link", { name: "Explore all pieces", exact: true }),
+    miniCart.getByRole("link", { name: "Explore all pieces", exact: true }),
   ).toBeVisible();
 
   await page.goto("/products/infinity-knot");
   await expect(page.getByLabel("Display currency")).toBeVisible();
-  await expect(
-    page.getByLabel("Display currency").locator("option").first(),
-  ).toContainText("🇸🇪 SEK");
+  await expect(page.getByLabel("Display currency")).toContainText("🇸🇪");
+  await expect(page.getByLabel("Display currency")).toContainText("SEK");
 
   await page.goto("/contact");
   await expect(
@@ -171,4 +224,60 @@ test("uses a compact cart, product currency control, and contact page", async ({
       .locator("#main-content")
       .getByRole("link", { name: "Follow Macmaer on Instagram" }),
   ).toBeVisible();
+});
+
+test("uses sticky navigation, a dedicated story page, and a persistent language switch", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator(".site-header")).toHaveCSS("position", "sticky");
+  const heroTitleSize = await page
+    .locator(".hero h1")
+    .evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).fontSize),
+    );
+  const navigation = page.getByRole("navigation", { name: "Main navigation" });
+  await expect(navigation.getByRole("link")).toHaveCount(4);
+  await expect(page.getByLabel("Language")).toBeVisible();
+  await expect(
+    page.locator(".language-switcher .lucide-globe-2"),
+  ).toBeVisible();
+
+  await navigation.getByRole("link", { name: "Our story" }).click();
+  await expect(page).toHaveURL("/about");
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Made by hand. Shaped by curiosity.",
+    }),
+  ).toBeVisible();
+  const aboutTitleSize = await page
+    .locator(".about-intro h1")
+    .evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).fontSize),
+    );
+  expect(aboutTitleSize).toBeLessThan(heroTitleSize);
+
+  await page.getByLabel("Language").click();
+  await expect(page.getByRole("option", { name: "SV" })).toContainText("🇸🇪");
+  await expect(page.locator(".storefront-select-content")).toHaveCSS(
+    "border-radius",
+    "10px",
+  );
+  await page.keyboard.press("Escape");
+
+  await chooseOption(page, page.getByLabel("Language"), "SV");
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: "Handgjort. Format av nyfikenhet.",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Huvudmeny" }),
+  ).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByLabel("Språk")).toContainText("SV");
+  await expect(page.getByRole("link", { name: "Handla allt" })).toBeVisible();
 });

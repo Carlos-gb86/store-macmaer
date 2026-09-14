@@ -6,8 +6,11 @@ import {
   removeDiscountCodeAction,
   type DiscountActionResult,
 } from "@/modules/discount/actions";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
 
 export function DiscountCodeForm({ code }: { code: string | null }) {
+  const { locale } = useStorefrontI18n();
+  const sv = locale === "sv";
   const [value, setValue] = useState(code ?? "");
   const [result, setResult] = useState<DiscountActionResult | null>(null);
   const [pending, startTransition] = useTransition();
@@ -24,7 +27,9 @@ export function DiscountCodeForm({ code }: { code: string | null }) {
         });
       }}
     >
-      <label htmlFor="discount-code">Discount code</label>
+      <label htmlFor="discount-code">
+        {sv ? "Rabattkod" : "Discount code"}
+      </label>
       <div>
         <input
           id="discount-code"
@@ -34,7 +39,13 @@ export function DiscountCodeForm({ code }: { code: string | null }) {
           onChange={(event) => setValue(event.target.value.toUpperCase())}
         />
         <button disabled={pending || !value.trim()}>
-          {pending ? "Checking…" : "Apply"}
+          {pending
+            ? sv
+              ? "Kontrollerar…"
+              : "Checking…"
+            : sv
+              ? "Använd"
+              : "Apply"}
         </button>
         {code && (
           <button
@@ -52,7 +63,7 @@ export function DiscountCodeForm({ code }: { code: string | null }) {
               })
             }
           >
-            Remove
+            {sv ? "Ta bort" : "Remove"}
           </button>
         )}
       </div>

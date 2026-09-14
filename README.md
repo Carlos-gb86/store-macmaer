@@ -13,7 +13,7 @@ cp .env.example .env.local # only if it does not already exist
 npm run dev
 ```
 
-Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative fixtures. `CATALOG_SOURCE=supabase` (default) requires the connected project's URL, publishable key, and server-only service-role key; database errors never fall back to samples. Public routes are `/`, `/shop`, `/collections`, `/collections/[slug]`, `/products/[slug]`, and `/cart`.
+Open http://localhost:3000. `CATALOG_SOURCE=demo` explicitly uses illustrative fixtures. `CATALOG_SOURCE=supabase` (default) requires the connected project's URL, publishable key, and server-only service-role key; database errors never fall back to samples. Customer routes include `/`, `/shop`, `/collections`, `/collections/[slug]`, `/products/[slug]`, `/about`, `/contact`, `/cart`, `/checkout`, and the policy pages.
 
 | Variable                               | Purpose                                                                                                                            |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
@@ -113,6 +113,12 @@ The admin editor groups pricing, availability, and fulfilment separately. Custom
 
 Collections can be deactivated. Tags can be renamed, merged, or deleted when unused. `/admin/content` publishes fixed homepage fields and ordered featured products/collections; inactive references are skipped publicly. Successful actions immediately invalidate `catalogue`/`content` cache tags with `updateTag()`.
 
+## English and Swedish storefront copy
+
+The language control in the storefront header switches between English and Swedish and saves the preference in a secure cookie. When there is no saved preference, Swedish browser language selects Swedish; all other visitors receive English. URLs, product slugs, SKUs, option keys, tax/shipping rules, and order records remain language-neutral.
+
+English is the required catalogue source and safe fallback. Product and collection editors expose optional Swedish titles, descriptions, materials, care text, processing text, SEO copy, image alt text, option/value labels, and variant titles. Tags have an optional Swedish name, and `/admin/content` manages both language versions of homepage and About-page content. A missing or blank Swedish field displays its English value rather than hiding the product. Apply migration `018_storefront_localization` before deploying code that reads or saves these fields.
+
 ## Media and descriptions
 
 Direct browser uploads use authorized signed URLs for private `catalogue-drafts` Storage. Before acceptance, the server fully decodes bytes and verifies format, dimensions, and size: still JPEG, PNG, WebP, AVIF; maximum 10 MiB and 40 megapixels. SVG, corrupt images, and MIME mismatches are rejected.
@@ -129,7 +135,7 @@ Descriptions use open-source Tiptap. Structured JSON permits paragraphs, heading
 
 Start Docker Desktop, then `npm run db:start`. `npm run db:reset` replaces **disposable local data only**. If Docker cannot mount optional Studio folders, use `npx supabase start --exclude studio,edge-runtime,logflare,vector`. Never reset hosted data.
 
-Migrations `001`–`002` retain the original Phase 1 history. Migrations through `016` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, shipping/tax/discount configuration, order/payment/reservation/webhook state, versioned policy snapshots, private contact messages, fulfilment/refund/email history, moderated reviews/testimonials, the legacy URL audit map, and transactionally enforced public-form limits. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
+Migrations `001`–`002` retain the original Phase 1 history. Migrations through `018` add admin RLS, content/media, append-only audit records, atomic mutations, global SKU uniqueness, media leases, secure carts/currency, shipping/tax/discount configuration, order/payment/reservation/webhook state, versioned policy snapshots, private contact messages, fulfilment/refund/email history, moderated reviews/testimonials, the legacy WooCommerce migration surface, transactionally enforced public-form limits, and bilingual storefront fields. `npm run db:types` introspects checked-in SQL with embedded PostgreSQL, including callable RPCs. SDK relationship inference is intentionally omitted; repositories use validated read models.
 
 `npm run seed:generate` generates deterministic fixture IDs from `src/modules/catalog/fixtures/catalogue.json`. Seeds use `ON CONFLICT DO NOTHING`, preserve existing rows, and are not a catalogue updater. After local checks, stage explicitly:
 

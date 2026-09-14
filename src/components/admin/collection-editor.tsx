@@ -70,6 +70,27 @@ export function CollectionEditor({
                   setC({ ...c, description_document })
                 }
               />
+              <details className="advanced-fields">
+                <summary>Swedish storefront copy</summary>
+                <Field
+                  label="Swedish name"
+                  value={c.name_sv}
+                  nullable
+                  onChange={(v) => setC({ ...c, name_sv: v as string | null })}
+                  help="Optional. Empty fields use the English copy."
+                />
+                <RichEditor
+                  label="Swedish description"
+                  disabled={pending}
+                  value={
+                    c.description_document_sv ??
+                    textDocument(c.description_sv ?? "")
+                  }
+                  onChange={(description_document_sv) =>
+                    setC({ ...c, description_document_sv })
+                  }
+                />
+              </details>
             </fieldset>
             <details className="admin-disclosure">
               <summary>Search engine listing</summary>
@@ -86,6 +107,23 @@ export function CollectionEditor({
                 nullable
                 onChange={(v) =>
                   setC({ ...c, seo_description: v as string | null })
+                }
+              />
+              <Field
+                label="Swedish SEO title"
+                value={c.seo_title_sv}
+                nullable
+                onChange={(v) =>
+                  setC({ ...c, seo_title_sv: v as string | null })
+                }
+              />
+              <Field
+                label="Swedish SEO description"
+                value={c.seo_description_sv}
+                multiline
+                nullable
+                onChange={(v) =>
+                  setC({ ...c, seo_description_sv: v as string | null })
                 }
               />
             </details>
@@ -111,6 +149,14 @@ export function CollectionEditor({
                 value={c.image_alt}
                 onChange={(v) => setC({ ...c, image_alt: String(v) })}
                 help="Describe the cover photo for screen readers."
+              />
+              <Field
+                label="Swedish image description"
+                value={c.image_alt_sv}
+                nullable
+                onChange={(v) =>
+                  setC({ ...c, image_alt_sv: v as string | null })
+                }
               />
             </fieldset>
             <fieldset>

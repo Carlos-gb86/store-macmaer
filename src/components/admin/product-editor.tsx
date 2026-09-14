@@ -13,6 +13,7 @@ import { GalleryEditor } from "./gallery-editor";
 import { TagDialogButton } from "./tag-editor";
 import { RichEditor } from "./rich-editor";
 import { textDocument } from "@/modules/content/rich-text";
+import { TagSelector } from "./tag-selector";
 export function ProductEditor({
   initial,
   collections,
@@ -22,14 +23,16 @@ export function ProductEditor({
   media,
 }: {
   initial: ProductInput;
-  collections: { slug: string; name: string }[];
-  tags: { slug: string; name: string }[];
+  collections: { slug: string; name: string; name_sv: string | null }[];
+  tags: { slug: string; name: string; name_sv: string | null }[];
   taxCategories: { key: string; name: string }[];
   shippingClasses: { key: string; name: string }[];
   media: MediaItem[];
 }) {
   const [p, setP] = useState(initial),
-    [addedTags, setAddedTags] = useState<{ slug: string; name: string }[]>([]),
+    [addedTags, setAddedTags] = useState<
+      { slug: string; name: string; name_sv: string | null }[]
+    >([]),
     [result, setResult] = useState<MutationResult | null>(null),
     [pending, start] = useTransition(),
     router = useRouter();
@@ -123,6 +126,62 @@ export function ProductEditor({
             disabled={pending}
             value={p.description_document ?? textDocument(p.description)}
             onChange={(v) => set("description_document", v)}
+          />
+        </fieldset>
+        <fieldset>
+          <legend>Swedish storefront copy</legend>
+          <p className="section-intro">
+            Optional. Any empty Swedish field automatically uses its English
+            value, so partial translations are safe to publish.
+          </p>
+          <div className="admin-grid">
+            <Field
+              label="Swedish title"
+              value={p.title_sv ?? null}
+              nullable
+              onChange={(value) => set("title_sv", value)}
+            />
+            <Field
+              label="Swedish subtitle"
+              value={p.subtitle_sv ?? null}
+              nullable
+              onChange={(value) => set("subtitle_sv", value)}
+            />
+            <Field
+              label="Swedish short description"
+              value={p.short_description_sv ?? null}
+              nullable
+              multiline
+              onChange={(value) => set("short_description_sv", value)}
+            />
+            <Field
+              label="Swedish materials"
+              value={p.materials_sv ?? null}
+              nullable
+              multiline
+              onChange={(value) => set("materials_sv", value)}
+            />
+            <Field
+              label="Swedish care instructions"
+              value={p.care_sv ?? null}
+              nullable
+              multiline
+              onChange={(value) => set("care_sv", value)}
+            />
+            <Field
+              label="Swedish processing time"
+              value={p.processing_time_sv ?? null}
+              nullable
+              onChange={(value) => set("processing_time_sv", value)}
+            />
+          </div>
+          <RichEditor
+            label="Swedish full description"
+            disabled={pending}
+            value={
+              p.description_document_sv ?? textDocument(p.description_sv ?? "")
+            }
+            onChange={(value) => set("description_document_sv", value)}
           />
         </fieldset>
         <fieldset id="product-pricing">
@@ -221,45 +280,48 @@ export function ProductEditor({
         </fieldset>
         <fieldset>
           <legend>Collections and tags</legend>
-          <div className="admin-grid">
-            {(["collections", "tags"] as const).map((k) => (
-              <div key={k}>
-                <h3>{k}</h3>
-                {k === "tags" && (
-                  <TagDialogButton
-                    onCreated={(tag) => {
-                      setAddedTags((items) => [...items, tag]);
-                      setP((current) => ({
-                        ...current,
-                        tags: [...new Set([...current.tags, tag.slug])],
-                      }));
-                    }}
-                  />
-                )}
-                {(k === "collections"
-                  ? collections
-                  : [
-                      ...new Map(
-                        [...tags, ...addedTags].map((t) => [t.slug, t]),
-                      ).values(),
-                    ]
-                ).map((item) => (
-                  <Field
-                    key={item.slug}
-                    label={item.name}
-                    value={p[k].includes(item.slug)}
-                    onChange={(checked) =>
-                      set(
-                        k,
-                        checked
-                          ? [...p[k], item.slug]
-                          : p[k].filter((s) => s !== item.slug),
-                      )
-                    }
-                  />
-                ))}
+          <div className="admin-grid product-taxonomy-grid">
+            <div>
+              <h3>Collections</h3>
+              {collections.map((item) => (
+                <Field
+                  key={item.slug}
+                  label={item.name}
+                  value={p.collections.includes(item.slug)}
+                  onChange={(checked) =>
+                    set(
+                      "collections",
+                      checked
+                        ? [...p.collections, item.slug]
+                        : p.collections.filter((slug) => slug !== item.slug),
+                    )
+                  }
+                />
+              ))}
+            </div>
+            <div>
+              <div className="admin-taxonomy-heading">
+                <h3>Tags</h3>
+                <TagDialogButton
+                  onCreated={(tag) => {
+                    setAddedTags((items) => [...items, tag]);
+                    setP((current) => ({
+                      ...current,
+                      tags: [...new Set([...current.tags, tag.slug])],
+                    }));
+                  }}
+                />
               </div>
-            ))}
+              <TagSelector
+                tags={[
+                  ...new Map(
+                    [...tags, ...addedTags].map((tag) => [tag.slug, tag]),
+                  ).values(),
+                ]}
+                selected={p.tags}
+                onChange={(value) => set("tags", value)}
+              />
+            </div>
           </div>
         </fieldset>
         <OptionsEditor
@@ -301,6 +363,19 @@ export function ProductEditor({
               multiline
               onChange={(v) => set("seo_description", v)}
               help="A short summary for search results."
+            />
+            <Field
+              label="Swedish SEO title"
+              value={p.seo_title_sv ?? null}
+              nullable
+              onChange={(v) => set("seo_title_sv", v)}
+            />
+            <Field
+              label="Swedish SEO description"
+              value={p.seo_description_sv ?? null}
+              nullable
+              multiline
+              onChange={(v) => set("seo_description_sv", v)}
             />
           </div>
         </details>

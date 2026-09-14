@@ -4,8 +4,16 @@ import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/container";
 import { OrderStatus } from "@/components/checkout/order-status";
 import { readOrderStatus } from "@/modules/checkout/repository";
+import { getStorefrontLocale } from "@/modules/i18n/server";
 
-export const metadata: Metadata = { title: "Order confirmation" };
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title:
+      (await getStorefrontLocale()) === "sv"
+        ? "Orderbekräftelse"
+        : "Order confirmation",
+  };
+}
 
 export default async function ConfirmationPage({
   searchParams,

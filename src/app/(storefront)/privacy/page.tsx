@@ -1,12 +1,73 @@
 import type { Metadata } from "next";
 import { PolicyPage } from "@/components/policies/policy-page";
+import { getStorefrontLocale } from "@/modules/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title:
+      (await getStorefrontLocale()) === "sv"
+        ? "Integritetspolicy"
+        : "Privacy Policy",
+    robots: { index: false },
+  };
+}
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const sv = (await getStorefrontLocale()) === "sv";
+  if (sv)
+    return (
+      <PolicyPage eyebrow="Juridiskt" title="Integritetspolicy">
+        <p>
+          Maria Botyan, svensk enskild näringsidkare som bedriver verksamhet
+          under namnet Macmaer, är personuppgiftsansvarig. Macmaer behandlar de
+          personuppgifter som behövs för att driva butiken, fullgöra
+          beställningar, ge support, hantera returer och reklamationer, uppfylla
+          rättsliga skyldigheter och skydda tjänsten.
+        </p>
+        <h2>Uppgifter vi använder</h2>
+        <p>
+          Det kan omfatta namn, e-postadress, telefonnummer, adresser,
+          leveransland, beställnings- och produktval, leverans- och
+          returinformation, kommunikation, betalningsstatus och identifierare,
+          begränsade kortuppgifter från Stripe samt tekniska loggar och
+          säkerhetsloggar. Macmaer lagrar inte fullständiga kortnummer eller
+          säkerhetskoder.
+        </p>
+        <h2>Ändamål och rättslig grund</h2>
+        <p>
+          Beställningshantering och vanlig support grundas främst på avtal,
+          bokförings- och skatteuppgifter på rättslig förpliktelse och säkerhet,
+          bedrägeriförebyggande, rättsliga anspråk och noggrant bedömd drift på
+          berättigat intresse. Frivillig e-postmarknadsföring och icke nödvändig
+          spårning grundas på samtycke när det krävs och är inte villkor för
+          köp.
+        </p>
+        <h2>Mottagare och överföring till tredje land</h2>
+        <p>
+          Nödvändiga uppgifter kan delas med Stripe, Supabase, Vercel,
+          leverantören av transaktionsmejl, transportörer, redovisningsföretag,
+          rådgivare och myndigheter när det krävs. Tillämpliga skyddsåtgärder
+          för behandling utanför EES ska verifieras före lansering.
+        </p>
+        <h2>Lagring och dina rättigheter</h2>
+        <p>
+          Uppgifter sparas bara så länge de behövs, utom när bokförings-,
+          skatte- eller rättsliga krav kräver längre lagring. Beroende på
+          omständigheterna kan du begära tillgång, rättelse, radering,
+          begränsning eller dataportabilitet samt invända mot behandling och
+          direktmarknadsföring. Du kan återkalla samtycke och klaga hos
+          Integritetsskyddsmyndigheten (IMY).
+        </p>
+        <h2>Kontakt och säkerhet</h2>
+        <p>
+          Kontakta <a href="mailto:info@macmaer.com">info@macmaer.com</a> vid
+          frågor eller för att utöva dina rättigheter, eller skriv till
+          Trombongatan 22B, 421 51 Västra Frölunda. Macmaer använder
+          proportionerliga säkerhetsåtgärder, håller serveruppgifter utanför
+          webbläsarkoden och använder betalningsfält som driftas av Stripe.
+        </p>
+      </PolicyPage>
+    );
   return (
     <PolicyPage eyebrow="Legal" title="Privacy Policy">
       <p>

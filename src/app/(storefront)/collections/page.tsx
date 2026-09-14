@@ -2,21 +2,29 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { CollectionCard } from "@/components/catalog/collection-card";
 import { getCatalogue } from "@/modules/catalog/repository";
-export const metadata: Metadata = {
-  title: "Collections",
-  alternates: { canonical: "/collections" },
-};
+import { getStorefrontLocale } from "@/modules/i18n/server";
+import { storefrontMessages } from "@/modules/i18n/messages";
+import { localizeCatalogue } from "@/modules/i18n/localize";
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title:
+      (await getStorefrontLocale()) === "sv" ? "Kollektioner" : "Collections",
+    alternates: { canonical: "/collections" },
+  };
+}
 export default async function Collections() {
-  const { collections } = await getCatalogue();
+  const [catalogue, locale] = await Promise.all([
+    getCatalogue(),
+    getStorefrontLocale(),
+  ]);
+  const { collections } = localizeCatalogue(catalogue, locale);
+  const t = storefrontMessages[locale];
   return (
     <Container className="page-section">
       <div className="page-intro">
-        <p className="eyebrow">Explore by texture</p>
-        <h1>A collection to call your own.</h1>
-        <p>
-          From cloud-like bouclé to the gentle sheen of velvet. Follow your
-          feeling.
-        </p>
+        <p className="eyebrow">{t.collectionsEyebrow}</p>
+        <h1>{t.collectionsTitle}</h1>
+        <p>{t.collectionsIntro}</p>
       </div>
       <div className="collections-grid">
         {collections.map((collection, index) => (
@@ -27,9 +35,7 @@ export default async function Collections() {
           />
         ))}
       </div>
-      {!collections.length && (
-        <p>Our collections are taking shape. Please visit again soon.</p>
-      )}
+      {!collections.length && <p>{t.collectionsEmpty}</p>}
     </Container>
   );
 }

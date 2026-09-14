@@ -3,44 +3,33 @@ import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { MiniCart } from "@/components/cart/mini-cart";
 import { getMiniCart } from "@/modules/cart/repository";
+import type { StorefrontLocale } from "@/modules/i18n/config";
+import { storefrontMessages } from "@/modules/i18n/messages";
+import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 
-export async function Header() {
+export async function Header({ locale }: { locale: StorefrontLocale }) {
   const cart = await getMiniCart();
+  const t = storefrontMessages[locale];
   return (
     <header className="site-header">
       <Container className="header-inner">
-        <Link href="/" className="wordmark" aria-label="Macmaer home">
+        <Link href="/" className="wordmark" aria-label={t.macmaerHome}>
           <Image
             src="/logo/Logo-macmaer-name.svg"
-            alt="Macmaer — handmade in Sweden"
+            alt={t.handmadeInSweden}
             width={982}
             height={187}
             loading="eager"
           />
         </Link>
-        <nav aria-label="Main navigation" className="main-nav">
-          <Link href="/shop">Shop all</Link>
-          <Link href="/collections">Collections</Link>
-          <Link href="/#story">Our story</Link>
-          <Link href="/contact">Contact</Link>
+        <nav aria-label={t.navLabel} className="main-nav">
+          <Link href="/shop">{t.shopAll}</Link>
+          <Link href="/collections">{t.collections}</Link>
+          <Link href="/about">{t.ourStory}</Link>
+          <Link href="/contact">{t.contact}</Link>
         </nav>
         <div className="header-tools">
-          <Link
-            className="header-search"
-            href="/shop#catalogue-search"
-            aria-label="Search the catalogue"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              aria-hidden="true"
-            >
-              <circle cx="10.5" cy="10.5" r="6.5" />
-              <path d="m16 16 5 5" />
-            </svg>
-          </Link>
+          <LanguageSwitcher locale={locale} />
           <MiniCart initialCart={cart} />
         </div>
       </Container>

@@ -3,6 +3,8 @@
 import { useActionState, useEffect, useId, useRef } from "react";
 import { submitReviewAction } from "@/modules/reviews/actions";
 import type { ReviewFormState } from "@/modules/reviews/schema";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
+import { StorefrontSelect } from "@/components/ui/storefront-select";
 
 const initialState: ReviewFormState = {
   ok: false,
@@ -17,6 +19,8 @@ export function ReviewForm({
   productId: string;
   productSlug: string;
 }) {
+  const { locale } = useStorefrontI18n();
+  const sv = locale === "sv";
   const [state, action, pending] = useActionState(
     submitReviewAction,
     initialState,
@@ -31,14 +35,15 @@ export function ReviewForm({
       <input type="hidden" name="productId" value={productId} />
       <input type="hidden" name="productSlug" value={productSlug} />
       <fieldset>
-        <legend>Share your experience</legend>
+        <legend>{sv ? "Dela din upplevelse" : "Share your experience"}</legend>
         <p className="small muted">
-          Reviews are checked before publication. Your email is used only to
-          verify a purchase and is never displayed.
+          {sv
+            ? "Recensioner granskas före publicering. Din e-post används bara för att verifiera ett köp och visas aldrig."
+            : "Reviews are checked before publication. Your email is used only to verify a purchase and is never displayed."}
         </p>
         <div className="form-grid">
           <label>
-            Display name
+            {sv ? "Visningsnamn" : "Display name"}
             <input
               name="displayName"
               autoComplete="name"
@@ -58,7 +63,7 @@ export function ReviewForm({
             )}
           </label>
           <label>
-            Email
+            {sv ? "E-post" : "Email"}
             <input
               name="email"
               type="email"
@@ -77,22 +82,36 @@ export function ReviewForm({
             )}
           </label>
         </div>
+        <div>
+          <label htmlFor="review-rating">{sv ? "Betyg" : "Rating"}</label>
+          <StorefrontSelect
+            key={state.submissionId}
+            id="review-rating"
+            name="rating"
+            defaultValue="5"
+            required
+            options={[
+              { value: "5", label: `5 — ${sv ? "Fantastisk" : "Wonderful"}` },
+              { value: "4", label: `4 — ${sv ? "Mycket bra" : "Very good"}` },
+              { value: "3", label: `3 — ${sv ? "Bra" : "Good"}` },
+              {
+                value: "2",
+                label: `2 — ${sv ? "Kunde vara bättre" : "Could be better"}`,
+              },
+              {
+                value: "1",
+                label: `1 — ${sv ? "En besvikelse" : "Disappointing"}`,
+              },
+            ]}
+          />
+        </div>
         <label>
-          Rating
-          <select name="rating" defaultValue="5" required>
-            <option value="5">5 — Wonderful</option>
-            <option value="4">4 — Very good</option>
-            <option value="3">3 — Good</option>
-            <option value="2">2 — Could be better</option>
-            <option value="1">1 — Disappointing</option>
-          </select>
-        </label>
-        <label>
-          Review title <span className="muted">(optional)</span>
+          {sv ? "Rubrik" : "Review title"}{" "}
+          <span className="muted">({sv ? "valfritt" : "optional"})</span>
           <input name="title" maxLength={120} />
         </label>
         <label>
-          Your review
+          {sv ? "Din recension" : "Your review"}
           <textarea
             name="body"
             required
@@ -110,11 +129,17 @@ export function ReviewForm({
           )}
         </label>
         <label className="honeypot" aria-hidden="true">
-          Company
+          {sv ? "Företag" : "Company"}
           <input name="company" tabIndex={-1} autoComplete="off" />
         </label>
         <button disabled={pending}>
-          {pending ? "Submitting…" : "Submit review"}
+          {pending
+            ? sv
+              ? "Skickar…"
+              : "Submitting…"
+            : sv
+              ? "Skicka recension"
+              : "Submit review"}
         </button>
         {state.message && (
           <p role={state.ok ? "status" : "alert"}>{state.message}</p>

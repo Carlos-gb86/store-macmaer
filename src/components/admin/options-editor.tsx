@@ -78,6 +78,7 @@ export function OptionsEditor({
               id: crypto.randomUUID(),
               key: "",
               label: "",
+              label_sv: null,
               display_type: "select",
               required: true,
               is_variant_axis: false,
@@ -157,6 +158,14 @@ function OptionCard({
               })
             }
             help="The name customers see above this choice."
+          />
+          <Field
+            label="Swedish option label"
+            value={o.label_sv ?? null}
+            nullable
+            placeholder="e.g. Färg"
+            onChange={(v) => onChange({ label_sv: v as string | null })}
+            help="Optional. Customers browsing in Swedish see this label."
           />
           <Field
             label="Display type"
@@ -298,6 +307,19 @@ function OptionCard({
                       })
                     }
                   />
+                  <Field
+                    label="Swedish choice label"
+                    value={value.label_sv ?? null}
+                    nullable
+                    placeholder="e.g. Creme"
+                    onChange={(v) =>
+                      onChange({
+                        values: o.values.map((x, n) =>
+                          n === j ? { ...x, label_sv: v as string | null } : x,
+                        ),
+                      })
+                    }
+                  />
                   {o.display_type === "colour_swatch" && (
                     <label className="colour-field">
                       Colour
@@ -432,6 +454,7 @@ function OptionCard({
                       id: crypto.randomUUID(),
                       key: "",
                       label: "",
+                      label_sv: null,
                       colour_hex:
                         o.display_type === "colour_swatch" ? "#e8e0d4" : null,
                       image_path: null,

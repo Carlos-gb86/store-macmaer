@@ -9,15 +9,24 @@ import { getStorefrontContext } from "@/modules/currency/repository";
 import { getTestimonials } from "@/modules/reviews/repository";
 import { Testimonials } from "@/components/reviews/testimonials";
 import type { Metadata } from "next";
+import { ExternalArrow } from "@/components/ui/external-arrow";
+import { getStorefrontLocale } from "@/modules/i18n/server";
+import { storefrontMessages } from "@/modules/i18n/messages";
+import { localizeCatalogue, localizeHomepage } from "@/modules/i18n/localize";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 export default async function Home() {
-  const [catalogue, content, context, testimonials] = await Promise.all([
-    getCatalogue(),
-    getHomepage(),
-    getStorefrontContext(),
-    getTestimonials(),
-  ]);
+  const [rawCatalogue, rawContent, context, testimonials, locale] =
+    await Promise.all([
+      getCatalogue(),
+      getHomepage(),
+      getStorefrontContext(),
+      getTestimonials(),
+      getStorefrontLocale(),
+    ]);
+  const catalogue = localizeCatalogue(rawCatalogue, locale);
+  const content = localizeHomepage(rawContent, locale);
+  const t = storefrontMessages[locale];
   return (
     <>
       {content.hero_visible && (
@@ -27,9 +36,9 @@ export default async function Home() {
             <h1>{content.hero_title}</h1>
             <p>{content.hero_subtitle}</p>
             <Link href={content.hero_cta_path} className="button">
-              {content.hero_cta_label} <span aria-hidden="true">↗</span>
+              {content.hero_cta_label} <ExternalArrow />
             </Link>
-            <span className="hero-footnote">DESIGNED & HANDMADE IN SWEDEN</span>
+            <span className="hero-footnote">{t.designedHandmade}</span>
           </div>
           <div className="hero-image">
             <Image
@@ -40,9 +49,7 @@ export default async function Home() {
               fetchPriority="high"
               sizes="(max-width: 800px) 100vw, 55vw"
             />
-            <span className="hero-image-caption">
-              The beauty is in the details.
-            </span>
+            <span className="hero-image-caption">{t.beautyDetails}</span>
           </div>
         </section>
       )}
@@ -51,11 +58,11 @@ export default async function Home() {
           <section className="section">
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Find your favourite</p>
-                <h2>Small pieces. Big personality.</h2>
+                <p className="eyebrow">{t.favouriteEyebrow}</p>
+                <h2>{t.favouriteTitle}</h2>
               </div>
               <Link href="/shop" className="text-link">
-                Explore all pieces ↗
+                {t.exploreAll} <ExternalArrow />
               </Link>
             </div>
             <div className="product-grid">
@@ -67,6 +74,7 @@ export default async function Home() {
                     key={product.id}
                     product={product}
                     pricing={context.pricing}
+                    locale={locale}
                   />
                 ))}
             </div>
@@ -74,8 +82,8 @@ export default async function Home() {
         )}
         {content.collections_visible && (
           <section className="texture-section">
-            <p className="eyebrow">A feeling for every room</p>
-            <h2>Fall in love with texture.</h2>
+            <p className="eyebrow">{t.textureEyebrow}</p>
+            <h2>{t.textureTitle}</h2>
             <div className="texture-links">
               {content.collection_ids
                 .map((id) => catalogue.collections.find((c) => c.id === id))
@@ -87,46 +95,24 @@ export default async function Home() {
                   >
                     <span className="small">0{index + 1}</span>
                     <span>{collection.name}</span>
-                    <span aria-hidden="true">↗</span>
+                    <ExternalArrow size={18} />
                   </Link>
                 ))}
             </div>
           </section>
         )}
       </Container>
-      {content.story_visible && (
-        <section className="story-section" id="story">
-          <div className="story-image">
-            <Image
-              src={resolveImage(content.story_image)}
-              alt={content.story_alt}
-              fill
-              sizes="(max-width: 800px) 100vw, 50vw"
-            />
-          </div>
-          <div className="story-copy">
-            <p className="eyebrow">{content.story_eyebrow}</p>
-            <h2>{content.story_title}</h2>
-            {content.story_text.split(/\n\s*\n/).map((text, i) => (
-              <p key={i}>{text}</p>
-            ))}
-            <Link href="/collections" className="text-link">
-              Find your own little piece ↗
-            </Link>
-          </div>
-        </section>
-      )}
       <Container>
-        <Testimonials items={testimonials} />
+        <Testimonials items={testimonials} locale={locale} />
         <div className="values-strip">
           <p>
-            <span>01</span> Made by hand
+            <span>01</span> {t.madeByHand}
           </p>
           <p>
-            <span>02</span> Thoughtful textures
+            <span>02</span> {t.thoughtfulTextures}
           </p>
           <p>
-            <span>03</span> A playful point of view
+            <span>03</span> {t.playfulView}
           </p>
         </div>
       </Container>

@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useId, useRef } from "react";
 import { submitContactFormAction } from "@/modules/contact/actions";
 import { initialContactFormState } from "@/modules/contact/schema";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
 
 function FieldError({ id, message }: { id: string; message?: string }) {
   return message ? (
@@ -13,6 +14,8 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 }
 
 export function ContactForm() {
+  const { locale } = useStorefrontI18n();
+  const sv = locale === "sv";
   const [state, formAction, pending] = useActionState(
     submitContactFormAction,
     initialContactFormState,
@@ -28,7 +31,7 @@ export function ContactForm() {
     <form ref={formRef} action={formAction} className="contact-form">
       <div className="contact-name-fields">
         <label>
-          First name
+          {sv ? "Förnamn" : "First name"}
           <input
             name="firstName"
             autoComplete="given-name"
@@ -46,7 +49,7 @@ export function ContactForm() {
           />
         </label>
         <label>
-          Last name
+          {sv ? "Efternamn" : "Last name"}
           <input
             name="lastName"
             autoComplete="family-name"
@@ -65,7 +68,7 @@ export function ContactForm() {
         </label>
       </div>
       <label>
-        Email address
+        {sv ? "E-postadress" : "Email address"}
         <input
           type="email"
           name="email"
@@ -82,7 +85,8 @@ export function ContactForm() {
         />
       </label>
       <label>
-        Subject <span className="muted">(optional)</span>
+        {sv ? "Ämne" : "Subject"}{" "}
+        <span className="muted">({sv ? "valfritt" : "optional"})</span>
         <input
           name="subject"
           maxLength={160}
@@ -97,7 +101,7 @@ export function ContactForm() {
         />
       </label>
       <label>
-        How can we help?
+        {sv ? "Hur kan vi hjälpa dig?" : "How can we help?"}
         <textarea
           name="message"
           rows={8}
@@ -115,11 +119,17 @@ export function ContactForm() {
         />
       </label>
       <label className="contact-honeypot" aria-hidden="true">
-        Company
+        {sv ? "Företag" : "Company"}
         <input name="company" tabIndex={-1} autoComplete="off" />
       </label>
       <button type="submit" className="button" disabled={pending}>
-        {pending ? "Sending…" : "Send message"}
+        {pending
+          ? sv
+            ? "Skickar…"
+            : "Sending…"
+          : sv
+            ? "Skicka meddelande"
+            : "Send message"}
       </button>
       <p
         className={

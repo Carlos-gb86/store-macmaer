@@ -1,5 +1,6 @@
 import type { Product, ProductVariant } from "./schema";
 import { matchesNumericStep } from "./numeric";
+import type { StorefrontLocale } from "@/modules/i18n/config";
 export type Selections = Record<string, string[]>;
 export function isAvailable(
   item: Pick<Product, "inventory_strategy" | "stock_quantity">,
@@ -35,17 +36,21 @@ export function availableConfigurations(product: Product) {
 export function validateSelections(
   product: Product,
   selections: Selections,
+  locale: StorefrontLocale = "en",
 ): string[] {
+  const sv = locale === "sv";
   const errors: string[] = [];
   for (const key of Object.keys(selections))
     if (!product.options.some((option) => option.key === key))
-      errors.push("Unknown option.");
+      errors.push(sv ? "Okänt alternativ." : "Unknown option.");
   for (const option of product.options) {
     const values = (selections[option.key] ?? []).filter(
       (value) => value.trim() !== "",
     );
     if (option.required && !values.length) {
-      errors.push("Choose " + option.label.toLowerCase() + ".");
+      errors.push(
+        (sv ? "Välj " : "Choose ") + option.label.toLocaleLowerCase() + ".",
+      );
       continue;
     }
     if (!values.length) continue;
@@ -54,9 +59,9 @@ export function validateSelections(
       values.length !== option.repeat_count
     )
       errors.push(
-        "Complete all " +
+        (sv ? "Fyll i alla " : "Complete all ") +
           option.repeat_count +
-          " selections for " +
+          (sv ? " val för " : " selections for ") +
           option.label +
           ".",
       );
@@ -64,21 +69,37 @@ export function validateSelections(
       !["checkbox", "repeated_select"].includes(option.display_type) &&
       values.length > 1
     )
-      errors.push("Choose one " + option.label.toLowerCase() + ".");
+      errors.push(
+        (sv ? "Välj en " : "Choose one ") +
+          option.label.toLocaleLowerCase() +
+          ".",
+      );
     if (
       values.length < option.min_selections ||
       (option.max_selections !== null && values.length > option.max_selections)
     )
-      errors.push("Check the number of selections for " + option.label + ".");
+      errors.push(
+        (sv
+          ? "Kontrollera antalet val för "
+          : "Check the number of selections for ") +
+          option.label +
+          ".",
+      );
     if (!option.allow_duplicates && new Set(values).size !== values.length)
-      errors.push("Choose different values for " + option.label + ".");
+      errors.push(
+        (sv ? "Välj olika värden för " : "Choose different values for ") +
+          option.label +
+          ".",
+      );
     if (option.display_type === "short_text") {
       if (
         values.some(
           (value) => value.length > (option.validation_rules.max_length ?? 120),
         )
       )
-        errors.push(option.label + " is too long.");
+        errors.push(
+          sv ? option.label + " är för lång." : option.label + " is too long.",
+        );
     } else if (option.display_type === "number") {
       if (
         values.some(
@@ -95,18 +116,32 @@ export function validateSelections(
             ),
         )
       )
-        errors.push("Enter a valid " + option.label.toLowerCase() + ".");
+        errors.push(
+          (sv ? "Ange ett giltigt värde för " : "Enter a valid ") +
+            option.label.toLocaleLowerCase() +
+            ".",
+        );
     } else if (
       values.some(
         (id) => !option.values.some((value) => value.id === id && value.active),
       )
     )
-      errors.push("Choose an available " + option.label.toLowerCase() + ".");
+      errors.push(
+        (sv
+          ? "Välj ett tillgängligt alternativ för "
+          : "Choose an available ") +
+          option.label.toLocaleLowerCase() +
+          ".",
+      );
   }
   if (
     product.options.some((option) => option.is_variant_axis) &&
     !resolveVariant(product, selections)
   )
-    errors.push("This combination is unavailable.");
+    errors.push(
+      sv
+        ? "Den här kombinationen är inte tillgänglig."
+        : "This combination is unavailable.",
+    );
   return [...new Set(errors)];
 }

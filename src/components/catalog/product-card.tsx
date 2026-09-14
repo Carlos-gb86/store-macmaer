@@ -7,15 +7,21 @@ import {
   displayAmount,
 } from "@/modules/pricing/calculate";
 import { ProductImage } from "./product-image";
+import { ExternalArrow } from "@/components/ui/external-arrow";
+import type { StorefrontLocale } from "@/modules/i18n/config";
+import { storefrontMessages } from "@/modules/i18n/messages";
 export function ProductCard({
   product,
   pricing,
   priority = false,
+  locale,
 }: {
   product: Product;
   pricing: PricingContext;
   priority?: boolean;
+  locale: StorefrontLocale;
 }) {
+  const t = storefrontMessages[locale];
   const price = displayAmount(calculateProductStartingPrice(product), pricing);
   return (
     <article className="product-card">
@@ -23,17 +29,17 @@ export function ProductCard({
         <div className="product-card-image">
           <ProductImage image={product.images[0]} priority={priority} />
           {product.inventory_strategy === "UNAVAILABLE" && (
-            <span className="image-label">Currently unavailable</span>
+            <span className="image-label">{t.currentlyUnavailable}</span>
           )}
         </div>
         <div className="product-card-caption">
           <h3>{product.title}</h3>
-          <span aria-hidden="true">↗</span>
+          <ExternalArrow />
         </div>
         <p className="small muted">
           {product.variants.length > 0 ||
           product.options.some((o) => o.affects_price)
-            ? "From "
+            ? `${t.from} `
             : ""}
           {formatMoney(price, pricing.currency)}
         </p>

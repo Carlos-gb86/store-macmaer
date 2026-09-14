@@ -7,19 +7,25 @@ import {
   type SearchParams,
 } from "@/modules/catalog/query";
 import { ProductCard } from "./product-card";
-import { Button } from "@/components/ui/button";
 import type { PricingContext } from "@/modules/currency/schema";
+import { CatalogueControls } from "./catalogue-controls";
+import { ExternalArrow } from "@/components/ui/external-arrow";
+import type { StorefrontLocale } from "@/modules/i18n/config";
+import { storefrontMessages } from "@/modules/i18n/messages";
 export function Catalogue({
   data,
   params,
   pricing,
   collection,
+  locale,
 }: {
   data: CatalogueData;
   params: SearchParams;
   pricing: PricingContext;
   collection?: string;
+  locale: StorefrontLocale;
 }) {
+  const t = storefrontMessages[locale];
   const query = parseCatalogueQuery({
     ...params,
     ...(collection ? { collection } : {}),
@@ -35,75 +41,28 @@ export function Catalogue({
   ].sort();
   return (
     <>
-      <form action={path} className="catalogue-controls" role="search">
-        <div className="search-field">
-          <label htmlFor="catalogue-search">Find your piece</label>
-          <input
-            id="catalogue-search"
-            type="search"
-            name="q"
-            defaultValue={query.q}
-            placeholder="Search textures, shapes, colours…"
-            maxLength={120}
-          />
-        </div>
-        {!collection && (
-          <div>
-            <label htmlFor="collection-filter">Collection</label>
-            <select
-              id="collection-filter"
-              name="collection"
-              defaultValue={query.collection}
-            >
-              <option value="">All collections</option>
-              {data.collections.map((c) => (
-                <option key={c.id} value={c.slug}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        <div>
-          <label htmlFor="tag-filter">Details</label>
-          <select id="tag-filter" name="tag" defaultValue={query.tag}>
-            <option value="">All details</option>
-            {tags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag.replaceAll("-", " ")}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="availability-filter">Availability</label>
-          <select
-            id="availability-filter"
-            name="availability"
-            defaultValue={query.availability}
-          >
-            <option value="">All pieces</option>
-            <option value="available">Available</option>
-            <option value="made-to-order">Made to order</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="sort">Sort by</label>
-          <select name="sort" id="sort" defaultValue={query.sort}>
-            <option value="featured">Featured</option>
-            <option value="newest">Newest</option>
-            <option value="price-asc">Base price: low to high</option>
-            <option value="price-desc">Base price: high to low</option>
-          </select>
-        </div>
-        <Button type="submit">Apply</Button>
-      </form>
+      <CatalogueControls
+        key={JSON.stringify(query)}
+        path={path}
+        query={query}
+        hideCollection={Boolean(collection)}
+        collections={data.collections.map((item) => ({
+          value: item.slug,
+          label: item.name,
+        }))}
+        tags={tags.map((tag) => ({
+          value: tag,
+          label:
+            data.tagDefinitions.find((definition) => definition.slug === tag)
+              ?.name ?? tag.replaceAll("-", " "),
+        }))}
+      />
       <div className="results-summary">
         <p>
-          {results.total} {results.total === 1 ? "piece" : "pieces"}
-          {query.q ? " matching “" + query.q + "”" : ""}
+          {results.total} {results.total === 1 ? t.piece : t.pieces}
+          {query.q ? ` ${t.matching} “${query.q}”` : ""}
         </p>
-        <Link href={path}>Clear filters</Link>
+        <Link href={path}>{t.clearFilters}</Link>
       </div>
       {results.products.length ? (
         <div className="product-grid">
@@ -113,30 +72,36 @@ export function Catalogue({
               product={product}
               pricing={pricing}
               priority={index < 2}
+              locale={locale}
             />
           ))}
         </div>
       ) : (
         <div className="empty-state">
-          <h2>No pieces found</h2>
-          <p>Try another search or explore the full collection.</p>
+          <h2>{t.noPieces}</h2>
+          <p>{t.tryAnother}</p>
           <Link className="text-link" href={path}>
-            Explore all pieces →
+            {t.exploreAll} <ExternalArrow />
           </Link>
         </div>
       )}
       {results.totalPages > 1 && (
-        <nav className="pagination" aria-label="Catalogue pages">
+        <nav
+          className="pagination"
+          aria-label={locale === "sv" ? "Katalogsidor" : "Catalogue pages"}
+        >
           {results.page > 1 && (
             <Link href={queryHref(path, query, results.page - 1)}>
-              ← Previous
+              ← {t.previous}
             </Link>
           )}
           <span>
-            Page {results.page} of {results.totalPages}
+            {t.page} {results.page} {t.of} {results.totalPages}
           </span>
           {results.page < results.totalPages && (
-            <Link href={queryHref(path, query, results.page + 1)}>Next →</Link>
+            <Link href={queryHref(path, query, results.page + 1)}>
+              {t.next} →
+            </Link>
           )}
         </nav>
       )}

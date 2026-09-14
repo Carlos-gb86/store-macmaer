@@ -11,25 +11,40 @@ import { RichText } from "@/components/content/rich-text";
 import { getStorefrontContext } from "@/modules/currency/repository";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteUrl } from "@/modules/seo/site";
+import { getStorefrontLocale } from "@/modules/i18n/server";
+import { storefrontMessages } from "@/modules/i18n/messages";
+import { localizeCatalogue, localizeCollection } from "@/modules/i18n/localize";
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
 };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const collection = await getCollection((await params).slug);
+  const [collection, locale] = await Promise.all([
+    getCollection((await params).slug),
+    getStorefrontLocale(),
+  ]);
+  const localized = collection
+    ? localizeCollection(collection, locale)
+    : undefined;
   return {
-    title: collection?.seo_title ?? collection?.name ?? "Collection not found",
-    description: collection?.seo_description ?? collection?.description,
+    title:
+      localized?.seo_title ??
+      localized?.name ??
+      (locale === "sv" ? "Kollektionen hittades inte" : "Collection not found"),
+    description: localized?.seo_description ?? localized?.description,
     alternates: { canonical: `/collections/${(await params).slug}` },
   };
 }
 export default async function CollectionPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const [data, query, context] = await Promise.all([
+  const [rawData, query, context, locale] = await Promise.all([
     getCatalogue(),
     searchParams,
     getStorefrontContext(),
+    getStorefrontLocale(),
   ]);
+  const data = localizeCatalogue(rawData, locale);
+  const t = storefrontMessages[locale];
   const collection = data.collections.find(
     (collection) => collection.slug === slug,
   );
@@ -44,7 +59,7 @@ export default async function CollectionPage({ params, searchParams }: Props) {
             {
               "@type": "ListItem",
               position: 1,
-              name: "Collections",
+              name: t.collections,
               item: siteUrl("/collections"),
             },
             {
@@ -57,11 +72,15 @@ export default async function CollectionPage({ params, searchParams }: Props) {
         }}
       />
       <Link href="/collections" className="breadcrumb">
-        Collections / {collection.name}
+        {t.collections} / {collection.name}
       </Link>
       <div className="collection-intro">
         <div>
-          <p className="eyebrow">The {collection.name} collection</p>
+          <p className="eyebrow">
+            {locale === "sv"
+              ? `${t.collectionPrefix} ${collection.name}`
+              : `${t.collectionPrefix} ${collection.name} ${t.collectionSuffix}`}
+          </p>
           <h1>{collection.name}</h1>
           <RichText
             document={collection.description_document}
@@ -87,6 +106,7 @@ export default async function CollectionPage({ params, searchParams }: Props) {
         params={query}
         collection={slug}
         pricing={context.pricing}
+        locale={locale}
       />
     </Container>
   );

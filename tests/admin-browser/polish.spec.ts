@@ -33,8 +33,15 @@ test("creates a tag inside an unsaved product, then configures options and a var
     "Polished product",
   );
   await expect(
-    page.getByRole("checkbox", { name: unique, exact: true }),
-  ).toBeChecked();
+    page.getByRole("button", { name: unique, exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await page.getByLabel("Search tags", { exact: true }).fill(unique);
+  await expect(
+    page.getByRole("button", { name: unique, exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("Search tags", { exact: true }).fill("no-such-tag");
+  await expect(page.getByText("No tags match “no-such-tag”.")).toBeVisible();
+  await page.getByLabel("Search tags", { exact: true }).fill("");
   await page.getByRole("button", { name: "Add option", exact: true }).click();
   await page.getByLabel("Option label", { exact: true }).fill("Size");
   await page

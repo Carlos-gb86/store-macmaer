@@ -8,6 +8,7 @@ import {
 } from "./schema";
 import { deliverContactEmails } from "@/modules/email/service";
 import { ContactSubmissionError, saveContactMessage } from "./repository";
+import { getStorefrontLocale } from "@/modules/i18n/server";
 
 function validationErrors(issues: { path: PropertyKey[]; message: string }[]) {
   const fieldErrors: Partial<Record<ContactField, string>> = {};
@@ -23,6 +24,7 @@ export async function submitContactFormAction(
   _previous: ContactFormState,
   formData: FormData,
 ): Promise<ContactFormState> {
+  const sv = (await getStorefrontLocale()) === "sv";
   const submissionId = Date.now();
   const parsed = contactFormSchema.safeParse({
     firstName: formData.get("firstName"),
@@ -35,7 +37,9 @@ export async function submitContactFormAction(
   if (!parsed.success)
     return {
       ok: false,
-      message: "Please check the highlighted fields.",
+      message: sv
+        ? "Kontrollera de markerade fälten."
+        : "Please check the highlighted fields.",
       submissionId,
       fieldErrors: validationErrors(parsed.error.issues),
     };
@@ -44,7 +48,9 @@ export async function submitContactFormAction(
   if (parsed.data.company)
     return {
       ok: true,
-      message: "Thank you. Your message is on its way.",
+      message: sv
+        ? "Tack. Ditt meddelande är på väg."
+        : "Thank you. Your message is on its way.",
       submissionId,
     };
 
@@ -68,8 +74,9 @@ export async function submitContactFormAction(
     }
     return {
       ok: true,
-      message:
-        "Thank you. We’ve received your message and will reply by email.",
+      message: sv
+        ? "Tack. Vi har tagit emot ditt meddelande och svarar via e-post."
+        : "Thank you. We’ve received your message and will reply by email.",
       submissionId,
     };
   } catch (error) {
@@ -78,7 +85,9 @@ export async function submitContactFormAction(
       message:
         error instanceof ContactSubmissionError
           ? error.message
-          : "Your message could not be sent right now. Please try again or email info@macmaer.com.",
+          : sv
+            ? "Ditt meddelande kunde inte skickas just nu. Försök igen eller mejla info@macmaer.com."
+            : "Your message could not be sent right now. Please try again or email info@macmaer.com.",
       submissionId,
     };
   }

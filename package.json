@@ -32,6 +32,7 @@
     "migration:woocommerce": "node scripts/run-woocommerce-import.mjs"
   },
   "dependencies": {
+    "@radix-ui/react-select": "2.3.3",
     "@stripe/react-stripe-js": "^6.10.0",
     "@stripe/stripe-js": "^9.16.0",
     "@supabase/ssr": "0.12.6",

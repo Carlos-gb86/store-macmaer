@@ -1,7 +1,10 @@
-export default function Loading() {
+import { getStorefrontLocale } from "@/modules/i18n/server";
+
+export default async function Loading() {
+  const sv = (await getStorefrontLocale()) === "sv";
   return (
     <div className="container empty-state" role="status">
-      <p>Gathering the collection…</p>
+      <p>{sv ? "Hämtar kollektionen…" : "Gathering the collection…"}</p>
     </div>
   );
 }

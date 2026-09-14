@@ -10,11 +10,13 @@ import {
   reviewSubmissionSchema,
   type ReviewFormState,
 } from "./schema";
+import { getStorefrontLocale } from "@/modules/i18n/server";
 
 export async function submitReviewAction(
   _previous: ReviewFormState,
   formData: FormData,
 ): Promise<ReviewFormState> {
+  const sv = (await getStorefrontLocale()) === "sv";
   const submissionId = Date.now();
   const parsed = reviewSubmissionSchema.safeParse({
     productId: formData.get("productId"),
@@ -46,7 +48,9 @@ export async function submitReviewAction(
     }
     return {
       ok: false,
-      message: "Please check the highlighted fields.",
+      message: sv
+        ? "Kontrollera de markerade fälten."
+        : "Please check the highlighted fields.",
       submissionId,
       fieldErrors: errors,
     };
@@ -54,15 +58,18 @@ export async function submitReviewAction(
   if (parsed.data.company)
     return {
       ok: true,
-      message: "Thank you. Your review was submitted for moderation.",
+      message: sv
+        ? "Tack. Din recension har skickats för granskning."
+        : "Thank you. Your review was submitted for moderation.",
       submissionId,
     };
   try {
     await saveReviewSubmission(parsed.data);
     return {
       ok: true,
-      message:
-        "Thank you. Your review was submitted and will appear after moderation.",
+      message: sv
+        ? "Tack. Din recension har skickats och visas efter granskning."
+        : "Thank you. Your review was submitted and will appear after moderation.",
       submissionId,
     };
   } catch (error) {
@@ -79,8 +86,12 @@ export async function submitReviewAction(
       ok: false,
       message:
         error instanceof Error && /too many reviews/i.test(error.message)
-          ? "Too many reviews were submitted recently. Please try again later."
-          : "Your review could not be submitted right now. Please try again.",
+          ? sv
+            ? "För många recensioner har skickats nyligen. Försök igen senare."
+            : "Too many reviews were submitted recently. Please try again later."
+          : sv
+            ? "Din recension kunde inte skickas just nu. Försök igen."
+            : "Your review could not be submitted right now. Please try again.",
       submissionId,
     };
   }

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Collection } from "@/modules/catalog/schema";
 import { resolveImage } from "@/modules/media/resolve-image";
+import { ExternalArrow } from "@/components/ui/external-arrow";
 export function CollectionCard({
   collection,
   priority = false,
@@ -26,7 +27,7 @@ export function CollectionCard({
       </div>
       <div className="collection-caption">
         <h2>{collection.name}</h2>
-        <span aria-hidden="true">↗</span>
+        <ExternalArrow size={18} />
       </div>
       <p className="muted">{collection.description}</p>
     </Link>

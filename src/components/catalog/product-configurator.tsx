@@ -15,6 +15,8 @@ import { calculateBaseLinePrice } from "@/modules/pricing/calculate";
 import { convertMinorAmount, formatMoney } from "@/modules/currency/money";
 import type { ClientPricingContext, FxRate } from "@/modules/currency/schema";
 import { announceCartUpdate } from "@/modules/cart/events";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
+import { StorefrontSelect } from "@/components/ui/storefront-select";
 function OptionControl({
   option,
   values,
@@ -24,6 +26,7 @@ function OptionControl({
   values: string[];
   onChange: (values: string[]) => void;
 }) {
+  const { t } = useStorefrontI18n();
   const activeValues = option.values.filter((value) => value.active);
   const id = "option-" + option.id;
   if (option.display_type === "short_text" || option.display_type === "number")
@@ -31,7 +34,7 @@ function OptionControl({
       <div className="option-field">
         <label htmlFor={id}>
           {option.label}
-          {!option.required && " (optional)"}
+          {!option.required && ` (${t("optional")})`}
         </label>
         <input
           id={id}
@@ -54,7 +57,7 @@ function OptionControl({
       <fieldset className="option-field">
         <legend>
           {option.label}
-          {!option.required && " (optional)"}
+          {!option.required && ` (${t("optional")})`}
         </legend>
         <div className="repeat-options">
           {Array.from({ length: option.repeat_count }, (_, index) => (
@@ -66,33 +69,34 @@ function OptionControl({
                 {option.label}
                 {option.repeat_count > 1 ? " " + (index + 1) : ""}
               </label>
-              <select
+              <StorefrontSelect
                 id={id + "-" + index}
                 value={values[index] ?? ""}
-                required={option.required}
-                onChange={(event) => {
+                options={[
+                  {
+                    value: "",
+                    label: `${t("choose")} ${option.label.toLocaleLowerCase()}`,
+                  },
+                  ...activeValues.map((value) => ({
+                    value: value.id,
+                    label: value.label,
+                    disabled:
+                      !option.allow_duplicates &&
+                      values.some(
+                        (selected, selectedIndex) =>
+                          selectedIndex !== index && selected === value.id,
+                      ),
+                  })),
+                ]}
+                onValueChange={(nextValue) => {
                   const next = Array.from(
                     { length: option.repeat_count },
                     (_, i) => values[i] ?? "",
                   );
-                  next[index] = event.target.value;
+                  next[index] = nextValue;
                   onChange(next);
                 }}
-              >
-                <option value="">Choose {option.label.toLowerCase()}</option>
-                {activeValues.map((value) => (
-                  <option
-                    key={value.id}
-                    value={value.id}
-                    disabled={
-                      !option.allow_duplicates &&
-                      values.some((v, i) => i !== index && v === value.id)
-                    }
-                  >
-                    {value.label}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           ))}
         </div>
@@ -102,7 +106,7 @@ function OptionControl({
     <fieldset className="option-field">
       <legend>
         {option.label}
-        {!option.required && " (optional)"}
+        {!option.required && ` (${t("optional")})`}
       </legend>
       <div className="option-choices">
         {activeValues.map((value) => (
@@ -159,6 +163,7 @@ export function ProductConfigurator({
   pricing: ClientPricingContext;
   commerceEnabled: boolean;
 }) {
+  const { locale, t } = useStorefrontI18n();
   const [selections, setSelections] = useState<Selections>({});
   const [checked, setChecked] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -167,7 +172,7 @@ export function ProductConfigurator({
   );
   const [pending, startTransition] = useTransition();
   const variant = resolveVariant(product, selections);
-  const errors = checked ? validateSelections(product, selections) : [];
+  const errors = checked ? validateSelections(product, selections, locale) : [];
   const available = isAvailable(product) && (!variant || isAvailable(variant));
   let configuredPrice: number | null = null;
   let configuredComparePrice: number | null = null;
@@ -212,7 +217,7 @@ export function ProductConfigurator({
         onSubmit={(event) => {
           event.preventDefault();
           setChecked(true);
-          const validation = validateSelections(product, selections);
+          const validation = validateSelections(product, selections, locale);
           if (validation.length || !commerceEnabled) return;
           startTransition(async () => {
             const nextResult = await addToCartAction({
@@ -250,7 +255,7 @@ export function ProductConfigurator({
         )}
         {configuredPrice !== null && (
           <p className="configuration-price">
-            Your configuration ·{" "}
+            {t("yourConfiguration")} ·{" "}
             {formatMoney(configuredPrice, pricing.currency)}
             {configuredComparePrice !== null && (
               <>
@@ -263,7 +268,7 @@ export function ProductConfigurator({
         {commerceEnabled && available ? (
           <div className="purchase-controls">
             <label htmlFor={`quantity-${product.id}`}>
-              Quantity
+              {t("quantity")}
               <input
                 id={`quantity-${product.id}`}
                 type="number"
@@ -275,12 +280,12 @@ export function ProductConfigurator({
               />
             </label>
             <Button type="submit" disabled={pending}>
-              {pending ? "Adding…" : "Add to cart"}
+              {pending ? t("adding") : t("addToCart")}
             </Button>
           </div>
         ) : (
           <Button type="submit" className="button-secondary">
-            Preview configuration
+            {t("previewConfiguration")}
           </Button>
         )}
         <div aria-live="polite" className="configuration-feedback">
@@ -293,7 +298,7 @@ export function ProductConfigurator({
           )}
           {checked && errors.length === 0 && !result && (
             <p>
-              Your selections are ready.
+              {t("selectionsReady")}
               {variant && " " + variant.title + " · " + variant.sku}
             </p>
           )}
@@ -307,20 +312,15 @@ export function ProductConfigurator({
       <p className="availability">
         <span aria-hidden="true">○</span>{" "}
         {!available
-          ? "Currently unavailable"
+          ? t("currentlyUnavailable")
           : (variant ?? product).inventory_strategy === "MADE_TO_ORDER"
-            ? "Made to order"
-            : "Available in the catalogue"}
+            ? t("madeToOrder")
+            : t("catalogueAvailable")}
       </p>
       {product.processing_time && (
         <p className="small">{product.processing_time}</p>
       )}
-      {!commerceEnabled && (
-        <p className="preview-note">
-          Explore the details and find your favourite combination. Ordering is
-          disabled for the illustrative catalogue.
-        </p>
-      )}
+      {!commerceEnabled && <p className="preview-note">{t("demoPreview")}</p>}
     </div>
   );
 }

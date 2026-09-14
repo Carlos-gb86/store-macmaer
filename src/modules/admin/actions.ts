@@ -20,6 +20,8 @@ export async function saveProduct(input: unknown): Promise<MutationResult> {
     const p = adminProductSchema.parse(input);
     if (p.description_document)
       p.description = plainText(p.description_document);
+    if (p.description_document_sv)
+      p.description_sv = plainText(p.description_document_sv);
     const ids = [
       ...p.images.map((i) => i.asset_id),
       ...p.options.flatMap((o) => o.values.map((v) => v.asset_id)),
@@ -89,6 +91,8 @@ export async function saveCollection(input: unknown): Promise<MutationResult> {
     const c = adminCollectionSchema.parse(input);
     if (c.description_document)
       c.description = plainText(c.description_document);
+    if (c.description_document_sv)
+      c.description_sv = plainText(c.description_document_sv);
     const ids = c.asset_id ? [c.asset_id] : [];
     try {
       const assets = await prepareAssets(client, ids, c.active, token);

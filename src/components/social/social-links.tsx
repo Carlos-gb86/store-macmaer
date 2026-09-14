@@ -1,3 +1,5 @@
+import type { StorefrontLocale } from "@/modules/i18n/config";
+
 type SocialName = "instagram" | "youtube" | "etsy" | "pinterest";
 
 function SocialIcon({ name }: { name: SocialName }) {
@@ -56,7 +58,13 @@ export const socialLinks: {
   },
 ];
 
-export function SocialLinks({ className = "" }: { className?: string }) {
+export function SocialLinks({
+  className = "",
+  locale = "en",
+}: {
+  className?: string;
+  locale?: StorefrontLocale;
+}) {
   return (
     <div className={`social-links ${className}`.trim()}>
       {socialLinks.map((social) => (
@@ -66,7 +74,7 @@ export function SocialLinks({ className = "" }: { className?: string }) {
           href={social.href}
           target="_blank"
           rel="noreferrer"
-          aria-label={`Follow Macmaer on ${social.label}`}
+          aria-label={`${locale === "sv" ? "Följ Macmaer på" : "Follow Macmaer on"} ${social.label}`}
           title={social.label}
         >
           <SocialIcon name={social.name} />

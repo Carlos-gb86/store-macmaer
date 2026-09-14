@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
@@ -6,6 +6,11 @@ const env = JSON.parse(readFileSync(".env.integration.json", "utf8")) as {
   url: string;
   serviceKey: string;
 };
+
+async function chooseOption(page: Page, trigger: Locator, option: string) {
+  await trigger.click();
+  await page.getByRole("option", { name: option, exact: true }).click();
+}
 
 test.beforeAll(async () => {
   const client = createClient(env.url, env.serviceKey, {
@@ -63,10 +68,22 @@ test("adds a server-priced item, persists it, updates quantity, and removes it",
   await expect(
     page.getByText("600 SEK", { exact: true }).first(),
   ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Update", exact: true }),
+  ).toHaveCount(0);
   await page.getByLabel("Quantity").last().fill("2");
-  await page.getByRole("button", { name: "Update" }).click();
   await expect(
     page.getByText("1,200 SEK", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Cart, 2 items" }),
+  ).toBeVisible();
+  await page.getByLabel("Quantity").last().fill("1");
+  await expect(
+    page.getByText("600 SEK", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Cart, 1 item" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Remove" }).click();
   await expect(
@@ -80,11 +97,11 @@ test("keeps repeated custom configurations as separate persistent lines", async 
   await page.goto("/products/colour-accessory-pack");
   const choices = page.getByLabel(/^Colour \d$/);
   for (let index = 0; index < 5; index++)
-    await choices.nth(index).selectOption({ index: 1 });
+    await chooseOption(page, choices.nth(index), "Ivory");
   await page.getByRole("button", { name: "Add to cart" }).click();
   await expect(page.getByText("Added to your cart.")).toBeVisible();
   await page.getByRole("button", { name: "Close cart summary" }).click();
-  await choices.nth(0).selectOption({ index: 2 });
+  await chooseOption(page, choices.nth(0), "Sand");
   await page.getByRole("button", { name: "Add to cart" }).click();
   await expect(
     page.getByRole("button", { name: "Cart, 2 items" }),
@@ -118,7 +135,11 @@ test("quotes destination VAT, configurable shipping and MACMAER10 on the server"
     .last()
     .click();
   await expect(page.getByText("Discount code removed.")).toBeVisible();
-  await page.getByLabel("Shopping destination").selectOption("US");
+  await chooseOption(
+    page,
+    page.getByLabel("Shopping destination"),
+    "United States",
+  );
   await expect(page.getByText("Destination updated.")).toBeAttached();
   await expect(summary.getByText("250 SEK", { exact: true })).toBeVisible();
   await expect(summary.getByText("0 SEK", { exact: true })).toBeVisible();
@@ -129,22 +150,30 @@ test("changes currency independently from destination and rejects unavailable st
   page,
 }) => {
   await page.goto("/products/infinity-knot");
-  await page.getByLabel("Display currency").selectOption("EUR");
+  await chooseOption(page, page.getByLabel("Display currency"), "EUR");
   await expect(page.getByText("60 EUR", { exact: true }).first()).toBeVisible();
   await page.goto("/cart");
-  await page.getByLabel("Shopping destination").selectOption("US");
+  await chooseOption(
+    page,
+    page.getByLabel("Shopping destination"),
+    "United States",
+  );
   await expect(page.getByText("Destination updated.")).toBeAttached();
-  await expect(page.getByLabel("Shopping destination")).toHaveValue("US");
+  await expect(page.getByLabel("Shopping destination")).toContainText(
+    "United States",
+  );
   await page.goto("/products/infinity-knot");
-  await expect(page.getByLabel("Display currency")).toHaveValue("EUR");
+  await expect(page.getByLabel("Display currency")).toContainText("EUR");
   await page.reload();
-  await expect(page.getByLabel("Display currency")).toHaveValue("EUR");
+  await expect(page.getByLabel("Display currency")).toContainText("EUR");
   await page.goto("/cart");
-  await expect(page.getByLabel("Shopping destination")).toHaveValue("US");
+  await expect(page.getByLabel("Shopping destination")).toContainText(
+    "United States",
+  );
 
   await page.goto("/products/velvet-knot");
   await page.getByRole("radio", { name: "Sage" }).check();
-  await page.getByLabel("Size").selectOption({ label: "Large" });
+  await chooseOption(page, page.getByLabel("Size"), "Large");
   await expect(page.getByText("Currently unavailable")).toBeVisible();
   await expect(page.getByRole("button", { name: "Add to cart" })).toHaveCount(
     0,

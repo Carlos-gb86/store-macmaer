@@ -1,13 +1,103 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PolicyPage } from "@/components/policies/policy-page";
+import { getStorefrontLocale } from "@/modules/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Terms of Sale",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title:
+      (await getStorefrontLocale()) === "sv" ? "Köpvillkor" : "Terms of Sale",
+    robots: { index: false },
+  };
+}
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const sv = (await getStorefrontLocale()) === "sv";
+  if (sv)
+    return (
+      <PolicyPage
+        eyebrow="Juridiskt"
+        title="Köpvillkor och användning av webbplatsen"
+      >
+        <p>
+          Dessa villkor gäller när du besöker webbplatsen eller beställer från
+          Maria Botyan, en svensk enskild näringsidkare som bedriver verksamhet
+          under namnet Macmaer, personnummer 19820627-4345 och
+          momsregistreringsnummer SE820627434501. Inget i villkoren begränsar
+          tvingande konsumenträttigheter.
+        </p>
+        <h2>Produkter och variationer i hantverket</h2>
+        <p>
+          Vi strävar efter att beskriva och fotografera varje produkt korrekt.
+          Måtten är ungefärliga, handgjorda detaljer och naturmaterial kan
+          variera och färger kan återges olika på olika skärmar. Sådana normala
+          variationer påverkar inte rättigheter som gäller felaktiga, osäkra
+          eller avtalsstridiga varor.
+        </p>
+        <h2>Priser, moms och valutor</h2>
+        <p>
+          Det visade detaljhandelspriset är kundens produktpris även när Macmaer
+          tar ut 0 procent moms. När moms ska tas ut ingår den i priset om inget
+          annat uttryckligen anges i kassan. Frakt och eventuella importavgifter
+          som inte ingår visas separat. Det slutliga beloppet och valutan som
+          visas omedelbart före betalning gäller för beställningen.
+        </p>
+        <h2>Beställning och betalning</h2>
+        <p>
+          I kassan visas valda produkter och alternativ, leveransland, frakt,
+          rabatter, moms och slutsumma före betalning. Du kan rätta uppgifter
+          innan du skickar beställningen. Beställningen förutsätter
+          tillgänglighet, godkänd betalning, leveransmöjlighet samt eventuella
+          bedrägeri- och lagkontroller. Betalningsstatus bekräftas av Stripes
+          servermeddelande, inte av en omdirigering i webbläsaren.
+        </p>
+        <h2>Leverans, ångerrätt och reklamation</h2>
+        <p>
+          Tider för tillverkning och leverans är uppskattningar, inte garantier.
+          Macmaer ansvarar under konsumenttransport enligt lag. Berättigade
+          konsumenter har normalt 14 dagar att tydligt meddela att de ångrar
+          köpet. Verkligt personanpassade produkter kan undantas endast när det
+          lagstadgade undantaget gäller; vanliga katalogval tar inte automatiskt
+          bort ångerrätten. Reklamationsrätt för felaktiga varor är skild från
+          ångerrätten.
+        </p>
+        <h2>Tvister och kontakt</h2>
+        <p>
+          Svensk lag gäller utan att frånta konsumenten tvingande skydd i
+          bosättningslandet. Behöriga tvister kan prövas av Allmänna
+          reklamationsnämnden (ARN) eller behörig domstol. Kontakta{" "}
+          <a href="mailto:info@macmaer.com">info@macmaer.com</a>. Se även{" "}
+          <Link href="/shipping">leveransvillkoren</Link>,{" "}
+          <Link href="/returns">returvillkoren</Link> och{" "}
+          <Link href="/privacy">integritetspolicyn</Link>.
+        </p>
+        <h2>Företagsinformation</h2>
+        <address>
+          <strong>Maria Botyan</strong>
+          <br />
+          Enskild näringsidkare som bedriver verksamhet under namnet{" "}
+          <strong>Macmaer</strong>
+          <br />
+          Personnummer: 19820627-4345
+          <br />
+          Momsregistreringsnummer: SE820627434501
+          <br />
+          <br />
+          Företagsadress:
+          <br />
+          Trombongatan 22B, 421 51 Västra Frölunda, Sverige
+          <br />
+          Returadress: företagsadressen ovan om inget annat meddelas när returen
+          ordnas.
+          <br />
+          <br />
+          E-post: <a href="mailto:info@macmaer.com">info@macmaer.com</a>
+          <br />
+          Telefon: <a href="tel:+46728748756">072-874 87 56</a> (+46 72 874 87
+          56 från utlandet)
+        </address>
+      </PolicyPage>
+    );
   return (
     <PolicyPage eyebrow="Legal" title="Terms of Sale and Website Use">
       <p>

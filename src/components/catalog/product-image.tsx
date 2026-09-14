@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import { resolveImage } from "@/modules/media/resolve-image";
 import type { ProductImage as ImageData } from "@/modules/catalog/schema";
+import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
 export function ProductImage({
   image,
   sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
@@ -10,6 +13,8 @@ export function ProductImage({
   sizes?: string;
   priority?: boolean;
 }) {
+  const { locale } = useStorefrontI18n();
+  const sv = locale === "sv";
   if (!image)
     return (
       <div className="image-placeholder">
@@ -20,8 +25,10 @@ export function ProductImage({
           <i />
           <i />
         </span>
-        <span>Colour studies</span>
-        <small>Photography coming soon</small>
+        <span>{sv ? "Färgstudier" : "Colour studies"}</span>
+        <small>
+          {sv ? "Fotografi kommer snart" : "Photography coming soon"}
+        </small>
       </div>
     );
   return (

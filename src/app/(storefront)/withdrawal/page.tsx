@@ -1,12 +1,36 @@
 import type { Metadata } from "next";
 import { PolicyPage } from "@/components/policies/policy-page";
+import { getStorefrontLocale } from "@/modules/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Withdraw from an order",
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title:
+      (await getStorefrontLocale()) === "sv"
+        ? "Ångra en beställning"
+        : "Withdraw from an order",
+    robots: { index: false },
+  };
+}
 
-export default function WithdrawalPage() {
+export default async function WithdrawalPage() {
+  const sv = (await getStorefrontLocale()) === "sv";
+  if (sv)
+    return (
+      <PolicyPage eyebrow="Returer" title="Ångra en beställning">
+        <p>
+          Funktionen för att skicka ångermeddelande online och få en omedelbar
+          elektronisk bekräftelse färdigställs tillsammans med ordersystemet för
+          e-post. Beställning är avstängd tills denna lagstadgade funktion
+          fungerar.
+        </p>
+        <p>
+          Under tiden kan ett tydligt ångermeddelande skickas till{" "}
+          <a href="mailto:info@macmaer.com">info@macmaer.com</a>. Ange namn,
+          ordernummer, e-postadress för bekräftelse och ett tydligt meddelande
+          om att du ångrar köpet.
+        </p>
+      </PolicyPage>
+    );
   return (
     <PolicyPage eyebrow="Returns" title="Withdraw from an order">
       <p>

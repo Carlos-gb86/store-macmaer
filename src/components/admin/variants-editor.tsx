@@ -73,6 +73,7 @@ export function VariantsEditor({
               id: crypto.randomUUID(),
               sku: "",
               title: "",
+              title_sv: null,
               price_override: "",
               price_delta: "",
               compare_at_price: "",
@@ -206,6 +207,12 @@ function VariantCard({
             label="Variant title"
             value={v.title}
             onChange={(x) => onChange({ title: String(x) })}
+          />
+          <Field
+            label="Swedish variant title"
+            value={v.title_sv ?? null}
+            nullable
+            onChange={(x) => onChange({ title_sv: x as string | null })}
           />
           <Field
             label="Variant SKU"

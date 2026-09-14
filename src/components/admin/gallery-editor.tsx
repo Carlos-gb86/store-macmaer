@@ -38,6 +38,7 @@ export function GalleryEditor({
         asset_id: item.id,
         path: item.private_path,
         alt: "",
+        alt_sv: null,
         width: item.width!,
         height: item.height!,
         is_primary: !current.length,
@@ -121,6 +122,14 @@ export function GalleryEditor({
                   placeholder="Describe this photo…"
                   help="Describe what the image shows for people using screen readers. For example, Cream knot pillow on a wooden chair."
                   onChange={(v) => patch({ alt: String(v) })}
+                />
+                <Field
+                  label="Swedish alt text"
+                  value={image.alt_sv ?? null}
+                  nullable
+                  placeholder="Beskriv bilden…"
+                  help="Optional. The English alt text is used as a fallback."
+                  onChange={(v) => patch({ alt_sv: v as string | null })}
                 />
                 {!!variants.length && (
                   <label>

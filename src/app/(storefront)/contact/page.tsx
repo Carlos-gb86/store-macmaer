@@ -3,44 +3,46 @@ import { Mail } from "lucide-react";
 import { ContactForm } from "@/components/contact/contact-form";
 import { SocialLinks } from "@/components/social/social-links";
 import { Container } from "@/components/ui/container";
+import { getStorefrontLocale } from "@/modules/i18n/server";
+import { storefrontMessages } from "@/modules/i18n/messages";
 
-export const metadata: Metadata = {
-  title: "Contact Macmaer",
-  description:
-    "Contact Macmaer about an order, a handmade piece, materials or delivery.",
-  alternates: { canonical: "/contact" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const sv = (await getStorefrontLocale()) === "sv";
+  return {
+    title: sv ? "Kontakta Macmaer" : "Contact Macmaer",
+    description: sv
+      ? "Kontakta Macmaer om en beställning, en handgjord produkt, material eller leverans."
+      : "Contact Macmaer about an order, a handmade piece, materials or delivery.",
+    alternates: { canonical: "/contact" },
+  };
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const locale = await getStorefrontLocale();
+  const t = storefrontMessages[locale];
   return (
     <Container className="page-section contact-page">
       <div className="page-intro">
-        <p className="eyebrow">Let’s talk</p>
-        <h1>Get in touch.</h1>
-        <p>
-          Questions about a piece, your order, colours or delivery? Send a note
-          and we’ll be happy to help.
-        </p>
+        <p className="eyebrow">{t.contactEyebrow}</p>
+        <h1>{t.contactTitle}</h1>
+        <p>{t.contactIntro}</p>
       </div>
       <div className="contact-layout">
         <aside className="contact-details">
-          <p className="eyebrow">Email us</p>
+          <p className="eyebrow">{t.emailUs}</p>
           <a className="contact-email" href="mailto:info@macmaer.com">
             <Mail aria-hidden="true" strokeWidth={1.35} />
             info@macmaer.com
           </a>
-          <p className="small muted">
-            We read every message and reply as soon as we can from our studio in
-            Sweden.
-          </p>
+          <p className="small muted">{t.contactReply}</p>
           <div className="contact-social">
-            <p className="eyebrow">Follow us</p>
-            <SocialLinks />
+            <p className="eyebrow">{t.followUs}</p>
+            <SocialLinks locale={locale} />
           </div>
         </aside>
         <div className="contact-form-panel">
-          <p className="eyebrow">Send a message</p>
-          <h2>How can we help?</h2>
+          <p className="eyebrow">{t.sendMessage}</p>
+          <h2>{t.howHelp}</h2>
           <ContactForm />
         </div>
       </div>
