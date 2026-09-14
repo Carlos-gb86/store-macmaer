@@ -79,6 +79,12 @@ export default async function CheckoutPage() {
         publishableKey={env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
         initialAttemptId={randomUUID()}
         initialAccessToken={randomBytes(32).toString("base64url")}
+        items={cart.lines.map((line) => ({
+          id: line.id,
+          title: line.productTitle,
+          quantity: line.quantity,
+          options: line.options,
+        }))}
       />
     </Container>
   );

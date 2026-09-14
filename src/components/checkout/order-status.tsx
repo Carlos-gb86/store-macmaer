@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatMoney } from "@/modules/currency/money";
 import type { Currency } from "@/modules/currency/schema";
+import type { CartOptionSnapshot } from "@/modules/cart/schema";
+import { formatOptions } from "@/modules/cart/format-options";
 
 type Status = {
   order_number: string;
@@ -13,6 +15,12 @@ type Status = {
   currency: Currency;
   total_amount: number;
   customer_email: string;
+  items: Array<{
+    id: string;
+    title: string;
+    quantity: number;
+    options: CartOptionSnapshot[];
+  }>;
 };
 
 export function OrderStatus({
@@ -109,6 +117,19 @@ export function OrderStatus({
       <p className="status-pill">
         Payment: {order.payment_status.toLowerCase().replaceAll("_", " ")}
       </p>
+      <div className="confirmation-items">
+        <h2>Your pieces</h2>
+        {order.items.map((item) => (
+          <div key={item.id}>
+            <strong>
+              {item.title} × {item.quantity}
+            </strong>
+            {formatOptions(item.options).map((option, index) => (
+              <span key={`${index}:${option}`}>{option}</span>
+            ))}
+          </div>
+        ))}
+      </div>
       {paid && (
         <Link href="/shop" className="button">
           Continue shopping

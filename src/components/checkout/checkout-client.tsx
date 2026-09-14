@@ -9,6 +9,7 @@ import { PaymentForm } from "./payment-form";
 import type {
   CheckoutSummary as Summary,
   CreateCheckoutResult,
+  CheckoutDisplayItem,
 } from "@/modules/checkout/schema";
 
 type CountryOption = { code: string; name: string };
@@ -91,6 +92,7 @@ export function CheckoutClient({
   publishableKey,
   initialAttemptId,
   initialAccessToken,
+  items,
 }: {
   cartId: string;
   countries: CountryOption[];
@@ -99,6 +101,7 @@ export function CheckoutClient({
   publishableKey: string;
   initialAttemptId: string;
   initialAccessToken: string;
+  items: CheckoutDisplayItem[];
 }) {
   const stripe = useMemo(() => loadStripe(publishableKey), [publishableKey]);
   const [country, setCountry] = useState(initialCountry);
@@ -327,7 +330,7 @@ export function CheckoutClient({
             {quoteError}
           </p>
         )}
-        <CheckoutSummary summary={summary} />
+        <CheckoutSummary summary={summary} items={items} />
       </div>
       {notice && (
         <div className="checkout-toast" role="status">

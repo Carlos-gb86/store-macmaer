@@ -150,6 +150,7 @@ Row: {
 "updated_at": string;
 "description_document": Json | null;
 "asset_id": string | null;
+"legacy_woocommerce_id": number | null;
 };
 Insert: {
 "id"?: string;
@@ -166,6 +167,7 @@ Insert: {
 "updated_at"?: string;
 "description_document"?: Json | null;
 "asset_id"?: string | null;
+"legacy_woocommerce_id"?: number | null;
 };
 Update: {
 "id"?: string;
@@ -182,6 +184,7 @@ Update: {
 "updated_at"?: string;
 "description_document"?: Json | null;
 "asset_id"?: string | null;
+"legacy_woocommerce_id"?: number | null;
 };
 Relationships: [];
 };
@@ -613,10 +616,12 @@ Row: {
 "height": number | null;
 "cleanup_pending": boolean;
 "lease_until": string | null;
-"created_by": string;
+"created_by": string | null;
 "created_at": string;
 "lease_token": string | null;
 "upload_expires_at": string | null;
+"source": string;
+"source_reference": string | null;
 };
 Insert: {
 "id"?: string;
@@ -631,10 +636,12 @@ Insert: {
 "height"?: number | null;
 "cleanup_pending"?: boolean;
 "lease_until"?: string | null;
-"created_by"?: string;
+"created_by"?: string | null;
 "created_at"?: string;
 "lease_token"?: string | null;
 "upload_expires_at"?: string | null;
+"source"?: string;
+"source_reference"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -649,10 +656,12 @@ Update: {
 "height"?: number | null;
 "cleanup_pending"?: boolean;
 "lease_until"?: string | null;
-"created_by"?: string;
+"created_by"?: string | null;
 "created_at"?: string;
 "lease_token"?: string | null;
 "upload_expires_at"?: string | null;
+"source"?: string;
+"source_reference"?: string | null;
 };
 Relationships: [];
 };
@@ -1091,6 +1100,7 @@ Row: {
 "is_primary": boolean;
 "sort_order": number;
 "asset_id": string | null;
+"legacy_wordpress_media_id": number | null;
 };
 Insert: {
 "id"?: string;
@@ -1103,6 +1113,7 @@ Insert: {
 "is_primary"?: boolean;
 "sort_order"?: number;
 "asset_id"?: string | null;
+"legacy_wordpress_media_id"?: number | null;
 };
 Update: {
 "id"?: string;
@@ -1115,6 +1126,7 @@ Update: {
 "is_primary"?: boolean;
 "sort_order"?: number;
 "asset_id"?: string | null;
+"legacy_wordpress_media_id"?: number | null;
 };
 Relationships: [];
 };
@@ -1297,6 +1309,8 @@ Row: {
 "stock_quantity": number | null;
 "active": boolean;
 "sort_order": number;
+"legacy_woocommerce_id": number | null;
+"legacy_metadata": Json;
 };
 Insert: {
 "id"?: string;
@@ -1311,6 +1325,8 @@ Insert: {
 "stock_quantity"?: number | null;
 "active"?: boolean;
 "sort_order"?: number;
+"legacy_woocommerce_id"?: number | null;
+"legacy_metadata"?: Json;
 };
 Update: {
 "id"?: string;
@@ -1325,6 +1341,8 @@ Update: {
 "stock_quantity"?: number | null;
 "active"?: boolean;
 "sort_order"?: number;
+"legacy_woocommerce_id"?: number | null;
+"legacy_metadata"?: Json;
 };
 Relationships: [];
 };
@@ -1358,6 +1376,8 @@ Row: {
 "updated_at": string;
 "description_document": Json | null;
 "shipping_class_key": string;
+"legacy_woocommerce_id": number | null;
+"legacy_metadata": Json;
 };
 Insert: {
 "id"?: string;
@@ -1388,6 +1408,8 @@ Insert: {
 "updated_at"?: string;
 "description_document"?: Json | null;
 "shipping_class_key"?: string;
+"legacy_woocommerce_id"?: number | null;
+"legacy_metadata"?: Json;
 };
 Update: {
 "id"?: string;
@@ -1418,6 +1440,8 @@ Update: {
 "updated_at"?: string;
 "description_document"?: Json | null;
 "shipping_class_key"?: string;
+"legacy_woocommerce_id"?: number | null;
+"legacy_metadata"?: Json;
 };
 Relationships: [];
 };
@@ -1694,18 +1718,21 @@ Row: {
 "slug": string;
 "name": string;
 "updated_at": string;
+"legacy_woocommerce_id": number | null;
 };
 Insert: {
 "id"?: string;
 "slug": string;
 "name": string;
 "updated_at"?: string;
+"legacy_woocommerce_id"?: number | null;
 };
 Update: {
 "id"?: string;
 "slug"?: string;
 "name"?: string;
 "updated_at"?: string;
+"legacy_woocommerce_id"?: number | null;
 };
 Relationships: [];
 };
@@ -1891,6 +1918,7 @@ Functions: {
 "checkout_process_stripe_event": { Args: {"stripe_event_id": string;"stripe_event_type": string;"stripe_object_id": string;"target_order_id": string;"provider_error"?: string;}; Returns: string};
 "checkout_set_payment_intent": { Args: {"target_order_id": string;"payment_intent_id": string;}; Returns: undefined};
 "checkout_set_refund_provider": { Args: {"target_refund_id": string;"provider_refund_id": string;"current_provider_status": string;}; Returns: undefined};
+"import_woocommerce_product": { Args: {"document": Json;}; Returns: string};
 "is_admin": { Args: Record<never, never>; Returns: boolean};
 "submit_contact_message": { Args: {"document": Json;}; Returns: Json};
 "submit_product_review": { Args: {"document": Json;}; Returns: string};

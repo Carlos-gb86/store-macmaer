@@ -4,6 +4,8 @@ import { randomUUID } from "node:crypto";
 import { getServerEnv } from "@/lib/env/server";
 import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import type { Database, Json } from "@/lib/supabase/database.types";
+import { formatOptions } from "@/modules/cart/format-options";
+import { cartOptionsSnapshotSchema } from "@/modules/cart/schema";
 import {
   adminOrderTemplate,
   contactAcknowledgementTemplate,
@@ -132,23 +134,8 @@ async function sendTrackedEmail(message: TrackedEmail) {
 }
 
 function optionLabels(value: Json): string[] {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((option) => {
-    if (!option || typeof option !== "object" || Array.isArray(option))
-      return [];
-    const label = typeof option.label === "string" ? option.label : null;
-    const values = Array.isArray(option.values)
-      ? option.values.flatMap((entry) =>
-          entry &&
-          typeof entry === "object" &&
-          !Array.isArray(entry) &&
-          typeof entry.label === "string"
-            ? [entry.label]
-            : [],
-        )
-      : [];
-    return label && values.length ? [`${label}: ${values.join(", ")}`] : [];
-  });
+  const parsed = cartOptionsSnapshotSchema.safeParse(value);
+  return parsed.success ? formatOptions(parsed.data) : [];
 }
 
 async function loadOrder(orderId: string): Promise<EmailOrder> {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { countryCodeSchema } from "@/modules/country/countries";
 import { currencySchema } from "@/modules/currency/schema";
+import type { CartOptionSnapshot } from "@/modules/cart/schema";
 
 const trimmed = (minimum: number, maximum: number) =>
   z.string().trim().min(minimum).max(maximum);
@@ -62,6 +63,12 @@ export type CheckoutSummary = {
   totalAmount: number;
   taxMessage: string;
   shippingMethod: string;
+};
+export type CheckoutDisplayItem = {
+  id: string;
+  title: string;
+  quantity: number;
+  options: CartOptionSnapshot[];
 };
 
 export type CreateCheckoutResult = {

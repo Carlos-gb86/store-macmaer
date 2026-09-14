@@ -11,6 +11,7 @@ import { quoteCart } from "@/modules/quote/repository";
 import { formatMoney } from "@/modules/currency/money";
 import { countries } from "@/modules/country/countries";
 import { resolveImage } from "@/modules/media/resolve-image";
+import { formatOptions } from "@/modules/cart/format-options";
 
 export const metadata: Metadata = { title: "Your cart" };
 
@@ -69,10 +70,9 @@ export default async function CartPage() {
                     {line.productTitle}
                   </Link>
                   {line.sku && <p className="small muted">SKU {line.sku}</p>}
-                  {line.options.map((option) => (
-                    <p className="cart-option" key={option.optionId}>
-                      <span>{option.label}</span>{" "}
-                      {option.values.map((value) => value.label).join(", ")}
+                  {formatOptions(line.options).map((option, index) => (
+                    <p className="cart-option" key={`${index}:${option}`}>
+                      {option}
                     </p>
                   ))}
                   {!line.valid && (

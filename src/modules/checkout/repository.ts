@@ -5,6 +5,7 @@ import { createServiceSupabaseClient } from "@/lib/supabase/service";
 import type { Json } from "@/lib/supabase/database.types";
 import { getServerEnv } from "@/lib/env/server";
 import { getCart, setCartDiscountCode } from "@/modules/cart/repository";
+import { cartOptionsSnapshotSchema } from "@/modules/cart/schema";
 import {
   getStrictStorefrontContext,
   type StorefrontContext,
@@ -384,7 +385,23 @@ export async function readOrderStatus(orderId: string, accessToken: string) {
     .maybeSingle();
   if (error) throw error;
   if (!data) throw new CheckoutError("Order not found.", 404);
-  return { ...data, currency: currencySchema.parse(data.currency) };
+  const { data: items, error: itemsError } = await client
+    .from("order_items")
+    .select("id,product_title,quantity,selected_options")
+    .eq("order_id", data.id)
+    .order("created_at");
+  if (itemsError) throw itemsError;
+  return {
+    ...data,
+    currency: currencySchema.parse(data.currency),
+    items: items.map((item) => ({
+      id: item.id,
+      title: item.product_title,
+      quantity: item.quantity,
+      options:
+        cartOptionsSnapshotSchema.safeParse(item.selected_options).data ?? [],
+    })),
+  };
 }
 
 export async function processStripePaymentEvent(event: Stripe.Event) {

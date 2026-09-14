@@ -79,13 +79,13 @@ Product pages accept reviews through a service-only path. Email addresses are no
 
 The storefront publishes canonical metadata, Open Graph cards, a dynamic `/sitemap.xml`, `/robots.txt`, Organization/WebSite/Product/Breadcrumb JSON-LD, and reviewed permanent redirects. Keep `SEO_INDEXING_ENABLED=false` while the stable Vercel address is used for acceptance testing and WordPress remains live at `macmaer.com`. The intended new canonical storefront is `macmaer.se`; set that origin only after the domain is owned and connected, verify the complete redirect map, and enable indexing only after final approval. Admin, API, cart, checkout, and order-status routes remain excluded from crawling.
 
-Export products and reviews as JSON through the WooCommerce REST API, then prepare a non-mutating migration bundle with:
+The live one-time catalogue importer reads published products, configurations, images and approved reviews directly through read-only WooCommerce credentials. Start with its mandatory review-oriented dry run:
 
 ```sh
-npm run migration:prepare -- --products products.json --reviews reviews.json
+npm run migration:woocommerce
 ```
 
-The command writes a product review manifest, product redirects, and idempotent review SQL under `migration/woocommerce-prepared`. It does not change the database. Product prices, images, categories, attributes, and variations must be reviewed and mapped in admin; generated review SQL leaves all imported reviews pending. Merge the reviewed redirect output into `config/legacy-redirects.json` before cutover.
+It defaults to dry-run and writes a detailed ignored report, including every unverified plug-in/add-on field. `--apply` is the only mode that writes to Macmaer Supabase; imported products remain drafts until reviewed. The source client is always GET-only, and customer/order history is excluded. See [the WooCommerce migration runbook](docs/WOOCOMMERCE_MIGRATION.md) for credentials, target preparation, review, apply, rerun and key-revocation steps. The older `migration:prepare` command remains available for offline JSON/redirect preparation.
 
 ## Administrator access
 

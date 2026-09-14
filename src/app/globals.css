@@ -1335,6 +1335,23 @@ textarea {
 .checkout-summary h2 {
   font-size: 2rem;
 }
+.checkout-items {
+  display: grid;
+  gap: 14px;
+  margin: 20px 0;
+  padding: 0 0 20px;
+  border-bottom: 1px solid var(--color-line-strong);
+  list-style: none;
+}
+.checkout-items li,
+.checkout-items span {
+  display: grid;
+  gap: 3px;
+}
+.checkout-items span {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+}
 .checkout-summary dl {
   margin: 0;
 }
@@ -1490,6 +1507,29 @@ textarea {
   background: color-mix(in srgb, var(--color-paper), var(--color-olive) 14%);
   font-size: 0.72rem;
   text-transform: capitalize;
+}
+.confirmation-items {
+  display: grid;
+  gap: 16px;
+  width: min(480px, 100%);
+  margin: 28px auto;
+  padding: 24px;
+  text-align: left;
+  background: color-mix(in srgb, var(--color-paper), white 35%);
+  border: 1px solid var(--color-line);
+}
+.confirmation-items h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.confirmation-items > div,
+.confirmation-items span {
+  display: grid;
+  gap: 3px;
+}
+.confirmation-items span {
+  color: var(--color-muted);
+  font-size: 0.8rem;
 }
 .checkout-toast {
   position: fixed;

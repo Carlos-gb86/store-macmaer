@@ -12,6 +12,7 @@ import { formatCataloguePrice } from "@/modules/catalog/format";
 import { minorUnitsInput } from "@/modules/admin/money";
 import { checkoutAddressSchema } from "@/modules/checkout/schema";
 import { cartOptionsSnapshotSchema } from "@/modules/cart/schema";
+import { formatOptions } from "@/modules/cart/format-options";
 import { getAdminOrder } from "@/modules/orders/repository";
 
 function words(value: string) {
@@ -53,11 +54,7 @@ function Address({ value }: { value: Json }) {
 
 function options(value: Json) {
   const parsed = cartOptionsSnapshotSchema.safeParse(value);
-  if (!parsed.success) return [];
-  return parsed.data.map(
-    (option) =>
-      `${option.label}: ${option.values.map((item) => item.label).join(", ")}`,
-  );
+  return parsed.success ? formatOptions(parsed.data) : [];
 }
 
 function shippingName(value: Json) {
@@ -131,8 +128,8 @@ export default async function OrderDetailPage({
                       <td>
                         <strong>{item.product_title}</strong>
                         <small>{item.sku || "No SKU"}</small>
-                        {options(item.selected_options).map((option) => (
-                          <small key={option}>{option}</small>
+                        {options(item.selected_options).map((option, index) => (
+                          <small key={`${index}:${option}`}>{option}</small>
                         ))}
                       </td>
                       <td>{item.quantity}</td>
