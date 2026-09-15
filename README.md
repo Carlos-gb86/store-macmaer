@@ -119,6 +119,8 @@ The language control in the storefront header switches between English and Swedi
 
 English is the required catalogue source and safe fallback. Product and collection editors expose optional Swedish titles, descriptions, materials, care text, processing text, SEO copy, image alt text, option/value labels, and variant titles. Tags have an optional Swedish name, and `/admin/content` manages both language versions of homepage and About-page content. A missing or blank Swedish field displays its English value rather than hiding the product. Apply migration `018_storefront_localization` before deploying code that reads or saves these fields.
 
+For the current catalogue's one-time Swedish translation, safe reruns and source-copy review notes, see [Swedish catalogue translation](docs/SWEDISH_CATALOGUE_TRANSLATION.md).
+
 ## Media and descriptions
 
 Direct browser uploads use authorized signed URLs for private `catalogue-drafts` Storage. Before acceptance, the server fully decodes bytes and verifies format, dimensions, and size: still JPEG, PNG, WebP, AVIF; maximum 10 MiB and 40 megapixels. SVG, corrupt images, and MIME mismatches are rejected.
