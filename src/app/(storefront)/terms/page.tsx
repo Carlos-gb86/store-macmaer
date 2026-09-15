@@ -73,8 +73,8 @@ export default async function TermsPage() {
         </p>
         <h2>Företagsinformation</h2>
         <address>
-          <strong>Maria Botyan</strong>
-          {/* <br />
+          {/* <strong>Maria Botyan</strong>
+           <br />
           Enskild näringsidkare som bedriver verksamhet under namnet{" "}
           <strong>Macmaer</strong>
           <br />
@@ -152,8 +152,8 @@ export default async function TermsPage() {
       </p>
       <h2>Trader information</h2>
       <address>
-        <strong>Maria Botyan</strong>
-        {/* <br />
+        {/*<strong>Maria Botyan</strong>
+        <br />
         Sole trader (enskild näringsidkare) trading as <strong>Macmaer</strong>
         <br />
         Identification number: 19820627-4345
