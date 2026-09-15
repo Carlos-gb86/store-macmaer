@@ -16,3 +16,5 @@ supabase/.branches/
 migration/woocommerce-*.json
 migration/.woocommerce-image-cache/
 migration/swedish-catalogue-*.json
+migration/variant-cleanup-*.json
+migration/variant-cleanup-*.sql

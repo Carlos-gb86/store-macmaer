@@ -87,6 +87,8 @@ npm run migration:woocommerce
 
 It defaults to dry-run and writes a detailed ignored report, including every unverified plug-in/add-on field. `--apply` is the only mode that writes to Macmaer Supabase; imported products remain drafts until reviewed. The source client is always GET-only, and customer/order history is excluded. See [the WooCommerce migration runbook](docs/WOOCOMMERCE_MIGRATION.md) for credentials, target preparation, review, apply, rerun and key-revocation steps. The older `migration:prepare` command remains available for offline JSON/redirect preparation.
 
+For safely removing empty, redundant imported variations while preserving their images and legacy metadata, see [the variant cleanup runbook](docs/VARIANT_CLEANUP.md).
+
 ## Administrator access
 
 1. In Supabase Dashboard → Authentication → Users → Add user, create an email/password account, confirm its email, and set its password privately. This workflow does not send invitations.
