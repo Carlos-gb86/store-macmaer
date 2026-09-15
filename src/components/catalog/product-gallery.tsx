@@ -2,51 +2,63 @@
 
 import Image from "./catalogue-image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useRef, useState, type TouchEvent } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import type { ProductImage as ImageData } from "@/modules/catalog/schema";
 import { resolveImage } from "@/modules/media/resolve-image";
 import { ProductImage } from "./product-image";
 import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
-
-const swipeThreshold = 45;
+import { GalleryCarousel, galleryReducedMotion } from "./gallery-carousel";
+import {
+  galleryNavigationReducer,
+  initialGalleryNavigation,
+  type GalleryDirection,
+  type GalleryOrigin,
+} from "@/modules/media/gallery-navigation";
 
 export function ProductGallery({ images }: { images: ImageData[] }) {
   const { locale } = useStorefrontI18n();
   const sv = locale === "sv";
-  const [selected, setSelected] = useState(0);
+  const [navigation, dispatch] = useReducer(
+    galleryNavigationReducer,
+    initialGalleryNavigation,
+  );
+  const selected = navigation.selected;
+  const [open, setOpen] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
-  const swipeStart = useRef<{ x: number; y: number } | null>(null);
-  const suppressMainClick = useRef(false);
+  const suppressMainClickUntil = useRef(0);
   const image = images[selected] ?? images[0];
   const multiple = images.length > 1;
 
-  function selectRelative(direction: -1 | 1) {
-    if (!multiple) return;
-    setSelected(
-      (current) => (current + direction + images.length) % images.length,
-    );
+  function selectRelative(
+    direction: GalleryDirection,
+    origin: GalleryOrigin = "embedded",
+    offset = 0,
+  ) {
+    dispatch({
+      type: "navigate",
+      count: images.length,
+      relative: direction,
+      origin,
+      offset,
+      animate: !galleryReducedMotion(),
+    });
   }
+  function selectThumbnail(index: number, origin: GalleryOrigin) {
+    dispatch({
+      type: "navigate",
+      count: images.length,
+      index,
+      origin,
+      animate: !galleryReducedMotion(),
+    });
+  }
+  const finishTransition = useCallback((sequence: number) => {
+    dispatch({ type: "finish", sequence, animate: !galleryReducedMotion() });
+  }, []);
 
-  function startSwipe(event: TouchEvent<HTMLElement>) {
-    const touch = event.touches[0];
-    if (touch) swipeStart.current = { x: touch.clientX, y: touch.clientY };
-  }
-
-  function finishSwipe(event: TouchEvent<HTMLElement>, suppressClick = false) {
-    const start = swipeStart.current;
-    const touch = event.changedTouches[0];
-    swipeStart.current = null;
-    if (!start || !touch) return;
-    const horizontalDistance = touch.clientX - start.x;
-    const verticalDistance = touch.clientY - start.y;
-    if (
-      Math.abs(horizontalDistance) < swipeThreshold ||
-      Math.abs(horizontalDistance) <= Math.abs(verticalDistance)
-    )
-      return;
-    if (suppressClick) suppressMainClick.current = true;
-    selectRelative(horizontalDistance < 0 ? 1 : -1);
-  }
+  useEffect(() => {
+    if (open && !dialog.current?.open) dialog.current?.showModal();
+  }, [open]);
 
   function imageSource(item: ImageData) {
     return item.resolved_src ?? resolveImage(item.path);
@@ -69,7 +81,7 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
               type="button"
               aria-label={(sv ? "Visa bild " : "View image ") + (index + 1)}
               aria-pressed={index === selected}
-              onClick={() => setSelected(index)}
+              onClick={() => selectThumbnail(index, "embedded")}
             >
               <Image
                 src={imageSource(item)}
@@ -85,18 +97,29 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
 
       <div
         className="gallery-stage"
-        onTouchStart={startSwipe}
-        onTouchEnd={(event) => finishSwipe(event, true)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault();
+            selectRelative(event.key === "ArrowLeft" ? -1 : 1);
+          }
+        }}
       >
         <button
           type="button"
           className="gallery-main"
           onClick={() => {
-            if (suppressMainClick.current) {
-              suppressMainClick.current = false;
+            if (Date.now() < suppressMainClickUntil.current) {
+              suppressMainClickUntil.current = 0;
               return;
             }
-            if (image) dialog.current?.showModal();
+            if (image) {
+              dispatch({
+                type: "finish",
+                sequence: navigation.sequence,
+                animate: false,
+              });
+              setOpen(true);
+            }
           }}
           disabled={!image}
           aria-label={
@@ -104,11 +127,32 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
             (image ? `, ${selected + 1} / ${images.length}` : "")
           }
         >
-          <ProductImage
-            image={image}
-            sizes="(max-width: 800px) 85vw, 50vw"
-            priority
-          />
+          {image ? (
+            <GalleryCarousel
+              navigation={navigation}
+              count={images.length}
+              origin="embedded"
+              active={!open}
+              onNavigate={(direction, offset) =>
+                selectRelative(direction, "embedded", offset)
+              }
+              onFinish={finishTransition}
+              onDrag={() => {
+                suppressMainClickUntil.current = Date.now() + 500;
+              }}
+              renderImage={(index, onReady) => (
+                <ProductImage
+                  image={images[index]}
+                  sizes="(max-width: 800px) 85vw, 50vw"
+                  priority
+                  onLoad={onReady}
+                  onUnavailable={onReady}
+                />
+              )}
+            />
+          ) : (
+            <ProductImage />
+          )}
           {image && (
             <span className="image-label">
               {sv ? "Visa närmare" : "View closer"} +
@@ -145,9 +189,19 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
         ref={dialog}
         className="image-dialog"
         aria-label={sv ? "Förstorad produktbild" : "Enlarged product image"}
+        onClose={() => {
+          dispatch({
+            type: "finish",
+            sequence: navigation.sequence,
+            animate: false,
+          });
+          setOpen(false);
+        }}
         onKeyDown={(event) => {
-          if (event.key === "ArrowLeft") selectRelative(-1);
-          if (event.key === "ArrowRight") selectRelative(1);
+          if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+            event.preventDefault();
+            selectRelative(event.key === "ArrowLeft" ? -1 : 1, "lightbox");
+          }
         }}
       >
         <div className="lightbox-shell">
@@ -161,19 +215,32 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
             <X aria-hidden="true" />
           </button>
 
-          <div
-            className="lightbox-stage"
-            onTouchStart={startSwipe}
-            onTouchEnd={finishSwipe}
-          >
-            {image && (
-              <Image
-                src={imageSource(image)}
-                unoptimized={image.private}
-                alt={image.alt}
-                fill
-                sizes="(max-width: 800px) 100vw, 75vw"
-                className="lightbox-image"
+          <div className="lightbox-stage">
+            {open && image && (
+              <GalleryCarousel
+                navigation={navigation}
+                count={images.length}
+                origin="lightbox"
+                onNavigate={(direction, offset) =>
+                  selectRelative(direction, "lightbox", offset)
+                }
+                onFinish={finishTransition}
+                renderImage={(index, onReady) => {
+                  const item = images[index];
+                  return item ? (
+                    <Image
+                      src={imageSource(item)}
+                      unoptimized={item.private}
+                      alt={item.alt}
+                      fill
+                      sizes="(max-width: 800px) 100vw, 75vw"
+                      className="lightbox-image"
+                      loading="eager"
+                      onLoad={onReady}
+                      onUnavailable={onReady}
+                    />
+                  ) : null;
+                }}
               />
             )}
             {multiple && (
@@ -182,7 +249,7 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
                   type="button"
                   className="lightbox-arrow lightbox-arrow-previous"
                   aria-label={previousLabel}
-                  onClick={() => selectRelative(-1)}
+                  onClick={() => selectRelative(-1, "lightbox")}
                 >
                   <ChevronLeft aria-hidden="true" />
                 </button>
@@ -190,7 +257,7 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
                   type="button"
                   className="lightbox-arrow lightbox-arrow-next"
                   aria-label={nextLabel}
-                  onClick={() => selectRelative(1)}
+                  onClick={() => selectRelative(1, "lightbox")}
                 >
                   <ChevronRight aria-hidden="true" />
                 </button>
@@ -212,7 +279,7 @@ export function ProductGallery({ images }: { images: ImageData[] }) {
                   type="button"
                   aria-label={(sv ? "Visa bild " : "View image ") + (index + 1)}
                   aria-pressed={index === selected}
-                  onClick={() => setSelected(index)}
+                  onClick={() => selectThumbnail(index, "lightbox")}
                 >
                   <Image
                     src={imageSource(item)}

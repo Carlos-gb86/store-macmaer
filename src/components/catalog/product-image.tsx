@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "./catalogue-image";
+import Image, { type CatalogueImageProps } from "./catalogue-image";
 import { resolveImage } from "@/modules/media/resolve-image";
 import type { ProductImage as ImageData } from "@/modules/catalog/schema";
 import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
@@ -8,10 +8,14 @@ export function ProductImage({
   image,
   sizes = "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw",
   priority = false,
+  onLoad,
+  onUnavailable,
 }: {
   image?: ImageData;
   sizes?: string;
   priority?: boolean;
+  onLoad?: CatalogueImageProps["onLoad"];
+  onUnavailable?: () => void;
 }) {
   const { locale } = useStorefrontI18n();
   const sv = locale === "sv";
@@ -41,6 +45,8 @@ export function ProductImage({
       loading={priority ? "eager" : "lazy"}
       fetchPriority={priority ? "high" : "auto"}
       className="product-photo"
+      onLoad={onLoad}
+      onUnavailable={onUnavailable}
     />
   );
 }

@@ -965,9 +965,9 @@ textarea {
 }
 .gallery-stage {
   position: relative;
-  aspect-ratio: 1;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
-  background: var(--color-panel);
+  background: var(--color-paper);
   touch-action: pan-y;
 }
 .gallery-main {
@@ -978,6 +978,23 @@ textarea {
   border: 0;
   padding: 0;
   background: transparent;
+}
+.gallery-main .product-photo {
+  object-fit: contain;
+  object-position: center;
+}
+.gallery-carousel {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: pan-y;
+}
+.gallery-slide {
+  position: absolute;
+  inset: 0;
+}
+.gallery-carousel[data-direction] .gallery-slide {
+  will-change: transform;
 }
 .gallery-thumbnails {
   position: absolute;
@@ -1094,6 +1111,7 @@ textarea {
   position: relative;
   min-height: 0;
   touch-action: pan-y;
+  overflow: hidden;
 }
 .lightbox-image {
   object-fit: contain;
@@ -2479,6 +2497,9 @@ textarea {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .gallery-carousel .gallery-slide {
+    will-change: auto;
+  }
   .catalogue-image-feedback.is-retrying::before {
     animation: none;
   }

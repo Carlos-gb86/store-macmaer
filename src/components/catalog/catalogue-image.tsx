@@ -16,7 +16,9 @@ function resourceKey(src: ImageProps["src"]) {
       : src.src;
 }
 
-export default function CatalogueImage(props: ImageProps) {
+export type CatalogueImageProps = ImageProps & { onUnavailable?: () => void };
+
+export default function CatalogueImage(props: CatalogueImageProps) {
   return <ImageAttempts key={resourceKey(props.src)} {...props} />;
 }
 
@@ -26,8 +28,9 @@ function ImageAttempts({
   style,
   onError,
   onLoad,
+  onUnavailable,
   ...props
-}: ImageProps) {
+}: CatalogueImageProps) {
   const { locale } = useStorefrontI18n();
   const [attempt, setAttempt] = useState(0);
   const [phase, setPhase] = useState<
@@ -83,6 +86,7 @@ function ImageAttempts({
           onError?.(event);
           if (attempt >= 2) {
             setPhase("unavailable");
+            onUnavailable?.();
             return;
           }
           setPhase("retrying");

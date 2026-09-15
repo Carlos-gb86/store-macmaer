@@ -90,10 +90,10 @@ test("browse collections and enlarge a product image with keyboard dismissal", a
   await lightboxThumbnails
     .getByRole("button", { name: "View image 1" })
     .click();
-  await lightbox.locator(".lightbox-stage").dispatchEvent("touchstart", {
+  await lightbox.locator(".gallery-carousel").dispatchEvent("touchstart", {
     touches: [{ identifier: 0, clientX: 280, clientY: 220 }],
   });
-  await lightbox.locator(".lightbox-stage").dispatchEvent("touchend", {
+  await lightbox.locator(".gallery-carousel").dispatchEvent("touchend", {
     changedTouches: [{ identifier: 0, clientX: 120, clientY: 225 }],
   });
   await expect(

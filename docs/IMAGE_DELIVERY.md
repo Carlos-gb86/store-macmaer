@@ -18,6 +18,14 @@ The defaults live in [the cache module](../src/modules/media/catalogue-image-cac
 
 The shared catalogue image component retries failed images twice with increasing delays and jitter. Each retry uses a fresh optimizer URL but the same original-image cache key. During recovery the broken image is hidden behind a subtle loading surface. If recovery fails, a localized, accessible unavailable-image placeholder replaces the browser's broken-image icon and exposed alt text. Retries stop; changing to another gallery image remains possible. Alt text remains available to assistive technology.
 
+## Product gallery navigation
+
+The embedded gallery keeps a stable portrait viewport (3:4 width-to-height) with the page background around its contained main photo; card and thumbnail cropping are unchanged. The full-screen viewer retains its existing contained-image layout. Both use the shared `GalleryCarousel` two-slide viewport and a 300 ms transform-only transition, with no carousel dependency or full-gallery image preload.
+
+Arrow, keyboard and completed-swipe directions remain explicit when wrapping. Thumbnail jumps use the displayed index versus the requested index. Rapid requests coalesce to the latest intended destination; sequence-checked completion prevents stale animation callbacks from affecting a newer transition. Touch tracks horizontal finger movement and snaps short drags back; vertical scrolling and click-to-open remain intact. Only the open viewer owns transition completion. The previous photo remains visible while a replacement loads or finishes bounded error recovery.
+
+Reduced-motion navigation is immediate, and changing that preference finishes an active transition. Opening/closing the lightbox does not animate between images. Unit navigation tests and `tests/e2e/gallery-carousel.spec.ts` cover direction, wrapping, rapid requests, mixed aspect ratios, loading, touch, reduced motion and single-image products.
+
 ## Deployment and diagnosis
 
 No database migration, Storage rewrite, or new environment variable is needed. Deploy the source changes to Vercel; restart local development if the updated Next configuration has not been picked up.
