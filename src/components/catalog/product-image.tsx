@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "./catalogue-image";
 import { resolveImage } from "@/modules/media/resolve-image";
 import type { ProductImage as ImageData } from "@/modules/catalog/schema";
 import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";

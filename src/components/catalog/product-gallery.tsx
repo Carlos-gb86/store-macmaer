@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from "./catalogue-image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useRef, useState, type TouchEvent } from "react";
 import type { ProductImage as ImageData } from "@/modules/catalog/schema";

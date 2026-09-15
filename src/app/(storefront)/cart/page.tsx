@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import Image from "@/components/catalog/catalogue-image";
 import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { CartLineControls } from "@/components/cart/cart-line-controls";

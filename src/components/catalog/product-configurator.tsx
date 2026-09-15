@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+import Image from "./catalogue-image";
 import { useState, useTransition } from "react";
 import type { Product, ProductOption } from "@/modules/catalog/schema";
 import {

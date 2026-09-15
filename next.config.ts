@@ -19,6 +19,13 @@ const config: NextConfig = {
   distDir: process.env.NEXT_BUILD_DIR ?? ".next",
   images: {
     remotePatterns,
+    localPatterns: [
+      { pathname: "/**", search: "" },
+      // Retry tokens are permitted only for public assets and the validated
+      // catalogue endpoint, never arbitrary application/API paths.
+      { pathname: "/images/**" },
+      { pathname: "/api/catalogue-images" },
+    ],
     dangerouslyAllowLocalIP:
       process.env.NODE_ENV === "development" &&
       !!storageUrl &&

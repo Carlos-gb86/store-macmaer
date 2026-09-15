@@ -125,6 +125,8 @@ For the current catalogue's one-time Swedish translation, safe reruns and source
 
 ## Media and descriptions
 
+Public catalogue images share a cached original download across responsive sizes, with bounded upstream concurrency, backed-off retries, and browser recovery instead of broken-image icons. See [image delivery and troubleshooting](docs/IMAGE_DELIVERY.md). Private previews remain uncached by this public pipeline.
+
 Direct browser uploads use authorized signed URLs for private `catalogue-drafts` Storage. Before acceptance, the server fully decodes bytes and verifies format, dimensions, and size: still JPEG, PNG, WebP, AVIF; maximum 10 MiB and 40 megapixels. SVG, corrupt images, and MIME mismatches are rejected.
 
 New uploads are automatically oriented, resized to fit within 2400 × 2400 pixels without enlargement, and encoded as WebP at quality 82. Embedded metadata is stripped and transparency retained. The registry records the processed dimensions, byte size, and MIME type; publication copies the processed image. Existing published files keep their current references and are not rewritten by this update.

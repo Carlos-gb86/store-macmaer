@@ -1,4 +1,4 @@
-import Image from "next/image";
+import Image from "./catalogue-image";
 import Link from "next/link";
 import type { Collection } from "@/modules/catalog/schema";
 import { resolveImage } from "@/modules/media/resolve-image";
