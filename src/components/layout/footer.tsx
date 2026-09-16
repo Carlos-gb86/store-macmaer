@@ -32,7 +32,7 @@ export function Footer({ locale }: { locale: StorefrontLocale }) {
             <span className="eyebrow">{t.explore}</span>
             <Link href="/shop">{t.allPieces}</Link>
             <Link href="/collections">{t.ourCollections}</Link>
-            <Link href="/about">{t.ourStory}</Link>
+            <Link href="/about">{t.aboutUs}</Link>
             <Link href="/contact">{t.contactUs}</Link>
           </nav>
           <nav aria-label={t.policies}>

@@ -226,7 +226,7 @@ test("uses a compact cart, product currency control, and contact page", async ({
   ).toBeVisible();
 });
 
-test("uses sticky navigation, a dedicated story page, and a persistent language switch", async ({
+test("uses sticky navigation, a dedicated about page, and a persistent language switch", async ({
   page,
 }) => {
   await page.goto("/");
@@ -243,16 +243,38 @@ test("uses sticky navigation, a dedicated story page, and a persistent language 
     page.locator(".language-switcher .lucide-globe-2"),
   ).toBeVisible();
 
-  await navigation.getByRole("link", { name: "Our story" }).click();
+  await navigation.getByRole("link", { name: "About us" }).click();
   await expect(page).toHaveURL("/about");
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Made by hand. Shaped by curiosity.",
+      name: "About us",
     }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Our story" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Fabrics & Materials" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      level: 2,
+      name: "Design & Working process",
+    }),
+  ).toBeVisible();
+  await expect(page.locator(".about-block")).toHaveCount(8);
+  await expect(page.locator(".about-video-placeholder")).toHaveCount(3);
+  await expect(page.locator(".about-signature-avatar img")).toHaveCount(1);
+  await expect(page.locator(".about-page img")).toHaveCount(13);
+  const storyBlock = page.locator(".about-block").nth(2);
+  const boucleBlock = page.locator(".about-block").nth(3);
+  await expect(storyBlock).toHaveClass(/about-reveal--up/);
+  await expect(boucleBlock).toHaveClass(/about-reveal--side/);
+  await storyBlock.scrollIntoViewIfNeeded();
+  await expect(storyBlock).toHaveClass(/is-visible/);
   const aboutTitleSize = await page
-    .locator(".about-intro h1")
+    .locator(".about-opening h1")
     .evaluate((element) =>
       Number.parseFloat(getComputedStyle(element).fontSize),
     );
@@ -270,7 +292,7 @@ test("uses sticky navigation, a dedicated story page, and a persistent language 
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Handgjort. Format av nyfikenhet.",
+      name: "Om oss",
     }),
   ).toBeVisible();
   await expect(
@@ -280,4 +302,11 @@ test("uses sticky navigation, a dedicated story page, and a persistent language 
   await page.reload();
   await expect(page.getByLabel("Språk")).toContainText("SV");
   await expect(page.getByRole("link", { name: "Handla allt" })).toBeVisible();
+
+  await page.setViewportSize({ width: 700, height: 1000 });
+  const materialImages = page.locator(".about-material-gallery figure");
+  await materialImages.last().scrollIntoViewIfNeeded();
+  const fifthImage = await materialImages.nth(4).boundingBox();
+  const sixthImage = await materialImages.nth(5).boundingBox();
+  expect(fifthImage?.y).toBeCloseTo(sixthImage?.y ?? 0, 0);
 });

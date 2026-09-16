@@ -25,7 +25,7 @@ export async function Header({ locale }: { locale: StorefrontLocale }) {
         <nav aria-label={t.navLabel} className="main-nav">
           <Link href="/shop">{t.shopAll}</Link>
           <Link href="/collections">{t.collections}</Link>
-          <Link href="/about">{t.ourStory}</Link>
+          <Link href="/about">{t.aboutUs}</Link>
           <Link href="/contact">{t.contact}</Link>
         </nav>
         <div className="header-tools">
