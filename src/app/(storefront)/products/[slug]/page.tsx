@@ -63,8 +63,10 @@ export default async function ProductPage({ params }: Props) {
   const product = data.products.find((product) => product.slug === slug);
   if (!product) notFound();
   const reviews = await getProductReviews(product.id);
-  const collection = data.collections.find((collection) =>
-    product.collections.includes(collection.slug),
+  const collection = data.collections.find(
+    (collection) =>
+      collection.kind === "collection" &&
+      product.collections.includes(collection.slug),
   );
   const related = data.products
     .filter(

@@ -8,7 +8,7 @@ export function AdminNavigation() {
       {[
         ["orders", "Orders"],
         ["products", "Products"],
-        ["collections", "Collections"],
+        ["collections", "Collections & types"],
         ["tags", "Tags"],
         ["media", "Media"],
         ["content", "Homepage"],

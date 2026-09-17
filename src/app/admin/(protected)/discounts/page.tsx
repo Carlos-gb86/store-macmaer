@@ -18,7 +18,11 @@ export default async function DiscountsPage() {
   ] = await Promise.all([
     client.from("discounts").select().order("created_at"),
     client.from("products").select("id,title").order("title"),
-    client.from("collections").select("id,name").order("name"),
+    client
+      .from("collections")
+      .select("id,name")
+      .eq("kind", "collection")
+      .order("name"),
     client.from("discount_products").select(),
     client.from("discount_collections").select(),
     client

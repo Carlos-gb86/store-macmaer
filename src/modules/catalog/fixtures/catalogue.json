@@ -26,11 +26,11 @@
     },
     {
       "id": "00000000-0000-4000-8000-000000000022",
-      "slug": "cotton-velour",
-      "name": "Cotton Velour",
+      "slug": "velour",
+      "name": "Velour",
       "description": "Everyday softness in colours that feel like home.",
       "image_path": "/images/catalogue/cotton-velour.png",
-      "image_alt": "Cotton Velour collection",
+      "image_alt": "Velour collection",
       "active": true,
       "sort_order": 2,
       "seo_title": null,
@@ -45,6 +45,62 @@
       "image_alt": "Limited Edition collection",
       "active": true,
       "sort_order": 3,
+      "seo_title": null,
+      "seo_description": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000024",
+      "kind": "product_type",
+      "product_type_key": "ball-knot-pillows",
+      "slug": "ball-knot-pillows-boucle",
+      "name": "Ball Knot Pillows",
+      "description": "",
+      "image_path": null,
+      "image_alt": "",
+      "active": true,
+      "sort_order": 10,
+      "seo_title": null,
+      "seo_description": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000025",
+      "kind": "product_type",
+      "product_type_key": "flat-knot-pillows",
+      "slug": "flat-knot-pillows-boucle",
+      "name": "Flat Knot Pillows",
+      "description": "",
+      "image_path": null,
+      "image_alt": "",
+      "active": true,
+      "sort_order": 11,
+      "seo_title": null,
+      "seo_description": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000026",
+      "kind": "product_type",
+      "product_type_key": "non-reversible-knot-pillows",
+      "slug": "non-reversible-knot-pillows-velvet",
+      "name": "Non-reversible Knot Pillows",
+      "description": "",
+      "image_path": null,
+      "image_alt": "",
+      "active": true,
+      "sort_order": 12,
+      "seo_title": null,
+      "seo_description": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000027",
+      "kind": "product_type",
+      "product_type_key": "non-reversible-knot-pillows",
+      "slug": "non-reversible-knot-pillows-velour",
+      "name": "Non-reversible Knot Pillows",
+      "description": "",
+      "image_path": null,
+      "image_alt": "",
+      "active": true,
+      "sort_order": 13,
       "seo_title": null,
       "seo_description": null
     }
@@ -99,7 +155,7 @@
           "variant_id": null
         }
       ],
-      "collections": ["boucle"],
+      "collections": ["boucle", "ball-knot-pillows-boucle"],
       "tags": ["handmade", "knot-pillow", "boucle"],
       "options": [
         {
@@ -213,7 +269,7 @@
           "variant_id": null
         }
       ],
-      "collections": ["boucle"],
+      "collections": ["boucle", "flat-knot-pillows-boucle"],
       "tags": ["handmade", "knot-pillow", "boucle"],
       "options": [],
       "variants": []
@@ -257,7 +313,7 @@
           "variant_id": null
         }
       ],
-      "collections": ["velvet"],
+      "collections": ["velvet", "non-reversible-knot-pillows-velvet"],
       "tags": ["handmade", "knot-pillow", "velvet"],
       "options": [
         {
@@ -507,7 +563,7 @@
           "variant_id": null
         }
       ],
-      "collections": ["cotton-velour"],
+      "collections": ["velour", "non-reversible-knot-pillows-velour"],
       "tags": ["handmade", "knot-pillow", "cotton-velour"],
       "options": [
         {
@@ -729,7 +785,7 @@
           "variant_id": null
         }
       ],
-      "collections": ["boucle"],
+      "collections": ["boucle", "flat-knot-pillows-boucle"],
       "tags": ["handmade", "knot-pillow", "boucle"],
       "options": [],
       "variants": []

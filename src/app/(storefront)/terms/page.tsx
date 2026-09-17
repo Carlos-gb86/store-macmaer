@@ -73,8 +73,8 @@ export default async function TermsPage() {
         </p>
         <h2>Företagsinformation</h2>
         <address>
-          {/* <strong>Maria Botyan</strong>
-           <br />
+          <strong>Maria Botyan</strong>
+          <br />
           Enskild näringsidkare som bedriver verksamhet under namnet{" "}
           <strong>Macmaer</strong>
           <br />
@@ -94,7 +94,7 @@ export default async function TermsPage() {
           E-post: <a href="mailto:info@macmaer.com">info@macmaer.com</a>
           <br />
           Telefon: <a href="tel:+46728748756">072-874 87 56</a> (+46 72 874 87
-          56 från utlandet) */}
+          56 från utlandet)
         </address>
       </PolicyPage>
     );
@@ -152,7 +152,7 @@ export default async function TermsPage() {
       </p>
       <h2>Trader information</h2>
       <address>
-        {/*<strong>Maria Botyan</strong>
+        <strong>Maria Botyan</strong>
         <br />
         Sole trader (enskild näringsidkare) trading as <strong>Macmaer</strong>
         <br />
@@ -172,7 +172,7 @@ export default async function TermsPage() {
         Email: <a href="mailto:info@macmaer.com">info@macmaer.com</a>
         <br />
         Telephone: <a href="tel:+46728748756">072-874 87 56</a> (+46 72 874 87
-        56 from outside Sweden) */}
+        56 from outside Sweden)
       </address>
     </PolicyPage>
   );

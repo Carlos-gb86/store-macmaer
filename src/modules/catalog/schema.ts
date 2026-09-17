@@ -134,6 +134,8 @@ export const collectionSchema = z.object({
   asset_id: z.uuid().nullable().default(null),
   updated_at: z.string().optional(),
   id: z.uuid(),
+  kind: z.enum(["collection", "product_type"]).default("collection"),
+  product_type_key: z.string().nullable().default(null),
   slug: z.string(),
   name: z.string(),
   name_sv: localizedText,

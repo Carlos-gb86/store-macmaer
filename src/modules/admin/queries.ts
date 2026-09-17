@@ -7,7 +7,10 @@ export async function editorData() {
   const { client } = await requireAdminPage();
   const [collections, tags, taxCategories, shippingClasses, media] =
     await Promise.all([
-      client.from("collections").select("id,slug,name,name_sv").order("name"),
+      client
+        .from("collections")
+        .select("id,slug,name,name_sv,kind")
+        .order("name"),
       client
         .from("tags")
         .select("id,slug,name,name_sv,updated_at")

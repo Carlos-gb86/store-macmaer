@@ -24,7 +24,9 @@ test("browse the public catalogue and use search and filters", async ({
     fullPage: true,
   });
   await page.getByRole("link", { name: "Discover the collection" }).click();
-  await page.getByLabel("Find your piece").fill("bouclé");
+  const search = page.getByLabel("Find your piece");
+  await search.pressSequentially("bouclé", { delay: 40 });
+  await expect(search).toBeFocused();
   await expect(page.locator(".product-card")).toHaveCount(3);
   await expect(page).toHaveURL(/q=boucl%C3%A9/);
   await chooseOption(
@@ -49,7 +51,18 @@ test("browse collections and enlarge a product image with keyboard dismissal", a
   await expect(
     page.getByRole("heading", { name: "Bouclé", exact: true }),
   ).toBeVisible();
-  await expect(page).toHaveURL(/collection=boucle/);
+  await expect(page).toHaveURL(/\/collections\/boucle$/);
+  const productTypes = page.locator(".product-type-filter");
+  await expect(
+    productTypes.getByRole("button", { name: "All", exact: true }),
+  ).toBeVisible();
+  await expect(
+    productTypes.getByRole("button", { name: "Ball Knot Pillows" }),
+  ).toBeVisible();
+  await productTypes.getByRole("button", { name: "Flat Knot Pillows" }).click();
+  await expect(page.locator(".product-card")).toHaveCount(2);
+  await expect(page).toHaveURL(/type=flat-knot-pillows/);
+  await productTypes.getByRole("button", { name: "All", exact: true }).click();
   await page.getByRole("link", { name: /Bouclé ball knot pillow/ }).click();
   await expect(page).toHaveURL("/products/boucle-ball");
 

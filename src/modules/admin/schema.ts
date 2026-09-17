@@ -303,10 +303,25 @@ export function duplicateProduct(p: ProductInput): ProductInput {
     })),
   };
 }
-export const adminCollectionSchema = collectionSchema.extend({
-  slug,
-  name,
-});
+export const adminCollectionSchema = collectionSchema
+  .extend({
+    slug,
+    name,
+  })
+  .superRefine((collection, context) => {
+    if (collection.kind === "product_type" && !collection.product_type_key)
+      context.addIssue({
+        code: "custom",
+        path: ["product_type_key"],
+        message: "Product types need a grouping key.",
+      });
+    if (collection.kind === "collection" && collection.product_type_key)
+      context.addIssue({
+        code: "custom",
+        path: ["product_type_key"],
+        message: "Collections cannot have a product-type grouping key.",
+      });
+  });
 export const adminTagSchema = z.object({
   id: z.uuid(),
   name,

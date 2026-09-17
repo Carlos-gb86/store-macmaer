@@ -14,7 +14,7 @@ export default async function Collections({
     { q, page, status } = searchInput(await searchParams);
   let query = client
     .from("collections")
-    .select("id,name,active,image_path,asset_id", { count: "exact" })
+    .select("id,name,kind,active,image_path,asset_id", { count: "exact" })
     .order("name")
     .order("id")
     .range((page - 1) * 20, page * 20 - 1);
@@ -29,12 +29,12 @@ export default async function Collections({
   );
   return (
     <>
-      <h1>Collections</h1>
+      <h1>Collections & product types</h1>
       <p className="section-intro">
-        Group products by material, style or season.
+        Manage the four storefront collections and the product-type filters.
       </p>
       <Link className="button" href="/admin/collections/new">
-        Create collection
+        Create catalogue group
       </Link>
       <ListTools q={q} status={status} statuses={["active", "inactive"]} />
       {data.length ? (
@@ -42,6 +42,7 @@ export default async function Collections({
           <thead>
             <tr>
               <th>Collection</th>
+              <th>Classification</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -67,6 +68,9 @@ export default async function Collections({
                     )}
                     {c.name}
                   </Link>
+                </td>
+                <td>
+                  {c.kind === "product_type" ? "Product type" : "Collection"}
                 </td>
                 <td>
                   <span

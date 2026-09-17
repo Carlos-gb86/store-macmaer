@@ -2,15 +2,16 @@ import { z } from "zod";
 import type { Catalogue, Product } from "./schema";
 import { availableConfigurations } from "./selection";
 import { calculateProductStartingPrice } from "@/modules/pricing/calculate";
+import { productTypeChoices } from "./taxonomy";
 export const catalogueQuerySchema = z.object({
   q: z.string().trim().max(120).catch(""),
   collection: z.string().max(80).catch(""),
+  type: z.string().max(80).catch(""),
   tag: z.string().max(80).catch(""),
   availability: z.enum(["", "available", "made-to-order"]).catch(""),
   sort: z
     .enum(["featured", "newest", "price-asc", "price-desc"])
     .catch("featured"),
-  page: z.coerce.number().int().min(1).max(10000).catch(1),
 });
 export type CatalogueQuery = z.infer<typeof catalogueQuerySchema>;
 export type SearchParams = Record<string, string | string[] | undefined>;
@@ -24,9 +25,23 @@ export function parseCatalogueQuery(params: SearchParams): CatalogueQuery {
     ),
   );
 }
-export const PAGE_SIZE = 12;
+function normalizeSearch(value: string) {
+  return value
+    .normalize("NFKD")
+    .replaceAll(/\p{M}/gu, "")
+    .toLocaleLowerCase("en")
+    .replaceAll(/[^\p{L}\p{N}]+/gu, " ")
+    .trim();
+}
+
 export function searchCatalogue(catalogue: Catalogue, query: CatalogueQuery) {
-  const needle = query.q.toLocaleLowerCase("en");
+  const needles = normalizeSearch(query.q).split(" ").filter(Boolean);
+  const types = new Map(
+    productTypeChoices(catalogue).map((type) => [
+      type.value,
+      new Set(type.collectionSlugs),
+    ]),
+  );
   const products = catalogue.products.filter((product) => {
     const collectionNames = catalogue.collections
       .filter((c) => product.collections.includes(c.slug))
@@ -37,13 +52,16 @@ export function searchCatalogue(catalogue: Catalogue, query: CatalogueQuery) {
       product.description,
       ...product.tags,
       ...collectionNames,
-    ]
-      .join(" ")
-      .toLocaleLowerCase("en");
+    ].join(" ");
+    const normalizedSearchable = normalizeSearch(searchable);
+    const selectedType = types.get(query.type);
     return (
       product.status === "active" &&
-      (!needle || searchable.includes(needle)) &&
+      needles.every((needle) => normalizedSearchable.includes(needle)) &&
       (!query.collection || product.collections.includes(query.collection)) &&
+      (!query.type ||
+        (selectedType !== undefined &&
+          product.collections.some((slug) => selectedType.has(slug)))) &&
       (!query.tag || product.tags.includes(query.tag)) &&
       (query.availability !== "available" ||
         availableConfigurations(product).length > 0) &&
@@ -70,18 +88,22 @@ export function searchCatalogue(catalogue: Catalogue, query: CatalogueQuery) {
   products.sort(
     (a, b) => sorters[query.sort](a, b) || a.slug.localeCompare(b.slug),
   );
-  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
-  const page = Math.min(query.page, totalPages);
   return {
-    products: products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    products,
     total: products.length,
-    page,
-    totalPages,
   };
 }
-export function queryHref(path: string, query: CatalogueQuery, page: number) {
+
+export function catalogueQueryHref(
+  path: string,
+  query: CatalogueQuery,
+  fixedCollection?: string,
+) {
   const params = new URLSearchParams();
-  for (const [key, value] of Object.entries({ ...query, page }))
-    if (value !== "") params.set(key, String(value));
-  return path + "?" + params.toString();
+  for (const [key, value] of Object.entries(query)) {
+    if (value === "" || (key === "sort" && value === "featured")) continue;
+    if (key === "collection" && value === fixedCollection) continue;
+    params.set(key, String(value));
+  }
+  return params.size ? `${path}?${params}` : path;
 }

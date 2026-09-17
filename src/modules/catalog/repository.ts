@@ -46,7 +46,7 @@ const readSupabaseCatalogue = unstable_cache(
     }
     return catalogueSchema.parse({ products, collections, tagDefinitions });
   },
-  ["public-catalogue-v1"],
+  ["public-catalogue-v2"],
   { revalidate: 60, tags: ["catalogue"] },
 );
 
@@ -62,6 +62,7 @@ export async function getProduct(slug: string) {
 }
 export async function getCollection(slug: string) {
   return (await getCatalogue()).collections.find(
-    (collection) => collection.slug === slug,
+    (collection) =>
+      collection.kind === "collection" && collection.slug === slug,
   );
 }

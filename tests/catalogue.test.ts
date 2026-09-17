@@ -6,6 +6,7 @@ import {
   validateSelections,
 } from "@/modules/catalog/selection";
 import { formatCataloguePrice } from "@/modules/catalog/format";
+import type { Collection } from "@/modules/catalog/schema";
 const catalogue = getDemoCatalogue();
 function product(slug: string) {
   const item = catalogue.products.find((p) => p.slug === slug);
@@ -51,6 +52,9 @@ describe("catalogue discovery", () => {
       searchCatalogue(catalogue, parseCatalogueQuery({ q: "reading corner" }))
         .total,
     ).toBe(6);
+    expect(
+      searchCatalogue(catalogue, parseCatalogueQuery({ q: "boucle" })).total,
+    ).toBe(3);
   });
   it("combines collection, tag, availability and deterministic price sorting", () => {
     const result = searchCatalogue(
@@ -72,14 +76,13 @@ describe("catalogue discovery", () => {
       parseCatalogueQuery({
         q: ["  pillow  ", "ignored"],
         sort: "invalid",
-        page: "-1",
       }),
-    ).toMatchObject({ q: "pillow", sort: "featured", page: 1 });
+    ).toMatchObject({ q: "pillow", sort: "featured" });
     expect(
       parseCatalogueQuery({ page: "NaN", q: "x".repeat(121) }),
-    ).toMatchObject({ page: 1, q: "" });
+    ).toMatchObject({ q: "" });
   });
-  it("paginates and clamps a page beyond the available result set", () => {
+  it("returns the complete filtered catalogue without pagination", () => {
     const data = {
       ...catalogue,
       products: Array.from({ length: 25 }, (_, i) => ({
@@ -89,8 +92,45 @@ describe("catalogue discovery", () => {
       })),
     };
     const result = searchCatalogue(data, parseCatalogueQuery({ page: "100" }));
-    expect(result).toMatchObject({ page: 3, totalPages: 3, total: 25 });
-    expect(result.products).toHaveLength(1);
+    expect(result.total).toBe(25);
+    expect(result.products).toHaveLength(25);
+  });
+  it("groups legacy category entries into one product-type filter", () => {
+    const source = catalogue.collections[0]!;
+    const typeA: Collection = {
+      ...source,
+      id: "10000000-0000-4000-8000-000000000001",
+      slug: "reversible-knot-pillows-boucle",
+      name: "Reversible Knot Pillows",
+      kind: "product_type",
+      product_type_key: "reversible-knot-pillows",
+    };
+    const typeB: Collection = {
+      ...typeA,
+      id: "10000000-0000-4000-8000-000000000002",
+      slug: "reversible-knot-pillows-velvet",
+    };
+    const data = {
+      ...catalogue,
+      collections: [...catalogue.collections, typeA, typeB],
+      products: catalogue.products.map((item) => ({
+        ...item,
+        collections:
+          item.slug === "boucle-ball"
+            ? [...item.collections, typeA.slug]
+            : item.slug === "velvet-knot"
+              ? [...item.collections, typeB.slug]
+              : item.collections,
+      })),
+    };
+    const result = searchCatalogue(
+      data,
+      parseCatalogueQuery({ type: "reversible-knot-pillows" }),
+    );
+    expect(result.products.map((item) => item.slug)).toEqual([
+      "boucle-ball",
+      "velvet-knot",
+    ]);
   });
 });
 describe("generic configuration", () => {

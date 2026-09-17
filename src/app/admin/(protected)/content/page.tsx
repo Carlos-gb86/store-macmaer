@@ -8,7 +8,11 @@ export default async function Content() {
     await Promise.all([
       client.from("homepage_content").select().single(),
       client.from("products").select("id,title").order("title"),
-      client.from("collections").select("id,name").order("name"),
+      client
+        .from("collections")
+        .select("id,name")
+        .eq("kind", "collection")
+        .order("name"),
       client.from("homepage_products").select().order("sort_order"),
       client.from("homepage_collections").select().order("sort_order"),
       mediaLibrary(client),

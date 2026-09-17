@@ -5,6 +5,7 @@ import { getCatalogue } from "@/modules/catalog/repository";
 import { getStorefrontLocale } from "@/modules/i18n/server";
 import { storefrontMessages } from "@/modules/i18n/messages";
 import { localizeCatalogue } from "@/modules/i18n/localize";
+import { storefrontCollections } from "@/modules/catalog/taxonomy";
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title:
@@ -17,7 +18,9 @@ export default async function Collections() {
     getCatalogue(),
     getStorefrontLocale(),
   ]);
-  const { collections } = localizeCatalogue(catalogue, locale);
+  const collections = storefrontCollections(
+    localizeCatalogue(catalogue, locale).collections,
+  );
   const t = storefrontMessages[locale];
   return (
     <Container className="page-section">

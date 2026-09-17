@@ -17,14 +17,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const catalogue = await getCatalogue();
     return [
       ...staticEntries,
-      ...catalogue.collections.map((collection) => ({
-        url: siteUrl(`/collections/${collection.slug}`),
-        lastModified: collection.updated_at
-          ? new Date(collection.updated_at)
-          : undefined,
-        changeFrequency: "weekly" as const,
-        priority: 0.7,
-      })),
+      ...catalogue.collections
+        .filter((collection) => collection.kind === "collection")
+        .map((collection) => ({
+          url: siteUrl(`/collections/${collection.slug}`),
+          lastModified: collection.updated_at
+            ? new Date(collection.updated_at)
+            : undefined,
+          changeFrequency: "weekly" as const,
+          priority: 0.7,
+        })),
       ...catalogue.products.map((product) => ({
         url: siteUrl(`/products/${product.slug}`),
         lastModified: new Date(product.updated_at),

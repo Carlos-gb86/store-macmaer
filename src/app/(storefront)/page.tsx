@@ -86,7 +86,11 @@ export default async function Home() {
             <h2>{t.textureTitle}</h2>
             <div className="texture-links">
               {content.collection_ids
-                .map((id) => catalogue.collections.find((c) => c.id === id))
+                .map((id) =>
+                  catalogue.collections.find(
+                    (c) => c.id === id && c.kind === "collection",
+                  ),
+                )
                 .filter((c) => c !== undefined)
                 .map((collection, index) => (
                   <Link

@@ -334,7 +334,7 @@ Examples inspired by the current shop include:
 
 - Bouclé;
 - Velvet;
-- Cotton Velour;
+- Velour;
 - Limited Edition;
 - future seasonal or editorial collections.
 

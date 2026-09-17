@@ -1,76 +1,39 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { Fragment } from "react";
 import type { CatalogueQuery } from "@/modules/catalog/query";
+import type { ProductTypeChoice } from "@/modules/catalog/taxonomy";
 import { useStorefrontI18n } from "@/components/i18n/storefront-i18n";
 import { StorefrontSelect } from "@/components/ui/storefront-select";
 
 type Choice = { value: string; label: string };
 
 export function CatalogueControls({
-  path,
   query,
+  onChange,
   collections,
+  productTypes,
   tags,
   hideCollection = false,
 }: {
-  path: string;
   query: CatalogueQuery;
+  onChange: (query: CatalogueQuery) => void;
   collections: Choice[];
+  productTypes: ProductTypeChoice[];
   tags: Choice[];
   hideCollection?: boolean;
 }) {
-  const router = useRouter();
   const { t } = useStorefrontI18n();
-  const [pending, startTransition] = useTransition();
-  const [values, setValues] = useState(query);
-  const firstRender = useRef(true);
-
-  const navigate = (next: CatalogueQuery) => {
-    const params = new URLSearchParams();
-    for (const [key, value] of Object.entries({ ...next, page: 1 })) {
-      if (value !== "" && !(key === "sort" && value === "featured"))
-        params.set(key, String(value));
-    }
-    startTransition(() => {
-      router.replace(params.size ? `${path}?${params}` : path, {
-        scroll: false,
-      });
-    });
-  };
-
-  useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
-    const timer = window.setTimeout(() => navigate(values), 320);
-    return () => window.clearTimeout(timer);
-    // Only the search field is intentionally debounced. Select controls call
-    // navigate directly from their change handler.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [values.q]);
-
-  const changeSelect = (
-    name: "collection" | "tag" | "availability" | "sort",
-    value: string,
-  ) => {
-    const next = { ...values, [name]: value, page: 1 } as CatalogueQuery;
-    setValues(next);
-    navigate(next);
-  };
+  const change = <Key extends keyof CatalogueQuery>(
+    name: Key,
+    value: CatalogueQuery[Key],
+  ) => onChange({ ...query, [name]: value });
 
   return (
     <form
-      action={path}
       className="catalogue-controls"
       role="search"
-      aria-busy={pending}
-      onSubmit={(event) => {
-        event.preventDefault();
-        navigate(values);
-      }}
+      onSubmit={(event) => event.preventDefault()}
     >
       <div className="search-field">
         <label htmlFor="catalogue-search">{t("findPiece")}</label>
@@ -78,16 +41,11 @@ export function CatalogueControls({
           id="catalogue-search"
           type="search"
           name="q"
-          value={values.q}
+          value={query.q}
           placeholder={t("searchPlaceholder")}
           maxLength={120}
-          onChange={(event) =>
-            setValues((current) => ({
-              ...current,
-              q: event.target.value,
-              page: 1,
-            }))
-          }
+          autoComplete="off"
+          onChange={(event) => change("q", event.target.value)}
         />
       </div>
       {!hideCollection && (
@@ -95,12 +53,12 @@ export function CatalogueControls({
           <label htmlFor="collection-filter">{t("collection")}</label>
           <StorefrontSelect
             id="collection-filter"
-            value={values.collection}
+            value={query.collection}
             options={[
               { value: "", label: t("allCollections") },
               ...collections,
             ]}
-            onValueChange={(value) => changeSelect("collection", value)}
+            onValueChange={(value) => change("collection", value)}
           />
         </div>
       )}
@@ -108,41 +66,70 @@ export function CatalogueControls({
         <label htmlFor="tag-filter">{t("details")}</label>
         <StorefrontSelect
           id="tag-filter"
-          value={values.tag}
+          value={query.tag}
           options={[{ value: "", label: t("allDetails") }, ...tags]}
-          onValueChange={(value) => changeSelect("tag", value)}
+          onValueChange={(value) => change("tag", value)}
         />
       </div>
       <div>
         <label htmlFor="availability-filter">{t("availability")}</label>
         <StorefrontSelect
           id="availability-filter"
-          value={values.availability}
+          value={query.availability}
           options={[
             { value: "", label: t("allProducts") },
             { value: "available", label: t("available") },
             { value: "made-to-order", label: t("madeToOrder") },
           ]}
-          onValueChange={(value) => changeSelect("availability", value)}
+          onValueChange={(value) =>
+            change("availability", value as CatalogueQuery["availability"])
+          }
         />
       </div>
       <div>
         <label htmlFor="sort">{t("sortBy")}</label>
         <StorefrontSelect
           id="sort"
-          value={values.sort}
+          value={query.sort}
           options={[
             { value: "featured", label: t("featured") },
             { value: "newest", label: t("newest") },
             { value: "price-asc", label: t("priceLowHigh") },
             { value: "price-desc", label: t("priceHighLow") },
           ]}
-          onValueChange={(value) => changeSelect("sort", value)}
+          onValueChange={(value) =>
+            change("sort", value as CatalogueQuery["sort"])
+          }
         />
       </div>
-      <span className="catalogue-update-status" aria-live="polite">
-        {pending ? t("updatingResults") : ""}
-      </span>
+      {productTypes.length > 0 && (
+        <fieldset className="product-type-filter">
+          <legend>{t("productType")}</legend>
+          <div className="product-type-options">
+            <button
+              type="button"
+              className="product-type-option"
+              aria-pressed={query.type === ""}
+              onClick={() => change("type", "")}
+            >
+              {t("all")}
+            </button>
+            {productTypes.map((type) => (
+              <Fragment key={type.value}>
+                <span className="product-type-separator" aria-hidden="true" />
+                <button
+                  type="button"
+                  className="product-type-option"
+                  aria-pressed={query.type === type.value}
+                  onClick={() => change("type", type.value)}
+                >
+                  {type.label}
+                </button>
+              </Fragment>
+            ))}
+          </div>
+        </fieldset>
+      )}
     </form>
   );
 }

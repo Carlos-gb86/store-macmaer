@@ -23,7 +23,12 @@ export function ProductEditor({
   media,
 }: {
   initial: ProductInput;
-  collections: { slug: string; name: string; name_sv: string | null }[];
+  collections: {
+    slug: string;
+    name: string;
+    name_sv: string | null;
+    kind: "collection" | "product_type";
+  }[];
   tags: { slug: string; name: string; name_sv: string | null }[];
   taxCategories: { key: string; name: string }[];
   shippingClasses: { key: string; name: string }[];
@@ -283,21 +288,41 @@ export function ProductEditor({
           <div className="admin-grid product-taxonomy-grid">
             <div>
               <h3>Collections</h3>
-              {collections.map((item) => (
-                <Field
-                  key={item.slug}
-                  label={item.name}
-                  value={p.collections.includes(item.slug)}
-                  onChange={(checked) =>
-                    set(
-                      "collections",
-                      checked
-                        ? [...p.collections, item.slug]
-                        : p.collections.filter((slug) => slug !== item.slug),
-                    )
-                  }
-                />
-              ))}
+              {collections
+                .filter((item) => item.kind === "collection")
+                .map((item) => (
+                  <Field
+                    key={item.slug}
+                    label={item.name}
+                    value={p.collections.includes(item.slug)}
+                    onChange={(checked) =>
+                      set(
+                        "collections",
+                        checked
+                          ? [...p.collections, item.slug]
+                          : p.collections.filter((slug) => slug !== item.slug),
+                      )
+                    }
+                  />
+                ))}
+              <h3>Product types</h3>
+              {collections
+                .filter((item) => item.kind === "product_type")
+                .map((item) => (
+                  <Field
+                    key={item.slug}
+                    label={item.name}
+                    value={p.collections.includes(item.slug)}
+                    onChange={(checked) =>
+                      set(
+                        "collections",
+                        checked
+                          ? [...p.collections, item.slug]
+                          : p.collections.filter((slug) => slug !== item.slug),
+                      )
+                    }
+                  />
+                ))}
             </div>
             <div>
               <div className="admin-taxonomy-heading">

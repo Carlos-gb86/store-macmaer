@@ -45,7 +45,9 @@ export const getHomepage = cache(async () => {
         .filter((p) => p.featured)
         .slice(0, 4)
         .map((p) => p.id),
-      collection_ids: c.collections.map((c) => c.id),
+      collection_ids: c.collections
+        .filter((collection) => collection.kind === "collection")
+        .map((collection) => collection.id),
     };
   }
   const result = await resolveHomepage(read, lastKnownHomepage);

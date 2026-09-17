@@ -157,6 +157,8 @@ Row: {
 "image_alt_sv": string | null;
 "seo_title_sv": string | null;
 "seo_description_sv": string | null;
+"kind": "collection" | "product_type";
+"product_type_key": string | null;
 };
 Insert: {
 "id"?: string;
@@ -180,6 +182,8 @@ Insert: {
 "image_alt_sv"?: string | null;
 "seo_title_sv"?: string | null;
 "seo_description_sv"?: string | null;
+"kind"?: "collection" | "product_type";
+"product_type_key"?: string | null;
 };
 Update: {
 "id"?: string;
@@ -203,6 +207,8 @@ Update: {
 "image_alt_sv"?: string | null;
 "seo_title_sv"?: string | null;
 "seo_description_sv"?: string | null;
+"kind"?: "collection" | "product_type";
+"product_type_key"?: string | null;
 };
 Relationships: [];
 };
@@ -2016,20 +2022,21 @@ Functions: {
 "submit_contact_message": { Args: {"document": Json;}; Returns: Json};
 "submit_product_review": { Args: {"document": Json;}; Returns: string};
 }; Enums: {
-"email_delivery_status": "PENDING" | "SENT" | "FAILED";
 "shipping_calculation_type": "FLAT" | "BASE_PLUS_ADDITIONAL" | "PER_ITEM";
-"order_status": "PENDING_PAYMENT" | "PAID" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "PARTIALLY_REFUNDED" | "REFUNDED";
+"email_kind": "ORDER_CONFIRMATION" | "ADMIN_NEW_ORDER" | "SHIPPING_CONFIRMATION" | "REFUND_CONFIRMATION" | "CONTACT_NOTIFICATION" | "CONTACT_ACKNOWLEDGEMENT";
 "shipping_threshold_basis": "BEFORE_DISCOUNT" | "AFTER_DISCOUNT";
-"refund_status": "REQUESTED" | "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
-"eu_vat_mode": "SWEDISH_ORIGIN" | "DESTINATION";
-"inventory_strategy": "TRACKED" | "MADE_TO_ORDER" | "UNLIMITED" | "UNAVAILABLE";
-"discount_kind": "PERCENTAGE" | "FIXED_AMOUNT";
-"product_status": "draft" | "active" | "archived";
 "payment_status": "NOT_STARTED" | "REQUIRES_PAYMENT" | "PROCESSING" | "SUCCEEDED" | "FAILED" | "PARTIALLY_REFUNDED" | "REFUNDED" | "DISPUTED";
+"eu_vat_mode": "SWEDISH_ORIGIN" | "DESTINATION";
+"email_delivery_status": "PENDING" | "SENT" | "FAILED";
+"discount_kind": "PERCENTAGE" | "FIXED_AMOUNT";
+"inventory_reservation_status": "ACTIVE" | "COMMITTED" | "RELEASED" | "EXPIRED";
+"product_status": "draft" | "active" | "archived";
 "discount_redemption_status": "RESERVED" | "REDEEMED" | "RELEASED";
+"refund_status": "REQUESTED" | "PENDING" | "SUCCEEDED" | "FAILED" | "CANCELLED";
+"inventory_strategy": "TRACKED" | "MADE_TO_ORDER" | "UNLIMITED" | "UNAVAILABLE";
 "fulfilment_status": "UNFULFILLED" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 "option_display_type": "select" | "radio" | "colour_swatch" | "image_swatch" | "checkbox" | "short_text" | "number" | "repeated_select";
 "policy_type": "TERMS" | "PRIVACY" | "SHIPPING" | "RETURNS" | "CUSTOMS";
-"email_kind": "ORDER_CONFIRMATION" | "ADMIN_NEW_ORDER" | "SHIPPING_CONFIRMATION" | "REFUND_CONFIRMATION" | "CONTACT_NOTIFICATION" | "CONTACT_ACKNOWLEDGEMENT";
-"inventory_reservation_status": "ACTIVE" | "COMMITTED" | "RELEASED" | "EXPIRED";
+"catalogue_taxonomy_kind": "collection" | "product_type";
+"order_status": "PENDING_PAYMENT" | "PAID" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "DELIVERED" | "CANCELLED" | "PARTIALLY_REFUNDED" | "REFUNDED";
 }; CompositeTypes: Record<never, never>; }; };

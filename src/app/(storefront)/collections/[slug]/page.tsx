@@ -46,7 +46,8 @@ export default async function CollectionPage({ params, searchParams }: Props) {
   const data = localizeCatalogue(rawData, locale);
   const t = storefrontMessages[locale];
   const collection = data.collections.find(
-    (collection) => collection.slug === slug,
+    (collection) =>
+      collection.kind === "collection" && collection.slug === slug,
   );
   if (!collection) notFound();
   return (

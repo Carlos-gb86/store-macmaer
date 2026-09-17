@@ -135,7 +135,7 @@ describe("PostgreSQL migrations and RLS", () => {
         collections: JSON.parse(JSON.stringify(collections.rows)),
       });
       expect(catalogue.products).toHaveLength(6);
-      expect(catalogue.collections).toHaveLength(4);
+      expect(catalogue.collections).toHaveLength(8);
       expect(
         catalogue.products.find((p) => p.slug === "colour-accessory-pack")
           ?.options[0],

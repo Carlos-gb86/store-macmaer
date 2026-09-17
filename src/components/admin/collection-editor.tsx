@@ -41,9 +41,10 @@ export function CollectionEditor({
       <Link className="back-link" href="/admin/collections">
         ← All collections
       </Link>
-      <h1>{c.name || "New collection"}</h1>
+      <h1>{c.name || "New catalogue group"}</h1>
       <p className="section-intro">
-        Bring related products together with a name, a story and a cover photo.
+        Manage a customer-facing collection or a product type used for
+        filtering.
       </p>
       <fieldset className="editor-lock" disabled={pending}>
         <div className="editor-columns">
@@ -52,10 +53,40 @@ export function CollectionEditor({
               <legend>Collection details</legend>
               <div className="admin-grid">
                 <Field
+                  label="Classification"
+                  value={c.kind}
+                  options={["collection", "product_type"]}
+                  onChange={(value) =>
+                    setC({
+                      ...c,
+                      kind: value as Collection["kind"],
+                      product_type_key:
+                        value === "product_type"
+                          ? c.product_type_key || c.slug || null
+                          : null,
+                    })
+                  }
+                  help="Collections have landing pages. Product types appear in the catalogue filter."
+                />
+                <Field
                   label="name"
                   value={c.name}
                   onChange={(v) => setC({ ...c, name: String(v) })}
                 />
+                {c.kind === "product_type" && (
+                  <Field
+                    label="Product type grouping key"
+                    value={c.product_type_key}
+                    nullable
+                    onChange={(value) =>
+                      setC({
+                        ...c,
+                        product_type_key: value as string | null,
+                      })
+                    }
+                    help="Entries with the same key appear as one filter, for example reversible-knot-pillows."
+                  />
+                )}
                 <Field
                   label="slug"
                   value={c.slug}

@@ -14,6 +14,8 @@ export default async function CollectionPage({
   if (id === "new")
     initial = collectionSchema.parse({
       id: crypto.randomUUID(),
+      kind: "collection",
+      product_type_key: null,
       name: "",
       slug: "",
       description: "",
