@@ -22,18 +22,28 @@ export default async function Collections() {
     localizeCatalogue(catalogue, locale).collections,
   );
   const t = storefrontMessages[locale];
+  const cards = collections.map((collection) => ({
+    collection,
+    productCount: catalogue.products.filter((product) =>
+      product.collections.includes(collection.slug),
+    ).length,
+  }));
   return (
-    <Container className="page-section">
-      <div className="page-intro">
-        <p className="eyebrow">{t.collectionsEyebrow}</p>
-        <h1>{t.collectionsTitle}</h1>
+    <Container className="page-section collections-page">
+      <div className="collections-overview-intro">
+        <div>
+          <p className="eyebrow">{t.collectionsEyebrow}</p>
+          <h1>{t.collectionsTitle}</h1>
+        </div>
         <p>{t.collectionsIntro}</p>
       </div>
       <div className="collections-grid">
-        {collections.map((collection, index) => (
+        {cards.map(({ collection, productCount }, index) => (
           <CollectionCard
             key={collection.id}
             collection={collection}
+            index={index + 1}
+            countLabel={`${productCount} ${productCount === 1 ? t.piece : t.pieces}`}
             priority={index < 2}
           />
         ))}

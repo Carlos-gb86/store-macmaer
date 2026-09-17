@@ -5,9 +5,13 @@ import { resolveImage } from "@/modules/media/resolve-image";
 import { ExternalArrow } from "@/components/ui/external-arrow";
 export function CollectionCard({
   collection,
+  index,
+  countLabel,
   priority = false,
 }: {
   collection: Collection;
+  index: number;
+  countLabel: string;
   priority?: boolean;
 }) {
   return (
@@ -20,14 +24,22 @@ export function CollectionCard({
             fill
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
-            sizes="(max-width: 640px) 100vw, 50vw"
+            sizes="(max-width: 800px) 50vw, 25vw"
             className="product-photo"
           />
         )}
+        <span className="collection-index" aria-hidden="true">
+          {String(index).padStart(2, "0")}
+        </span>
       </div>
       <div className="collection-caption">
-        <h2>{collection.name}</h2>
-        <ExternalArrow size={18} />
+        <div>
+          <p className="collection-count">{countLabel}</p>
+          <h2>{collection.name}</h2>
+        </div>
+        <span className="collection-card-arrow" aria-hidden="true">
+          <ExternalArrow size={16} />
+        </span>
       </div>
       <p className="muted">{collection.description}</p>
     </Link>

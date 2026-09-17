@@ -47,7 +47,18 @@ test("browse collections and enlarge a product image with keyboard dismissal", a
   page,
 }) => {
   await page.goto("/collections");
-  await page.getByRole("link", { name: /Bouclé.*softer kind/ }).click();
+  const collectionCards = page.locator(".collection-card");
+  await expect(collectionCards).toHaveCount(4);
+  for (const card of await collectionCards.all())
+    await expect(card).toBeInViewport();
+  await expect(
+    page.getByRole("img", { name: "Velour collection" }),
+  ).toBeVisible();
+  await collectionCards
+    .filter({
+      has: page.getByRole("heading", { name: "Bouclé", exact: true }),
+    })
+    .click();
   await expect(
     page.getByRole("heading", { name: "Bouclé", exact: true }),
   ).toBeVisible();
