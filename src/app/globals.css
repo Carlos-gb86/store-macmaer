@@ -186,7 +186,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 104px;
+  min-height: 86px;
 }
 .wordmark {
   display: block;
@@ -201,12 +201,81 @@ img {
 }
 .main-nav {
   display: flex;
+  align-items: center;
   gap: 2.7rem;
   font-size: 0.88rem;
 }
-.main-nav a:hover {
+.main-nav > a:hover,
+.nav-dropdown-trigger:hover {
   text-decoration: underline;
   text-underline-offset: 6px;
+}
+.nav-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.nav-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.nav-dropdown-trigger svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.2s ease;
+}
+.nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  z-index: 40;
+  width: 220px;
+  padding-top: 18px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s;
+}
+.nav-dropdown-panel {
+  display: grid;
+  padding: 9px;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-paper);
+  box-shadow: 0 20px 50px color-mix(in srgb, var(--color-ink), transparent 84%);
+}
+.nav-dropdown-panel a {
+  padding: 11px 13px;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  transition: background 0.16s ease;
+}
+.nav-dropdown-panel a:hover,
+.nav-dropdown-panel a:focus-visible {
+  background: var(--color-panel);
+  text-decoration: none;
+}
+.nav-dropdown:hover .nav-dropdown-menu,
+.nav-dropdown:focus-within .nav-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+.nav-dropdown:hover .nav-dropdown-trigger svg,
+.nav-dropdown:focus-within .nav-dropdown-trigger svg {
+  transform: rotate(180deg);
+}
+.nav-dropdown.is-dismissed .nav-dropdown-menu {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 8px);
+}
+.nav-dropdown.is-dismissed .nav-dropdown-trigger svg {
+  transform: none;
 }
 .header-tools {
   display: flex;
@@ -2434,9 +2503,9 @@ textarea {
     position: static;
   }
   .header-inner {
-    min-height: 90px;
+    min-height: 78px;
     flex-wrap: wrap;
-    padding-block: 14px;
+    padding-block: 10px;
   }
   .main-nav {
     gap: 1.5rem;
@@ -2591,7 +2660,7 @@ textarea {
   .header-inner {
     flex-wrap: wrap;
     gap: 0;
-    padding: 18px 0 0;
+    padding: 10px 0 0;
   }
   .wordmark {
     width: 165px;
@@ -2610,7 +2679,7 @@ textarea {
     width: 100%;
     justify-content: center;
     gap: clamp(1.1rem, 6vw, 2.5rem);
-    padding: 22px 0 17px;
+    padding: 14px 0 12px;
     font-size: 0.78rem;
   }
   .header-tools {

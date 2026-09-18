@@ -6,7 +6,7 @@ async function chooseOption(page: Page, trigger: Locator, option: string) {
 }
 test("browse the public catalogue and use search and filters", async ({
   page,
-}) => {
+}, testInfo) => {
   const response = await page.goto("/");
   expect(response?.headers()["content-security-policy"]).toContain(
     "frame-ancestors 'none'",
@@ -18,6 +18,29 @@ test("browse the public catalogue and use search and filters", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "A softer",
   );
+  const mainNavigation = page.getByRole("navigation", {
+    name: "Main navigation",
+  });
+  const collectionsLink = mainNavigation.getByRole("link", {
+    name: "Collections",
+    exact: true,
+  });
+  await expect(collectionsLink).toHaveAttribute("href", "/collections");
+  const collectionMenu = mainNavigation.locator(".nav-dropdown-menu");
+  await expect(collectionMenu.locator("a")).toHaveCount(4);
+  if (testInfo.project.name === "desktop") {
+    await collectionsLink.hover();
+    await expect(collectionMenu).toBeVisible();
+    await expect(
+      collectionMenu.getByRole("link", { name: "Velour", exact: true }),
+    ).toHaveAttribute("href", "/collections/velour");
+    await collectionMenu
+      .getByRole("link", { name: "Velour", exact: true })
+      .click();
+    await expect(page).toHaveURL(/\/collections\/velour$/);
+    await expect(collectionMenu).toBeHidden();
+    await page.goto("/");
+  }
   await page.waitForLoadState("networkidle");
   await page.screenshot({
     path: test.info().outputPath("home.png"),
