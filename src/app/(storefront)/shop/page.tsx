@@ -7,6 +7,7 @@ import { getStorefrontContext } from "@/modules/currency/repository";
 import { getStorefrontLocale } from "@/modules/i18n/server";
 import { storefrontMessages } from "@/modules/i18n/messages";
 import { localizeCatalogue } from "@/modules/i18n/localize";
+import { getProductReviewSummaries } from "@/modules/reviews/repository";
 export async function generateMetadata(): Promise<Metadata> {
   const sv = (await getStorefrontLocale()) === "sv";
   return {
@@ -22,12 +23,15 @@ export default async function Shop({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
-  const [rawData, params, context, locale] = await Promise.all([
-    getCatalogue(),
-    searchParams,
-    getStorefrontContext(),
-    getStorefrontLocale(),
-  ]);
+  const [rawData, params, context, locale, reviewSummaries] = await Promise.all(
+    [
+      getCatalogue(),
+      searchParams,
+      getStorefrontContext(),
+      getStorefrontLocale(),
+      getProductReviewSummaries(),
+    ],
+  );
   const data = localizeCatalogue(rawData, locale);
   const t = storefrontMessages[locale];
   return (
@@ -42,6 +46,7 @@ export default async function Shop({
         params={params}
         pricing={context.pricing}
         locale={locale}
+        reviewSummaries={reviewSummaries}
       />
     </Container>
   );

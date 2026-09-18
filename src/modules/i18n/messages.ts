@@ -72,6 +72,9 @@ const en = {
   of: "of",
   currentlyUnavailable: "Currently unavailable",
   from: "From",
+  customize: "Customize",
+  viewProduct: "View product",
+  ratingOutOfFive: "out of 5 stars",
   collectionsEyebrow: "Explore by texture",
   collectionsTitle: "A collection to call your own.",
   collectionsIntro:
@@ -214,6 +217,9 @@ const sv: Record<keyof typeof en, string> = {
   of: "av",
   currentlyUnavailable: "Inte tillgänglig just nu",
   from: "Från",
+  customize: "Anpassa",
+  viewProduct: "Visa produkt",
+  ratingOutOfFive: "av 5 stjärnor",
   collectionsEyebrow: "Utforska efter struktur",
   collectionsTitle: "En kollektion att göra till din.",
   collectionsIntro:

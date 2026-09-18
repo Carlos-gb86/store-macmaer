@@ -14,6 +14,7 @@ import { siteUrl } from "@/modules/seo/site";
 import { getStorefrontLocale } from "@/modules/i18n/server";
 import { storefrontMessages } from "@/modules/i18n/messages";
 import { localizeCatalogue, localizeCollection } from "@/modules/i18n/localize";
+import { getProductReviewSummaries } from "@/modules/reviews/repository";
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<SearchParams>;
@@ -37,11 +38,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function CollectionPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const [rawData, query, context, locale] = await Promise.all([
+  const [rawData, query, context, locale, reviewSummaries] = await Promise.all([
     getCatalogue(),
     searchParams,
     getStorefrontContext(),
     getStorefrontLocale(),
+    getProductReviewSummaries(),
   ]);
   const data = localizeCatalogue(rawData, locale);
   const t = storefrontMessages[locale];
@@ -108,6 +110,7 @@ export default async function CollectionPage({ params, searchParams }: Props) {
         collection={slug}
         pricing={context.pricing}
         locale={locale}
+        reviewSummaries={reviewSummaries}
       />
     </Container>
   );

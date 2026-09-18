@@ -6,7 +6,10 @@ import { getCatalogue } from "@/modules/catalog/repository";
 import { getHomepage } from "@/modules/content/repository";
 import { resolveImage } from "@/modules/media/resolve-image";
 import { getStorefrontContext } from "@/modules/currency/repository";
-import { getTestimonials } from "@/modules/reviews/repository";
+import {
+  getProductReviewSummaries,
+  getTestimonials,
+} from "@/modules/reviews/repository";
 import { Testimonials } from "@/components/reviews/testimonials";
 import type { Metadata } from "next";
 import { ExternalArrow } from "@/components/ui/external-arrow";
@@ -16,14 +19,21 @@ import { localizeCatalogue, localizeHomepage } from "@/modules/i18n/localize";
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
 export default async function Home() {
-  const [rawCatalogue, rawContent, context, testimonials, locale] =
-    await Promise.all([
-      getCatalogue(),
-      getHomepage(),
-      getStorefrontContext(),
-      getTestimonials(),
-      getStorefrontLocale(),
-    ]);
+  const [
+    rawCatalogue,
+    rawContent,
+    context,
+    testimonials,
+    locale,
+    reviewSummaries,
+  ] = await Promise.all([
+    getCatalogue(),
+    getHomepage(),
+    getStorefrontContext(),
+    getTestimonials(),
+    getStorefrontLocale(),
+    getProductReviewSummaries(),
+  ]);
   const catalogue = localizeCatalogue(rawCatalogue, locale);
   const content = localizeHomepage(rawContent, locale);
   const t = storefrontMessages[locale];
@@ -75,6 +85,7 @@ export default async function Home() {
                     product={product}
                     pricing={context.pricing}
                     locale={locale}
+                    reviewSummary={reviewSummaries[product.id]}
                   />
                 ))}
             </div>

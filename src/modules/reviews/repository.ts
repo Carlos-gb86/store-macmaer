@@ -13,6 +13,31 @@ import {
   type Testimonial,
 } from "./schema";
 
+export type ProductReviewSummary = {
+  average: number;
+  count: number;
+};
+
+export type ProductReviewSummaries = Record<string, ProductReviewSummary>;
+
+export function summarizeProductReviews(
+  reviews: Pick<ProductReview, "product_id" | "rating">[],
+): ProductReviewSummaries {
+  const totals: Record<string, { count: number; total: number }> = {};
+  for (const review of reviews) {
+    const current = totals[review.product_id] ?? { count: 0, total: 0 };
+    current.count += 1;
+    current.total += review.rating;
+    totals[review.product_id] = current;
+  }
+  return Object.fromEntries(
+    Object.entries(totals).map(([productId, value]) => [
+      productId,
+      { average: value.total / value.count, count: value.count },
+    ]),
+  );
+}
+
 function emailHash(email: string) {
   const secret = getServerEnv().CUSTOMER_IDENTITY_HASH_SECRET;
   if (!secret) throw new Error("Review identity protection is not configured.");
@@ -55,6 +80,46 @@ export async function getProductReviews(productId: string) {
       }),
     );
     return [];
+  }
+}
+
+const readProductReviewSummaries = unstable_cache(
+  async (): Promise<ProductReviewSummaries> => {
+    const pageSize = 500;
+    const reviews: Pick<ProductReview, "product_id" | "rating">[] = [];
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await createPublicSupabaseClient()
+        .from("product_reviews")
+        .select("product_id,rating")
+        .eq("status", "APPROVED")
+        .order("product_id")
+        .order("id")
+        .range(from, from + pageSize - 1);
+      if (error) throw error;
+      reviews.push(...data);
+      if (data.length < pageSize) break;
+    }
+    return summarizeProductReviews(reviews);
+  },
+  ["public-product-review-summaries-v1"],
+  { revalidate: 60, tags: ["reviews"] },
+);
+
+export async function getProductReviewSummaries() {
+  if (getServerEnv().CATALOG_SOURCE === "demo") return {};
+  try {
+    return await readProductReviewSummaries();
+  } catch (error) {
+    console.error(
+      JSON.stringify({
+        event: "review_summaries_read_failed",
+        code:
+          error && typeof error === "object" && "code" in error
+            ? String(error.code)
+            : "unknown",
+      }),
+    );
+    return {};
   }
 }
 

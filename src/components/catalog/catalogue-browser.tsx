@@ -10,6 +10,7 @@ import {
 import type { ProductTypeChoice } from "@/modules/catalog/taxonomy";
 import type { PricingContext } from "@/modules/currency/schema";
 import type { StorefrontLocale } from "@/modules/i18n/config";
+import type { ProductReviewSummaries } from "@/modules/reviews/repository";
 import { storefrontMessages } from "@/modules/i18n/messages";
 import { ExternalArrow } from "@/components/ui/external-arrow";
 import { CatalogueControls } from "./catalogue-controls";
@@ -27,6 +28,7 @@ export function CatalogueBrowser({
   tags,
   pricing,
   locale,
+  reviewSummaries,
 }: {
   data: Catalogue;
   initialQuery: CatalogueQuery;
@@ -37,6 +39,7 @@ export function CatalogueBrowser({
   tags: Choice[];
   pricing: PricingContext;
   locale: StorefrontLocale;
+  reviewSummaries: ProductReviewSummaries;
 }) {
   const [query, setQuery] = useState(initialQuery);
   const deferredQuery = useDeferredValue(query);
@@ -93,6 +96,7 @@ export function CatalogueBrowser({
               pricing={pricing}
               priority={index < 2}
               locale={locale}
+              reviewSummary={reviewSummaries[product.id]}
             />
           ))}
         </div>

@@ -16,7 +16,10 @@ import {
 import { getServerEnv } from "@/lib/env/server";
 import { RichText } from "@/components/content/rich-text";
 import { CurrencySelector } from "@/components/currency/currency-selector";
-import { getProductReviews } from "@/modules/reviews/repository";
+import {
+  getProductReviews,
+  getProductReviewSummaries,
+} from "@/modules/reviews/repository";
 import { ProductReviews } from "@/components/reviews/product-reviews";
 import { JsonLd } from "@/components/seo/json-ld";
 import { absoluteAsset, siteUrl } from "@/modules/seo/site";
@@ -53,10 +56,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const [rawData, context, locale] = await Promise.all([
+  const [rawData, context, locale, reviewSummaries] = await Promise.all([
     getCatalogue(),
     getStorefrontContext(),
     getStorefrontLocale(),
+    getProductReviewSummaries(),
   ]);
   const data = localizeCatalogue(rawData, locale);
   const t = storefrontMessages[locale];
@@ -240,6 +244,7 @@ export default async function ProductPage({ params }: Props) {
                 product={product}
                 pricing={context.pricing}
                 locale={locale}
+                reviewSummary={reviewSummaries[product.id]}
               />
             ))}
           </div>

@@ -9,6 +9,7 @@ import {
 } from "@/modules/catalog/taxonomy";
 import type { PricingContext } from "@/modules/currency/schema";
 import type { StorefrontLocale } from "@/modules/i18n/config";
+import type { ProductReviewSummaries } from "@/modules/reviews/repository";
 import { CatalogueBrowser } from "./catalogue-browser";
 
 export function Catalogue({
@@ -17,12 +18,14 @@ export function Catalogue({
   pricing,
   collection,
   locale,
+  reviewSummaries,
 }: {
   data: CatalogueData;
   params: SearchParams;
   pricing: PricingContext;
   collection?: string;
   locale: StorefrontLocale;
+  reviewSummaries: ProductReviewSummaries;
 }) {
   const query = parseCatalogueQuery({
     ...params,
@@ -49,6 +52,7 @@ export function Catalogue({
       fixedCollection={collection}
       pricing={pricing}
       locale={locale}
+      reviewSummaries={reviewSummaries}
       collections={storefrontCollections(data.collections).map((item) => ({
         value: item.slug,
         label: item.name,

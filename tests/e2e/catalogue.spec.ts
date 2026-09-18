@@ -28,6 +28,23 @@ test("browse the public catalogue and use search and filters", async ({
   await search.pressSequentially("bouclé", { delay: 40 });
   await expect(search).toBeFocused();
   await expect(page.locator(".product-card")).toHaveCount(3);
+  const firstProductCard = page.locator(".product-card").first();
+  await expect(firstProductCard.locator(".product-card-rating")).toHaveCount(0);
+  await expect(firstProductCard).not.toContainText("Not yet reviewed");
+  const productImageBox = await firstProductCard
+    .locator(".product-card-image")
+    .boundingBox();
+  expect(
+    Math.abs((productImageBox?.width ?? 0) - (productImageBox?.height ?? 0)),
+  ).toBeLessThan(2);
+  expect(
+    await firstProductCard
+      .locator(".product-card-meta")
+      .evaluate((element) => getComputedStyle(element).flexDirection),
+  ).toBe((page.viewportSize()?.width ?? 0) <= 500 ? "column" : "row");
+  await expect(firstProductCard.locator(".product-card-action")).toHaveText(
+    /Customize|View product/,
+  );
   await expect(page).toHaveURL(/q=boucl%C3%A9/);
   await chooseOption(
     page,
