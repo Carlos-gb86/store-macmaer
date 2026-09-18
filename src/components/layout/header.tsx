@@ -9,6 +9,7 @@ import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { getCatalogue } from "@/modules/catalog/repository";
 import { localizeCollection } from "@/modules/i18n/localize";
 import { CollectionNavigation } from "./collection-navigation";
+import { MobileNavigation } from "./mobile-navigation";
 
 const fallbackCollections = {
   en: [
@@ -74,6 +75,21 @@ export async function Header({ locale }: { locale: StorefrontLocale }) {
         <div className="header-tools">
           <LanguageSwitcher locale={locale} />
           <MiniCart initialCart={cart} />
+          <MobileNavigation
+            collections={collections}
+            initialCartCount={cart.itemCount}
+            labels={{
+              navigation: t.navLabel,
+              open: t.openMenu,
+              close: t.closeMenu,
+              shop: t.shopAll,
+              collections: t.collections,
+              allCollections: t.allCollections,
+              about: t.aboutUs,
+              contact: t.contact,
+              cart: t.cart,
+            }}
+          />
         </div>
       </Container>
     </header>

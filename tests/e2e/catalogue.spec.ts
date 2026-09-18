@@ -18,17 +18,15 @@ test("browse the public catalogue and use search and filters", async ({
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "A softer",
   );
-  const mainNavigation = page.getByRole("navigation", {
-    name: "Main navigation",
-  });
-  const collectionsLink = mainNavigation.getByRole("link", {
-    name: "Collections",
-    exact: true,
-  });
-  await expect(collectionsLink).toHaveAttribute("href", "/collections");
-  const collectionMenu = mainNavigation.locator(".nav-dropdown-menu");
-  await expect(collectionMenu.locator("a")).toHaveCount(4);
   if (testInfo.project.name === "desktop") {
+    const mainNavigation = page.locator(".main-nav");
+    const collectionsLink = mainNavigation.getByRole("link", {
+      name: "Collections",
+      exact: true,
+    });
+    await expect(collectionsLink).toHaveAttribute("href", "/collections");
+    const collectionMenu = mainNavigation.locator(".nav-dropdown-menu");
+    await expect(collectionMenu.locator("a")).toHaveCount(4);
     await collectionsLink.hover();
     await expect(collectionMenu).toBeVisible();
     await expect(
@@ -40,6 +38,35 @@ test("browse the public catalogue and use search and filters", async ({
     await expect(page).toHaveURL(/\/collections\/velour$/);
     await expect(collectionMenu).toBeHidden();
     await page.goto("/");
+  } else {
+    await expect(page.locator(".main-nav")).toBeHidden();
+    const menuButton = page.getByRole("button", { name: "Open menu" });
+    await menuButton.click();
+    const mobileNavigation = page.getByRole("navigation", {
+      name: "Main navigation",
+    });
+    await expect(mobileNavigation).toBeVisible();
+    await expect(
+      mobileNavigation.getByRole("link", { name: "Cart", exact: true }),
+    ).toBeVisible();
+    const collectionsAccordion = mobileNavigation.getByRole("button", {
+      name: "Collections",
+      exact: true,
+    });
+    await expect(collectionsAccordion).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    await expect(
+      mobileNavigation.locator(".mobile-nav-category-links"),
+    ).toHaveCount(0);
+    await collectionsAccordion.click();
+    await expect(collectionsAccordion).toHaveAttribute("aria-expanded", "true");
+    await expect(
+      mobileNavigation.locator(".mobile-nav-category-links a"),
+    ).toHaveCount(4);
+    await page.getByRole("button", { name: "Close menu" }).click();
+    await expect(mobileNavigation).toBeHidden();
   }
   await page.waitForLoadState("networkidle");
   await page.screenshot({
@@ -82,6 +109,48 @@ test("browse the public catalogue and use search and filters", async ({
   await expect(
     page.getByRole("heading", { name: "No pieces found" }),
   ).toBeVisible();
+});
+test("switches cleanly to compact navigation at 800 pixels", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop");
+  await page.setViewportSize({ width: 801, height: 900 });
+  await page.goto("/");
+  const headerLogo = page.locator(".site-header .wordmark");
+  await expect(headerLogo).toBeVisible();
+  const desktopLogoWidth = await headerLogo.evaluate(
+    (element) => element.getBoundingClientRect().width,
+  );
+  await expect(page.locator(".main-nav")).toBeVisible();
+  await expect(page.locator(".mobile-menu-button")).toBeHidden();
+
+  await page.setViewportSize({ width: 800, height: 900 });
+  const compactLogoWidth = await headerLogo.evaluate(
+    (element) => element.getBoundingClientRect().width,
+  );
+  expect(compactLogoWidth).toBeLessThanOrEqual(desktopLogoWidth + 1);
+  await expect(page.locator(".main-nav")).toBeHidden();
+  await page.getByRole("button", { name: "Open menu" }).click();
+  const navigation = page.getByRole("navigation", {
+    name: "Main navigation",
+  });
+  await expect(navigation).toBeVisible();
+  await expect(
+    navigation.getByRole("link", { name: "Cart", exact: true }),
+  ).toHaveAttribute("href", "/cart");
+  await navigation
+    .getByRole("button", { name: "Collections", exact: true })
+    .click();
+  await expect(navigation.locator(".mobile-nav-category-links a")).toHaveCount(
+    4,
+  );
+  await page.screenshot({
+    path: testInfo.outputPath("compact-navigation.png"),
+    animations: "disabled",
+  });
+  await navigation.getByRole("link", { name: "About us" }).click();
+  await expect(page).toHaveURL(/\/about$/);
+  await expect(navigation).toBeHidden();
 });
 test("browse collections and enlarge a product image with keyboard dismissal", async ({
   page,
@@ -199,7 +268,7 @@ test("preview five repeated colours without a cart or payment flow", async ({
 });
 test("draft and unknown products are not public and pages fit the viewport", async ({
   page,
-}) => {
+}, testInfo) => {
   const response = await page.goto("/products/draft-sample");
   // App Router can stream a not-found boundary with HTTP 200; its UI must still hide draft data.
   expect([200, 404]).toContain(response?.status());
@@ -212,9 +281,14 @@ test("draft and unknown products are not public and pages fit the viewport", asy
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
-  await expect(
-    page.getByRole("navigation", { name: "Main navigation" }),
-  ).toBeVisible();
+  if (testInfo.project.name === "desktop") {
+    await expect(page.locator(".main-nav")).toBeVisible();
+  } else {
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(
+      page.getByRole("navigation", { name: "Main navigation" }),
+    ).toBeVisible();
+  }
 });
 
 test("footer social links and policy accordions are accessible", async ({

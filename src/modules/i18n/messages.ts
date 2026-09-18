@@ -5,6 +5,8 @@ const en = {
   sampleAnnouncement:
     "Sample catalogue · Illustrative products & prices · Ordering opens soon",
   navLabel: "Main navigation",
+  openMenu: "Open menu",
+  closeMenu: "Close menu",
   shopAll: "Shop all",
   collections: "Collections",
   aboutUs: "About us",
@@ -150,6 +152,8 @@ const sv: Record<keyof typeof en, string> = {
   sampleAnnouncement:
     "Exempelkatalog · Illustrativa produkter och priser · Beställning öppnar snart",
   navLabel: "Huvudmeny",
+  openMenu: "Öppna meny",
+  closeMenu: "Stäng meny",
   shopAll: "Handla allt",
   collections: "Kollektioner",
   aboutUs: "Om oss",
