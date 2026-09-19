@@ -17,6 +17,10 @@ export const publicEnvSchema = z.object({
 export const serverEnvSchema = publicEnvSchema
   .extend({
     CATALOG_SOURCE: z.enum(["demo", "supabase"]).default("supabase"),
+    UNDER_CONSTRUCTION: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     SUPABASE_SERVICE_ROLE_KEY: optionalText,
     STRIPE_SECRET_KEY: optionalText,
     STRIPE_WEBHOOK_SECRET: optionalText,

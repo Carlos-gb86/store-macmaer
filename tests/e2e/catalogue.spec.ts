@@ -291,7 +291,7 @@ test("draft and unknown products are not public and pages fit the viewport", asy
   }
 });
 
-test("footer social links and policy accordions are accessible", async ({
+test("footer social links remain accessible and policy pages show headings only", async ({
   page,
 }) => {
   await page.goto("/");
@@ -300,19 +300,39 @@ test("footer social links and policy accordions are accessible", async ({
       page.getByRole("link", { name: `Follow Macmaer on ${social}` }),
     ).toBeVisible();
 
-  await page.goto("/terms");
-  const sections = page.locator(".policy-accordion details");
-  await expect(sections).toHaveCount(7);
-  await expect(sections.first()).toHaveAttribute("open", "");
-  await sections.nth(1).locator("summary").click();
-  await expect(sections.nth(1)).toHaveAttribute("open", "");
-  await sections.first().locator("summary").click();
-  await expect(sections.first()).not.toHaveAttribute("open", "");
-  await expect(sections.nth(1)).toHaveAttribute("open", "");
-  await sections.last().locator("summary").click();
+  for (const [path, heading] of [
+    ["/terms", "Terms of Sale"],
+    ["/privacy", "Privacy"],
+    ["/shipping", "Shipping"],
+    ["/returns", "Returns & withdrawal"],
+    ["/customs", "VAT & customs"],
+  ] as const) {
+    await page.goto(path);
+    const policy = page.locator(".policy-heading-page");
+    await expect(policy.getByRole("heading", { level: 1 })).toHaveText(heading);
+    await expect(policy.locator(":scope > *")).toHaveCount(1);
+    await expect(page.locator(".policy-accordion")).toHaveCount(0);
+  }
+});
+
+test("under-construction page contains only its image and message", async ({
+  page,
+}) => {
+  await page.goto("/under-construction");
   await expect(
-    page.getByText("VAT registration number: SE820627434501"),
+    page.getByRole("heading", { name: "The page will be available soon." }),
   ).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: "White bouclé knot pillow" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link")).toHaveCount(0);
+  await expect(page.locator(".site-header, footer, .announcement")).toHaveCount(
+    0,
+  );
+  await page.screenshot({
+    path: test.info().outputPath("under-construction.png"),
+    fullPage: true,
+  });
 });
 
 test("uses a compact cart, product currency control, and contact page", async ({

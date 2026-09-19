@@ -45,9 +45,16 @@ describe("environment boundaries", () => {
   it("keeps checkout off by default and requires every payment secret when enabled", () => {
     const defaults = parseEnv(serverEnvSchema, { CATALOG_SOURCE: "demo" });
     expect(defaults.CHECKOUT_ENABLED).toBe(false);
+    expect(defaults.UNDER_CONSTRUCTION).toBe(false);
     expect(defaults.REFUNDS_ENABLED).toBe(false);
     expect(defaults.EMAIL_ENABLED).toBe(false);
     expect(defaults.SEO_INDEXING_ENABLED).toBe(false);
+    expect(
+      parseEnv(serverEnvSchema, {
+        CATALOG_SOURCE: "demo",
+        UNDER_CONSTRUCTION: "true",
+      }).UNDER_CONSTRUCTION,
+    ).toBe(true);
     expect(() =>
       parseEnv(serverEnvSchema, {
         CATALOG_SOURCE: "demo",

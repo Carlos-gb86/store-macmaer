@@ -43,6 +43,36 @@
 body {
   margin: 0;
 }
+.under-construction-page {
+  display: grid;
+  min-height: 100dvh;
+  place-content: center;
+  justify-items: center;
+  gap: clamp(28px, 5vw, 46px);
+  padding: 32px 20px;
+  text-align: center;
+}
+.under-construction-image {
+  position: relative;
+  width: min(390px, 72vw);
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  background: var(--color-panel);
+}
+.under-construction-image img {
+  object-position: center;
+}
+.under-construction-page h1 {
+  max-width: 680px;
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+}
+.policy-heading-page {
+  min-height: 48vh;
+}
+.policy-heading-page h1 {
+  margin: 0;
+}
 a {
   color: inherit;
   text-decoration: none;
