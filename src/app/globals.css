@@ -4,7 +4,8 @@
   --color-ink: #302e29;
   --color-muted: #69645c;
   --color-sand: #e8e1d7;
-  --color-olive: #555c47; */
+  --color-olive: #555c47; 
+  --color-white: #ffffff;*/
 
 @theme inline {
   /* MACMAER PALETTE: change these five values to test a new site identity. */
